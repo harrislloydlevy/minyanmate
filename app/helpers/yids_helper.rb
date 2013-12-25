@@ -1,0 +1,2 @@
+module YidsHelper
+end

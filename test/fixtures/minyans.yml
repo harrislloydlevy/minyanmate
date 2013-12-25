@@ -1,0 +1,46 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+city:
+  title: CBD Minyan
+  description: MyText 
+  sun: false
+  mon: true
+  tue: true
+  wed: true
+  thu: true
+  fri: false
+  sat: false
+
+izzy:
+  title: Erev Shabbos
+  description: MyText
+  sun: false
+  mon: false
+  tue: false
+  wed: false
+  thu: false
+  fri: true
+  sat: false
+
+invalid_recur:
+  title: Not Enough Dates
+  description: MyText
+  sun: false
+  mon: false
+  tue: false
+  wed: false
+  thu: false
+  fri: false
+  sat: false
+
+invalid_title:
+  title: 
+  description: MyText
+  sun: false
+  mon: false
+  tue: false
+  wed: false
+  thu: false
+  fri: false
+  sat: false
+

@@ -1,0 +1,36 @@
+<h1>Listing yids</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @yids.each do |yid| %>
+      <tr>
+        <td>
+        <% if yid == current_user %><strong><% end %>
+          <%= yid.name %>
+        <% if yid == current_user %></strong>(Current User)<% end %>
+        </td>
+        <td><%= yid.email %></td>
+        <td><%= yid.phone %></td>
+        <td><%= link_to 'Show', yid %></td>
+        <td><%= link_to 'Edit', edit_yid_path(yid) %></td>
+        <td><%= link_to 'Destroy', yid, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <td><%= link_to 'Login', yid_login_path(yid) %></td>
+      </tr>
+    <% end %>
+</table>
+
+<br>
+
+<%= link_to 'New Yid', new_yid_path %>

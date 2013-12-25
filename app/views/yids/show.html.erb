@@ -1,0 +1,19 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Name:</strong>
+  <%= @yid.name %>
+</p>
+
+<p>
+  <strong>Email:</strong>
+  <%= @yid.email %>
+</p>
+
+<p>
+  <strong>Phone:</strong>
+  <%= @yid.phone %>
+</p>
+
+<%= link_to 'Edit', edit_yid_path(@yid) %> |
+<%= link_to 'Back', yids_path %>

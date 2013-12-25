@@ -1,0 +1,2 @@
+module MinyansHelper
+end

@@ -1,0 +1,55 @@
+<%= form_for @minyan do |f| %>
+  <% if @minyan.errors.any? %>
+    <div id="error">
+      <h2> <%= pluralize(@minyan.errors.count, "error") %> prohibited this post
+           from being saved:</h2>
+      <ul>
+        <% @minyan.errors.full_messages.each do |e| %>
+          <li> <%= e %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <p>
+    <%= f.label :title %>
+    <%= f.text_field :title %>
+  </p>
+
+  <p>
+    <%= f.label :description %>
+    <%= f.text_area :description %>
+  </p>
+
+  <p>
+    <%= f.label :sunday %>
+    <%= f.check_box :sun %>
+  </p>
+  <p>
+    <%= f.label :monday %>
+    <%= f.check_box :mon %>
+  </p>
+  <p>
+    <%= f.label :tuesday %>
+    <%= f.check_box :tue %>
+  </p>
+  <p>
+    <%= f.label :wednesday %>
+    <%= f.check_box :wed %>
+  </p>
+  <p>
+    <%= f.label :thursday %>
+    <%= f.check_box :thu %>
+  </p>
+  <p>
+    <%= f.label :friday %>
+    <%= f.check_box :fri %>
+  </p>
+  <p>
+    <%= f.label :saturday %>
+    <%= f.check_box :sat %>
+  </p>
+  <p>
+    <%= f.submit %>
+  </p>
+<%end%>

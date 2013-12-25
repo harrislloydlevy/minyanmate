@@ -1,0 +1,90 @@
+<h1>Display Minyan</h1>
+
+  <% if @minyan_event && @minyan_event.errors.any? %>
+    <div id="error">
+      <h2> <%= pluralize(@minyan_event.errors.count, "error") %> prohibited this post
+           from being saved:</h2>
+      <ul>
+        <% @minyan_event.errors.full_messages.each do |e| %>
+          <li> <%= e %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <p>
+    <strong>Title:</strong>
+    <%= @minyan.title %>
+  </p>
+
+  <p>
+    <strong>Description:</strong>
+    <%= @minyan.description %>
+  </p>
+
+  <p>
+    <strong>Sunday:</strong>
+    <%= @minyan.sun %>
+  </p>
+
+  <p>
+    <strong>Monday:</strong>
+    <%= @minyan.mon %>
+  </p>
+
+  <p>
+    <strong>Tuesday:</strong>
+    <%= @minyan.tue %>
+  </p>
+
+  <p>
+    <strong>Wednesday:</strong>
+    <%= @minyan.wed %>
+  </p>
+
+  <p>
+    <strong>Thursday:</strong>
+    <%= @minyan.thu %>
+  </p>
+
+  <p>
+    <strong>Friday:</strong>
+    <%= @minyan.fri %>
+  </p>
+
+  <p>
+    <strong>Saturday:</strong>
+    <%= @minyan.sat %>
+  </p>
+
+  <h2>Events</h2>
+  <ul>
+  <% @minyan.upcoming(10).each do |event| %>
+    <li>
+      <%= event.date %>
+      <%= link_to "Delete Event",
+                  [event.minyan, event],
+                  method: :delete,
+                  data: { confirm: "Are you sure?" } %>
+      <%= link_to "Attend Event",
+                  minyan_minyan_event_attend_path(event.minyan, event),
+                  method: :post %>
+      <% if event.rsvps.count > 0 %>
+        <ul>
+          <% event.rsvps.each do |rsvp| %>
+            <li> <%= rsvp.yid.name %> </li>
+          <% end %>
+        </ul>
+      <% end %>
+    </li>
+  <% end %>
+  </ul>
+
+  <h2>Add an event</h2>
+  <%= form_for([@minyan, @minyan.minyan_events.build]) do |f| %>
+    <%= f.label :date %>
+    <%= f.date_field :date %>
+    <p><%= f.submit %>
+  <%end%>
+
+<%= link_to "Back", minyans_path %> | <%= link_to "Edit", edit_minyan_path(@minyan) %>
