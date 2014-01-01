@@ -16,6 +16,7 @@ MinyanMate::Application.routes.draw do
   #   resources :products
 
   resources :yids
+  get '/yids/suggest/:q' => 'yids#suggest', as: :suggest_search
   resources :minyans do
     resources :minyan_events do
       post 'attend' => :confirm_attend

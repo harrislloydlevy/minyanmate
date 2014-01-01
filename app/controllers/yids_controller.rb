@@ -16,6 +16,15 @@ class YidsController < ApplicationController
     @yids = Yid.all
   end
 
+  # GET /yid_suggest
+  # GET /yid_suggest.json
+  def suggest
+    # Search for everything based on name, email and phone
+    @yids = Yid.where(
+              "name like :q OR email like :q OR phone like :q",
+              {q: "%" + params[:q] + "%"}) 
+  end
+
   # GET /yids/1
   # GET /yids/1.json
   def show
@@ -69,6 +78,8 @@ class YidsController < ApplicationController
       format.json { head :no_content }
     end
   end
+
+  # GET /YIDS/.json
 
   private
     # Use callbacks to share common setup or constraints between actions.
