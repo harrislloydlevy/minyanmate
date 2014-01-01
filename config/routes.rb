@@ -1,5 +1,4 @@
 MinyanMate::Application.routes.draw do
-
   get "welcome/index"
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
@@ -17,7 +16,6 @@ MinyanMate::Application.routes.draw do
   #   resources :products
 
   resources :yids
-  get '/yids/:id/login' => 'yids#set_current_user', as: :yid_login
   resources :minyans do
     resources :minyan_events do
       post 'attend' => :confirm_attend
@@ -26,6 +24,13 @@ MinyanMate::Application.routes.draw do
 
   get '/MyMinyans/' => 'minyans#myminyans', as: :my_minyans
   get '/MyAttendance/' => 'minyan_events#my_events', as: :my_events
+
+  # Sessions to login and logout
+  #LEGACY: get '/yids/:id/login' => 'yids#set_current_user', as: :yid_login
+  match 'auth/:provider/callback', to: 'session#create', as: 'signin', via: [:get, :post]
+  match 'auth/failure', to: redirect('/'), via: [:get, :post]
+  match 'signout', to: 'session#destroy', as: 'signout', via: [:get, :post]
+  
 
   # Example resource route with options:
   #   resources :products do

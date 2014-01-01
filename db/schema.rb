@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20131225095653) do
+ActiveRecord::Schema.define(version: 20131229081702) do
 
   create_table "minyan_events", force: true do |t|
     t.date     "date"
@@ -63,6 +63,10 @@ ActiveRecord::Schema.define(version: 20131225095653) do
     t.string   "phone"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "provider"
+    t.string   "uid"
+    t.string   "oauth_token"
+    t.datetime "oauth_expires_at"
   end
 
 end
