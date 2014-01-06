@@ -19,6 +19,9 @@ MinyanMate::Application.routes.draw do
   get '/yids/suggest/:q' => 'yids#suggest', as: :suggest_search
   resources :minyans do
     resources :minyan_events do
+      # For adding new attendees
+      post 'add_rsvp' => :rsvp
+      # For confirming own attendance
       post 'attend' => :confirm_attend
     end
   end

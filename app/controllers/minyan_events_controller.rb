@@ -16,8 +16,7 @@ class MinyanEventsController < ApplicationController
 
   def confirm_attend
     if not current_user
-      errors << "You must be logged in before RSVP'ing"
-      redirect_to 'new_yid'
+      redirect_to 'new_yid', alert: "You must be logged in to RSVP."
     end
     
     @minyan = Minyan.find(params[:minyan_id])
@@ -26,6 +25,25 @@ class MinyanEventsController < ApplicationController
     @minyan_event.rsvps.create(yid: current_user)
 
     redirect_to minyan_path(@minyan)
+  end
+
+  def rsvp
+    @minyan_event = MinyanEvent.find(params[:minyan_event_id])
+    @rsvp = @minyan_event.rsvps.new(yid_id: params[:yid_id])
+
+    respond_to do |format| 
+      if @rsvp.save
+         format.js { } # Fallback to the minyan_events/rsvp.js.erb view
+         format.html { redirect_to minyan_path(@minyan_event.minyan),
+                       notice: 'RSVP Added' }
+         format.json {render json: @rsvp, status: :created, location: @rsvp }
+      else
+         format.js { } # Fallback to the minyan_events/rsvp.js.erb view
+         format.html { redirect_to minyan_path(@minyan_event.minyan),
+                       error: 'RSVP not added' }
+         format.json {render json: @rsvp.errors, status: :unprocessable_entity }
+      end
+    end 
   end
 
   private

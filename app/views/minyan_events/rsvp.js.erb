@@ -1,0 +1,2 @@
+// Add this rsvp to the list for the event. The id is always named rsvp_list<eventid>
+$("<%= escape_javascript(render @rsvp) %>").appendTo("#rsvp_list<%=@rsvp.minyan_event.id%>");
