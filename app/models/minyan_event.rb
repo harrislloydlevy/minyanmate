@@ -5,7 +5,9 @@ class MinyanEvent < ActiveRecord::Base
 
   validates :date, presence: :true
 
-  def confirm_attend(yid)
-    self.rsvps.create(yid: yid)
+  def in_attendance(yid)
+    self.yid_ids.include?(yid.id)
   end
+
+
 end

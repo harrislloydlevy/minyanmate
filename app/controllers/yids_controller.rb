@@ -19,10 +19,15 @@ class YidsController < ApplicationController
   # GET /yid_suggest
   # GET /yid_suggest.json
   def suggest
+    already_attending = MinyanEvent.find(params[:minyan_event]).yid_ids
     # Search for everything based on name, email and phone
+    # Exclude those already attending minyan.
+    # Note that includes the final array as text without SQL quoting is fine as
+    # user cannot manipulate those IDs which are guaranteed to be integers only.
     @yids = Yid.where(
-              "name like :q OR email like :q OR phone like :q",
-              {q: "%" + params[:q] + "%"}) 
+              "(name like :q OR email like :q OR phone like :q) AND " +
+              "id not in (" + already_attending.join(",") + ")",
+              {q: "%" + params[:q] + "%"})
   end
 
   # GET /yids/1

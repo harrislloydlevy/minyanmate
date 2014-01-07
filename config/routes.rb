@@ -16,13 +16,17 @@ MinyanMate::Application.routes.draw do
   #   resources :products
 
   resources :yids
-  get '/yids/suggest/:q' => 'yids#suggest', as: :suggest_search
+  get '/yid/suggest/:minyan_event/:q' => 'yids#suggest', as: :suggest_search
   resources :minyans do
     resources :minyan_events do
-      # For adding new attendees
+      # For adding arbitary new attendees
       post 'add_rsvp' => :rsvp
-      # For confirming own attendance
+      # For adding arbitary new attendees
+      post 'remove_rsvp' => :rsvp
+      # For cancelling own attendance
       post 'attend' => :confirm_attend
+      # For cancelling own attendance
+      post 'cancel' => :cancel_attend
     end
   end
 
