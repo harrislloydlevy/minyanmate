@@ -1,11 +1,12 @@
 class SessionController < ApplicationController
+  skip_before_action :require_login, only: [:create]
   def create
     yid = Yid.from_omniauth(env["omniauth.auth"])
 
     session[:yid_id] = yid.id
 
     redirect_to request.env['omniauth.origin'] || '/', :notice => "Signed in!"
-end
+  end
 
   def destroy
     session[:yid_id] = nil

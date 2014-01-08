@@ -33,6 +33,7 @@
   </th>
 </tr>
 <% @minyans.each do |m| %>
+  <% isOwner = (m.owner == current_user) %>
   <tr>
     <td>
       <%= m.title %>
@@ -62,10 +63,12 @@
       <%= m.sat %>
     </td>
     <td>
-      <%= link_to "Show", m %> |
+      <%= link_to "Show", m %>
+      <% if isOwner %>|
       <%= link_to "Edit", edit_minyan_path(m) %> |
       <%= link_to "Delete", minyan_path(m), method: :delete,
         data: {confirm: "Are you sure?"} %>
+      <% end %>
     </td>
   </tr>
 <% end %>

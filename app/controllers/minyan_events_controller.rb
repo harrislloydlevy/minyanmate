@@ -1,4 +1,8 @@
 class MinyanEventsController < ApplicationController
+  skip_before_action :require_login
+  before_action :confirm_owner
+  skip_before_action :confirm_owner only [:confirm_attend, :cancel_attend]
+
   def create
     @minyan = Minyan.find(params[:minyan_id])
     @minyan_event = @minyan.minyan_events.create(minyan_event_params)
@@ -65,5 +69,13 @@ class MinyanEventsController < ApplicationController
       params.require(:minyan_event).permit(
         :date,
       )
+    end
+
+    def confirm_owner
+      @minyan = Minyan.find(params[:minyan_id])
+      if @minyan.owner != current_user
+        redirect_to minyans_path,
+          flash: {error: 'Not your Minyan to edit.'}
+      end
     end
 end
