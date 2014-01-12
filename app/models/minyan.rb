@@ -60,4 +60,17 @@ class Minyan < ActiveRecord::Base
       (sat && date.saturday?)
     )
   end 
+
+  # Return an array of days on which the Minyans is held
+  def days
+    result = []
+    result << "Sunday" if sun
+    result << "Monday" if mon
+    result << "Tuesday" if tue
+    result << "Wednesday" if wed
+    result << "Thursday" if thu
+    result << "Friday" if fri
+    result << "Saturday" if sat
+    return result
+  end
 end
