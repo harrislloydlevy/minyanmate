@@ -37,6 +37,12 @@ gem 'omniauth-facebook'
 gem 'omniauth-google-oauth2'
 gem 'twitter-typeahead-rails'
 
+# Stuff to get the BootStrap luibrary to work.
+# using the version with 'less' support as well for cleaner CSS.
+gem "therubyracer"
+gem "less-rails" #Sprockets (what Rails 3.1 uses for its asset pipeline) supports LESS
+gem "twitter-bootstrap-rails"
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.1.2'
 

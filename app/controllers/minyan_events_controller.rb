@@ -1,7 +1,7 @@
 class MinyanEventsController < ApplicationController
   skip_before_action :require_login
   before_action :confirm_owner
-  skip_before_action :confirm_owner only [:confirm_attend, :cancel_attend]
+  skip_before_action :confirm_owner, only: [:confirm_attend, :cancel_attend]
 
   def create
     @minyan = Minyan.find(params[:minyan_id])

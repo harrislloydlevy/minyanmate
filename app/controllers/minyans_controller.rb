@@ -1,7 +1,13 @@
 class MinyansController < ApplicationController
   skip_before_action :require_login, only: [:index, :show]
   before_action :confirm_owner
-  skip_before_action :confirm_owner, only: [:index, :show, :confirm_attend, :cancel_attend]
+  skip_before_action :confirm_owner, only: [
+                                          :new,
+                                          :create,
+                                          :index,
+                                          :show,
+                                          :confirm_attend,
+                                          :cancel_attend]
 
   def new # Blank to create new
     @minyan = Minyan.new

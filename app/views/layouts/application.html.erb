@@ -7,13 +7,19 @@
 <%= csrf_meta_tags %>
 </head>
 <body>
-<%= link_to "My Minyans", my_minyans_path %> |
-<%= link_to "My Attendance", my_events_path %> |
-<% if current_user %>
-  Welcome <%= current_user.name %>
-  <%= link_to "Log Out", signout_path %>
-<% else %>
-  <%= link_to "Login With Google", "/auth/google_login"%>
+<%= nav_bar :brand => "MinyanMate", :responsive => true do %>
+  <% menu_group :pull => "right" do %>
+    <%= menu_item "Home", root_path %>
+    <% if current_user %>
+      <%= drop_down "Minyans" do %>
+        <%= menu_item "My Minyans", my_minyans_path %>
+        <%= menu_item "My Attendances", my_events_path %>
+        <%= menu_item "Log Out of " + current_user.name, signout_path %>
+      <% end %>
+    <% else %>
+      <%= menu_item "Login With Google", "/auth/google_login"%>
+    <% end %>
+  <% end %>
 <% end %>
 
 <% if flash[:error] -%>
