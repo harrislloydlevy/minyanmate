@@ -1,4 +1,4 @@
-source 'https://rubygems.org'
+source 'http://rubygems.org'
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.0.2'
@@ -39,10 +39,11 @@ gem 'twitter-typeahead-rails'
 
 # Stuff to get the BootStrap luibrary to work.
 # using the version with 'less' support as well for cleaner CSS.
-gem "therubyracer"
 gem "less-rails" #Sprockets (what Rails 3.1 uses for its asset pipeline) supports LESS
 gem "twitter-bootstrap-rails"
 gem "simple_form"
+gem "haml"
+gem "html2haml"
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.1.2'
