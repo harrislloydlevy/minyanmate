@@ -1,16 +1,18 @@
 <h1>Display Minyan</h1>
 
-  <% if @minyan_event && @minyan_event.errors.any? %>
+  <% if @minyan && @minyan.errors.any? %>
     <div id="error">
-      <h2> <%= pluralize(@minyan_event.errors.count, "error") %> prohibited this post
+      <h2> <%= pluralize(@minyan.errors.count, "error") %> prohibited this post
            from being saved:</h2>
       <ul>
-        <% @minyan_event.errors.full_messages.each do |e| %>
+        <% @minyan.errors.full_messages.each do |e| %>
           <li> <%= e %></li>
         <% end %>
       </ul>
     </div>
   <% end %>
+
+  <%= render "star", m: @minyan %>
 
   <p>
     <strong>Title:</strong>

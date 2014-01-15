@@ -18,6 +18,7 @@ MinyanMate::Application.routes.draw do
   resources :yids
   get '/yid/suggest/:minyan_event/:q' => 'yids#suggest', as: :suggest_search
   resources :minyans do
+    post "star" => :star
     resources :minyan_events do
       # For adding arbitary new attendees
       post 'add_rsvp' => :rsvp

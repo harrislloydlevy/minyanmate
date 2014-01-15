@@ -1,0 +1,7 @@
+- if @minyan.is_regular?(current_user)
+  $("#star_#{@minyan.id}").addClass('icon-star');
+  $("#star_#{@minyan.id}").removeClass('icon-star-empty');
+- else
+  $("#star_#{@minyan.id}").removeClass('icon-star');
+  $("#star_#{@minyan.id}").addClass('icon-star-empty');
+

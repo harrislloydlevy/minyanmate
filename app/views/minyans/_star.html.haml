@@ -1,0 +1,4 @@
+- if m.is_regular?(current_user) then class_text = "icon-star" end
+- if not m.is_regular?(current_user) then class_text = "icon-star-empty" end
+= link_to minyan_star_path(m), remote: true, method: :post do
+  %i{class: "#{class_text}", id: "star_#{m.id}"}

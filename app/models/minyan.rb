@@ -1,5 +1,7 @@
 class Minyan < ActiveRecord::Base
   has_many   :minyan_events, dependent: :destroy
+  has_many   :regulars
+  has_many   :yids, through: :regulars
   belongs_to :owner, class_name: "Yid"
 
   validates :title, presence: true,
@@ -64,13 +66,17 @@ class Minyan < ActiveRecord::Base
   # Return an array of days on which the Minyans is held
   def days
     result = []
-    result << "Sunday" if sun
-    result << "Monday" if mon
-    result << "Tuesday" if tue
-    result << "Wednesday" if wed
-    result << "Thursday" if thu
-    result << "Friday" if fri
-    result << "Saturday" if sat
+    result << "Sun" if sun
+    result << "Mon" if mon
+    result << "Tue" if tue
+    result << "Wed" if wed
+    result << "Thu" if thu
+    result << "Fri" if fri
+    result << "Sat" if sat
     return result
+  end
+
+  def is_regular?(yid)
+    yid && Regular.exists?(yid_id: yid.id, minyan_id: self.id)
   end
 end

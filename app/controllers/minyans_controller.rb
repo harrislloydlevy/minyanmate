@@ -6,6 +6,7 @@ class MinyansController < ApplicationController
                                           :create,
                                           :index,
                                           :show,
+                                          :star,
                                           :confirm_attend,
                                           :cancel_attend]
 
@@ -51,6 +52,24 @@ class MinyansController < ApplicationController
     @minyan.destroy
 
     redirect_to minyans_path
+  end
+
+  def star
+    # This action toggles whether the user is a follower of this minyan
+    @minyan = Minyan.find(params[:minyan_id])
+    if @minyan.is_regular?(current_user) then
+      @minyan.yids.delete(current_user)
+    else
+      @minyan.yids << current_user
+    end
+
+    respond_to do |format|
+      if @minyan.save
+        format.js { } # fallback. to star.js.haml
+      else
+        format.js { "star_error" }
+      end
+    end
   end
 
   private

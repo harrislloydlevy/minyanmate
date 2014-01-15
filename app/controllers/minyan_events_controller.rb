@@ -1,5 +1,5 @@
 class MinyanEventsController < ApplicationController
-  skip_before_action :require_login
+  before_action :require_login
   before_action :confirm_owner
   skip_before_action :confirm_owner, only: [:confirm_attend, :cancel_attend]
 
@@ -62,6 +62,12 @@ class MinyanEventsController < ApplicationController
          format.json {render json: @rsvp.errors, status: :unprocessable_entity }
       end
     end 
+  end
+
+  def star
+    if isregular(current_user) then
+    else
+    end
   end
 
   private
