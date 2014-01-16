@@ -44,6 +44,7 @@ gem "twitter-bootstrap-rails"
 gem "simple_form"
 gem "haml"
 gem "html2haml"
+gem "markdown"
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.1.2'
