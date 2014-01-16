@@ -9,6 +9,7 @@
       %thead
         %tr
           %th
+          %th
             Title
           %th
             Description
@@ -20,6 +21,8 @@
         - @minyans.each do |m|
           - isOwner = (m.owner == current_user)
           %tr
+            %td
+              = render "star", m: m
             %td
               = m.title
             %td
