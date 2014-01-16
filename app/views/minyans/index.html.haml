@@ -1,0 +1,38 @@
+.row
+  .span12
+    = link_to new_minyan_path, class: "btn" do
+      %i.icon-plus-sign.icon-white New Minyan
+.row-fluid
+  .span12
+    / <table class="table table-striped table-hover">
+    %table
+      %thead
+        %tr
+          %th
+            Title
+          %th
+            Description
+          %th
+            Days
+          %th
+            Actions
+      %tbody
+        - @minyans.each do |m|
+          - isOwner = (m.owner == current_user)
+          %tr
+            %td
+              = m.title
+            %td
+              = m.description
+            %td
+              = m.days.join(", ")
+            %td
+              = link_to m, class: "btn icon-eye-open" do
+                %span.hidden-phone Show
+              - if isOwner
+                = link_to edit_minyan_path(m), class: "btn icon-edit" do
+                  %span.hidden-phone Edit
+                = link_to minyan_path(m), method: :delete, |
+                  data: {confirm: "Are you sure?"},        |
+                  class:  "btn btn-danger icon-trash" do   |
+                  %span.hidden-phone Delete

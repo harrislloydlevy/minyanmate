@@ -1,0 +1,50 @@
+%h1 Display Minyan
+- if @minyan && @minyan.errors.any?
+  #error
+    %h2
+      = pluralize(@minyan.errors.count, "error")
+      prohibited this post
+      from being saved:
+    %ul
+      - @minyan.errors.full_messages.each do |e|
+        %li
+          = e
+= render "star", m: @minyan
+%p
+  %strong Title:
+  = @minyan.title
+%p
+  %strong Description:
+  = @minyan.description
+%p
+  %strong Sunday:
+  = @minyan.sun
+%p
+  %strong Monday:
+  = @minyan.mon
+%p
+  %strong Tuesday:
+  = @minyan.tue
+%p
+  %strong Wednesday:
+  = @minyan.wed
+%p
+  %strong Thursday:
+  = @minyan.thu
+%p
+  %strong Friday:
+  = @minyan.fri
+%p
+  %strong Saturday:
+  = @minyan.sat
+%h2 Events
+= render @minyan.upcoming(5)
+%ul
+%h2 Add an event
+= form_for([@minyan, @minyan.minyan_events.build]) do |f|
+  = f.label :date
+  = f.date_field :date
+  %p
+    = f.submit
+= link_to "Back", minyans_path
+| #{link_to "Edit", edit_minyan_path(@minyan)}

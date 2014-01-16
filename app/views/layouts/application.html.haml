@@ -1,0 +1,21 @@
+!!!
+%html{:lang => "en"}
+  %head
+    / Used by Bootsrap CSS framework for zooming on mobiles.
+    %meta{:content => "width=device-width, initial-scale=1.0", :name => "viewport"}/
+    %title MinyanMate
+    = stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true
+    = javascript_include_tag "application", "data-turbolinks-track" => true
+    = csrf_meta_tags
+  %body
+    %header.row-fluid
+      = render "layouts/navigation"
+    %main.container{:role => "main"}
+      = yield
+    %footer.container
+      .row-fluid
+        .span6
+          Copyright Harris Lloyd-Levy 2014
+        .span6
+          Made with the help of lots of open-source software, that I will all name
+          in a later version.

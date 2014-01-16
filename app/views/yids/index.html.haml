@@ -1,0 +1,27 @@
+%h1 Listing yids
+%table
+  %thead
+    %tr
+      %th Name
+      %th Email
+      %th Phone
+      %th
+      %th
+      %th
+      %th
+  %tbody
+    - @yids.each do |yid|
+      %tr
+        %td
+          - if yid == current_user
+            %strong/
+          = yid.name
+          - if yid == current_user
+            (Current User)
+        %td= yid.email
+        %td= yid.phone
+        %td= link_to 'Show', yid
+        %td= link_to 'Edit', edit_yid_path(yid)
+        %td= link_to 'Destroy', yid, method: :delete, data: { confirm: 'Are you sure?' }
+%br/
+= link_to 'New Yid', new_yid_path
