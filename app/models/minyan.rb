@@ -5,7 +5,7 @@ class Minyan < ActiveRecord::Base
   belongs_to :owner, class_name: "Yid"
 
   validates :title, presence: true,
-                    length: {minimum: 5}
+    length: {minimum: 5}
 
   validate :has_recurrence?
 
@@ -13,7 +13,7 @@ class Minyan < ActiveRecord::Base
   def has_recurrence?
     if not (sun || mon || tue || wed || thu || fri || sat)
       errors.add(:mon, "Minyan must have at least one regular day. " +
-                       "Sorry, more complicated recurrence not supported.")
+                 "Sorry, more complicated recurrence not supported.")
     end
   end
 
