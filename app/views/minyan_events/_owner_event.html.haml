@@ -1,0 +1,37 @@
+.event
+  Minyan on #{event.date}
+  %div{:id => "rsvp_list#{event.id}"}
+    = render event.rsvps
+  = link_to "Cancel Event",              |
+      [event.minyan, event], |
+      method: :delete,                     |
+      data: { confirm: "Are you sure?" }   |
+  /Start adding new attendeed
+  /  http://blog.brettjackson.org/post/55134095666/autocomplete-in-rails-with-typeahead-js
+  = form_tag minyan_minyan_event_add_rsvp_path(event.minyan, event), |
+    method: :post, remote: :true do                                                |
+    / Set by the onSelected callback for the typeahead JS object below.
+    = hidden_field_tag "yid_id"
+    %input.typeahead{:autocomplete => "off", :id => "yidTypeAhead#{event.id}", :type => "text"}/
+    / Need to work out how to move this out of being repeated for each item
+    :javascript
+      $('#yidTypeAhead#{event.id}').typeahead([{
+        name: 'yid#{event.id}',
+        valueKey: 'name',
+        remote: {url: '/yid/suggest/#{event.id}/%QUERY.json',
+                 cache: false},
+        template: formatYid
+      }]).on('typeahead:selected', onSelected);
+      function onSelected($e, datum) {
+        console.log("Selected");
+        console.log(datum);
+        console.log (this.form.elements);
+        var yidField = this.form.elements['yid_id'];
+        console.log(datum.id);
+        yidField.value = datum.id;
+      }
+      function formatYid(datum) {
+        return datum.name + " | " + datum.email + " | " + datum.phone;
+      }
+    %button.btn{type: :submit}
+      %i.icon-plus Add Attendee

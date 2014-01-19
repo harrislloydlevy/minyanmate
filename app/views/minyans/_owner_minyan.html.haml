@@ -1,0 +1,7 @@
+.minyan
+  .minyan_title= minyan.title
+  .events
+    =render                                     |
+      partial: "minyan_events/owner_event",     |
+      collection: minyan.upcoming(5),           |
+      as: :event

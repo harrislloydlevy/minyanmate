@@ -7,6 +7,7 @@ class MinyansController < ApplicationController
                                           :index,
                                           :show,
                                           :star,
+                                          :myminyans,
                                           :confirm_attend,
                                           :cancel_attend]
 
@@ -16,6 +17,10 @@ class MinyansController < ApplicationController
 
   def index
     @minyans = Minyan.all
+  end
+
+  def myminyans
+    @minyans = Minyan.where(owner: current_user)
   end
 
   def create # Submit of new to actuall create
