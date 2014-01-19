@@ -1,6 +1,6 @@
-class CreateMinyanEvents < ActiveRecord::Migration
+class CreateEvents < ActiveRecord::Migration
   def change
-    create_table :minyan_events do |t|
+    create_table :events do |t|
       t.date :date
       t.references :minyan, index: true
 

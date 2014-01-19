@@ -1,4 +1,4 @@
-class MinyanEvent < ActiveRecord::Base
+class Event < ActiveRecord::Base
   belongs_to :minyan
   has_many :rsvps, dependent: :destroy
   has_many :yids, through: :rsvps

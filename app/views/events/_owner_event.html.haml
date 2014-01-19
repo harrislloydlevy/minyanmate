@@ -8,7 +8,7 @@
       data: { confirm: "Are you sure?" }   |
   /Start adding new attendeed
   /  http://blog.brettjackson.org/post/55134095666/autocomplete-in-rails-with-typeahead-js
-  = form_tag minyan_minyan_event_add_rsvp_path(event.minyan, event), |
+  = form_tag minyan_event_add_rsvp_path(event.minyan, event), |
     method: :post, remote: :true do                                                |
     / Set by the onSelected callback for the typeahead JS object below.
     = hidden_field_tag "yid_id"

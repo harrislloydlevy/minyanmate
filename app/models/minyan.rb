@@ -1,5 +1,5 @@
 class Minyan < ActiveRecord::Base
-  has_many   :minyan_events, dependent: :destroy
+  has_many   :events, dependent: :destroy
   has_many   :regulars
   has_many   :yids, through: :regulars
   belongs_to :owner, class_name: "Yid"
@@ -23,9 +23,9 @@ class Minyan < ActiveRecord::Base
   end
 
   def event_for_date(date)
-    event = minyan_events.find_by_date(date)
+    event = events.find_by_date(date)
     if not event
-      event = minyan_events.create(date: date)
+      event = events.create(date: date)
     end
 
     return event

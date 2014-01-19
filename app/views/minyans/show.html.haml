@@ -41,7 +41,7 @@
 = render @minyan.upcoming(5)
 %ul
 %h2 Add an event
-= form_for([@minyan, @minyan.minyan_events.build]) do |f|
+= form_for([@minyan, @minyan.events.build]) do |f|
   = f.label :date
   = f.date_field :date
   %p

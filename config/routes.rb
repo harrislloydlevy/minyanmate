@@ -19,10 +19,10 @@ MinyanMate::Application.routes.draw do
   #   resources :products
 
   resources :yids
-  get '/yid/suggest/:minyan_event/:q' => 'yids#suggest', as: :suggest_search
+  get '/yid/suggest/:event/:q' => 'yids#suggest', as: :suggest_search
   resources :minyans do
     post "star" => :star
-    resources :minyan_events do
+    resources :events do
       # For adding arbitary new attendees
       post 'add_rsvp' => :rsvp
       # For adding arbitary new attendees
@@ -35,7 +35,7 @@ MinyanMate::Application.routes.draw do
   end
 
   get '/MyMinyans/' => 'minyans#myminyans', as: :my_minyans
-  get '/MyAttendance/' => 'minyan_events#my_events', as: :my_events
+  get '/MyAttendance/' => 'events#my_events', as: :my_events
 
   # Sessions to login and logout
   #LEGACY: get '/yids/:id/login' => 'yids#set_current_user', as: :yid_login

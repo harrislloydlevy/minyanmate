@@ -1,39 +1,39 @@
 %li
-  - isOwner = (minyan_event.minyan.owner == current_user)
-  = minyan_event.date
-  %ul{:id => "rsvp_list#{minyan_event.id}"}
-    = render minyan_event.rsvps
+  :q
+  = event.date
+  %ul{:id => "rsvp_list#{event.id}"}
+    = render event.rsvps
   - if isOwner
     = link_to "Delete Event",              |
-      [minyan_event.minyan, minyan_event], |
+      [event.minyan, event], |
       method: :delete,                     |
       data: { confirm: "Are you sure?" }   |
   /
     Show attend link if not currently attending, cancel link otherwise
     but do neither if not logged in.
-  - if current_user && minyan_event.in_attendance(current_user)
+  - if current_user && event.in_attendance(current_user)
     = link_to "Cancel Attendence",                                        |
-      minyan_minyan_event_cancel_path(minyan_event.minyan, minyan_event), |
+      minyan_event_cancel_path(event.minyan, event), |
       method: :post                                                       |
   - elsif current_user
     = link_to "Attend Event",                                             |
-      minyan_minyan_event_attend_path(minyan_event.minyan, minyan_event), |
+      minyan_event_attend_path(event.minyan, event), |
       method: :post                                                       |
   /
     Start adding new attendeed
     http://blog.brettjackson.org/post/55134095666/autocomplete-in-rails-with-typeahead-js
   - if isOwner
-    = form_tag minyan_minyan_event_add_rsvp_path(minyan_event.minyan, minyan_event), |
+    = form_tag minyan_event_add_rsvp_path(event.minyan, event), |
       method: :post, remote: :true do                                                |
       / Set by the onSelected callback for the typeahead JS object below.
       = hidden_field_tag "yid_id"
-      %input.typeahead{:autocomplete => "off", :id => "yidTypeAhead#{minyan_event.id}", :type => "text"}/
+      %input.typeahead{:autocomplete => "off", :id => "yidTypeAhead#{event.id}", :type => "text"}/
       / Need to work out how to move this out of being repeated for each item
       :javascript
-        $('#yidTypeAhead#{minyan_event.id}').typeahead([{
-          name: 'yid#{minyan_event.id}',
+        $('#yidTypeAhead#{event.id}').typeahead([{
+          name: 'yid#{event.id}',
           valueKey: 'name',
-          remote: {url: '/yid/suggest/#{minyan_event.id}/%QUERY.json',
+          remote: {url: '/yid/suggest/#{event.id}/%QUERY.json',
                    cache: false},
           template: formatYid
         }]).on('typeahead:selected', onSelected);

@@ -1,6 +1,6 @@
 class Yid < ActiveRecord::Base
   has_many :rsvps
-  has_many :minyan_events, through: :rsvps
+  has_many :events, through: :rsvps
   has_many :regulars
   has_many :minyans, through: :regulars
   has_many :owns, foreign_key: :owner_id, class_name: "Minyan"
