@@ -38,10 +38,9 @@ MinyanMate::Application.routes.draw do
   get '/MyAttendance/' => 'events#my_events', as: :my_events
 
   # Sessions to login and logout
-  #LEGACY: get '/yids/:id/login' => 'yids#set_current_user', as: :yid_login
-  match 'auth/:provider/callback', to: 'session#create', as: 'signin', via: [:get, :post]
+  match 'auth/:provider/callback', to: 'sessions#login', as: 'signin', via: [:get, :post]
   match 'auth/failure', to: redirect('/'), via: [:get, :post]
-  match 'signout', to: 'session#destroy', as: 'signout', via: [:get, :post]
+  match 'signout', to: 'sessions#logout', as: 'signout', via: [:get, :post]
   
 
   # Example resource route with options:

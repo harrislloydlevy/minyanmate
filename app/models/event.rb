@@ -9,5 +9,9 @@ class Event < ActiveRecord::Base
     self.yid_ids.include?(yid.id)
   end
 
-
+  def attend(yid)
+    if not in_attendance(yid)
+      self.yids << yid
+    end
+  end
 end

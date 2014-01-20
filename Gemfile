@@ -45,6 +45,7 @@ gem "simple_form"
 gem "haml"
 gem "html2haml"
 gem "markdown"
+gem 'simplecov', :require => false, :group => :test
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.1.2'
@@ -57,3 +58,4 @@ gem "markdown"
 
 # Use debugger
 gem 'debugger', group: [:development, :test]
+gem 'awesome_print', group: [:development, :test]

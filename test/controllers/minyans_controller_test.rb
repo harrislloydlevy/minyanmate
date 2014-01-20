@@ -3,6 +3,8 @@ require 'test_helper'
 class MinyansControllerTest < ActionController::TestCase
   setup do
     @minyan = minyans(:city)
+
+    
   end
   
   test "should get index" do

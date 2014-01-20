@@ -1,9 +1,9 @@
 require 'test_helper'
 
 class MinyanTest < ActiveSupport::TestCase
-  # test "the truth" do
-  #   assert true
-  # end
+  test "the truth" do
+    assert true
+  end
 
   test "next minyan" do
     minyan = minyans(:city)
@@ -47,18 +47,19 @@ class MinyanTest < ActiveSupport::TestCase
 
     # RSVP for the next 10 upcoming minyans
     minyan.upcoming(10).each do |event|
-      event.confirm_attend(yid)
+      event.attend(yid)
     end
 
     # Assert that we have a record of attendance by this yid for each of the next
     # 10 events.
     minyan.upcoming(10).each do |event|
+      assert event.in_attendance(yid)
       assert_not_nil event.rsvps.find_by(yid: yid)
     end
 
     # Now make sure double attending doesn't make a difference
     assert_no_difference('Rsvp.count') do
-      minyan.events[0].confirm_attend(yid)
+      minyan.events[0].attend(yid)
     end
   end
 end 

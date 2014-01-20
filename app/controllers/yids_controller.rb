@@ -1,15 +1,6 @@
 class YidsController < ApplicationController
   before_action :set_yid, only: [:show, :edit, :update, :destroy, :set_current_user]
 
-  # Login as this user
-  def set_current_user
-    session[:current_user_id] = @yid.id
-    respond_to do |format|
-      format.html { redirect_to yids_url }
-      format.json { head :no_content }
-    end
-  end
-
   # GET /yids
   # GET /yids.json
   def index

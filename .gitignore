@@ -17,3 +17,5 @@
 .*
 *~
 *.swp
+# Ignore generated coverage report
+/coverage

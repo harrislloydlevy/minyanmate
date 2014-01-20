@@ -1,3 +1,23 @@
+require 'date'
+require 'awesome_print'
+require 'simplecov'
+SimpleCov.start 'rails'
+
+# Set OmniAuth into test mode
+OmniAuth.config.test_mode = true
+
+# Set the user that you will log in as using OmniAuth
+OmniAuth.config.mock_auth[:google] = OmniAuth::AuthHash.new({
+  :provider => 'google',
+  :uid => '123545',
+  :credentials => {
+    :token => "abcdef",
+    :expires_at => (DateTime.now + 14).to_time},
+  :info => {
+    :email => 'from_omni@auth.org',
+    :name => 'From Omni Auth' }
+})
+
 ENV["RAILS_ENV"] ||= "test"
 require File.expand_path('../../config/environment', __FILE__)
 require 'rails/test_help'
