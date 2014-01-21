@@ -18,6 +18,10 @@ OmniAuth.config.mock_auth[:google] = OmniAuth::AuthHash.new({
     :name => 'From Omni Auth' }
 })
 
+def fake_login(yid)
+  session[:yid_id] = yid.id
+end
+
 ENV["RAILS_ENV"] ||= "test"
 require File.expand_path('../../config/environment', __FILE__)
 require 'rails/test_help'

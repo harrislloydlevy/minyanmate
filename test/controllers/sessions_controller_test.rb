@@ -4,7 +4,6 @@ class SessionsControllerTest < ActionController::TestCase
   test "should login new user" do
     assert_difference('Yid.count') do
       request.env['omniauth.auth'] = OmniAuth.config.mock_auth[:google]
-
       post :login, provider: :google
       # Code in test_helper has setup ominiauth to return generic new user name
       # "Omni Auth"

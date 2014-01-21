@@ -1,5 +1,10 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
+one:
+  name: Yid One
+  email: obi_yid_own@tattoine.org
+  phone: 352353253
+
 omni_login_yid:
   name: Pre-Existing Omni
   email: original@omni.org

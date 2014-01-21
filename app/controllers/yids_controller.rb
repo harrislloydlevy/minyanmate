@@ -1,5 +1,7 @@
 class YidsController < ApplicationController
   before_action :set_yid, only: [:show, :edit, :update, :destroy, :set_current_user]
+  before_action :require_login, except: [:index, :suggest, :show]
+  before_action :is_current_user, except: [:index, :suggest, :show]
 
   # GET /yids
   # GET /yids.json
@@ -26,29 +28,8 @@ class YidsController < ApplicationController
   def show
   end
 
-  # GET /yids/new
-  def new
-    @yid = Yid.new
-  end
-
   # GET /yids/1/edit
   def edit
-  end
-
-  # POST /yids
-  # POST /yids.json
-  def create
-    @yid = Yid.new(yid_params)
-
-    respond_to do |format|
-      if @yid.save
-        format.html { redirect_to @yid, notice: 'Yid was successfully created.' }
-        format.json { render action: 'show', status: :created, location: @yid }
-      else
-        format.html { render action: 'new' }
-        format.json { render json: @yid.errors, status: :unprocessable_entity }
-      end
-    end
   end
 
   # PATCH/PUT /yids/1
@@ -86,5 +67,13 @@ class YidsController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def yid_params
       params.require(:yid).permit(:name, :email, :phone)
+    end
+
+    def is_current_user
+      if not (current_user.id == @yid.id)
+       redirect_to yids_path,
+         flash: {error: 'You cannot change other Yids through web sites. Maybe try Chesed?'}
+      end
+
     end
 end
