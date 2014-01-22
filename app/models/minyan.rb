@@ -17,11 +17,6 @@ class Minyan < ActiveRecord::Base
     end
   end
 
-  def confirm_attend_date(yid, date)
-    event = event_for_date(date)
-    event.rsvps.create(yid: yid)
-  end
-
   def event_for_date(date)
     event = events.find_by_date(date)
     if not event

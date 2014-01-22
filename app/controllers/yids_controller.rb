@@ -1,6 +1,6 @@
 class YidsController < ApplicationController
   before_action :set_yid, only: [:show, :edit, :update, :destroy, :set_current_user]
-  before_action :require_login, except: [:index, :suggest, :show]
+  before_action :require_login, except: [:index, :show]
   before_action :is_current_user, except: [:index, :suggest, :show]
 
   # GET /yids
