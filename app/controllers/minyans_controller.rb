@@ -94,7 +94,7 @@ class MinyansController < ApplicationController
     def confirm_owner 
       @minyan = Minyan.find(params[:id])
       if current_user != @minyan.owner
-        redirect_to minyans_path,
+        redirect_to root_path,
                   flash: {error: 'Not your Minyan to edit.'}
         return
       end

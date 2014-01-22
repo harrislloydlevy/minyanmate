@@ -3,8 +3,7 @@ require 'test_helper'
 class MinyansControllerTest < ActionController::TestCase
   setup do
     @minyan = minyans(:city)
-
-    
+    fake_login(yids(:omni_login_yid))
   end
   
   test "should get index" do
@@ -62,6 +61,24 @@ class MinyansControllerTest < ActionController::TestCase
     assert_redirected_to minyan_path(assigns(:minyan))
   end
 
+  test "should fail update minyan" do
+    # Login as yid who does not own minyan
+    fake_login(yids(:two))
+    patch :update, id: @minyan,
+      minyan: {
+          title: @minyan.title,
+          description: @minyan.description,
+          sun: @minyan.sun,
+          mon: @minyan.mon,
+          tue: @minyan.tue,
+          wed: @minyan.wed,
+          thu: @minyan.thu,
+          fri: @minyan.fri,
+          sat: @minyan.sat
+        }
+    assert_redirected_to root_path()
+  end
+
   test "should destroy minyan" do
     assert_difference('Minyan.count', -1) do
       delete :destroy, id: @minyan
@@ -103,4 +120,5 @@ class MinyansControllerTest < ActionController::TestCase
     end
     assert_response :success
   end
+
 end

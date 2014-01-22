@@ -1,16 +1,7 @@
 %li
-  :q
   = event.date
   %ul{:id => "rsvp_list#{event.id}"}
     = render event.rsvps
-  - if isOwner
-    = link_to "Delete Event",              |
-      [event.minyan, event], |
-      method: :delete,                     |
-      data: { confirm: "Are you sure?" }   |
-  /
-    Show attend link if not currently attending, cancel link otherwise
-    but do neither if not logged in.
   - if current_user && event.in_attendance(current_user)
     = link_to "Cancel Attendence",                                        |
       minyan_event_cancel_path(event.minyan, event), |
@@ -19,35 +10,3 @@
     = link_to "Attend Event",                                             |
       minyan_event_attend_path(event.minyan, event), |
       method: :post                                                       |
-  /
-    Start adding new attendeed
-    http://blog.brettjackson.org/post/55134095666/autocomplete-in-rails-with-typeahead-js
-  - if isOwner
-    = form_tag minyan_event_add_rsvp_path(event.minyan, event), |
-      method: :post, remote: :true do                                                |
-      / Set by the onSelected callback for the typeahead JS object below.
-      = hidden_field_tag "yid_id"
-      %input.typeahead{:autocomplete => "off", :id => "yidTypeAhead#{event.id}", :type => "text"}/
-      / Need to work out how to move this out of being repeated for each item
-      :javascript
-        $('#yidTypeAhead#{event.id}').typeahead([{
-          name: 'yid#{event.id}',
-          valueKey: 'name',
-          remote: {url: '/yid/suggest/#{event.id}/%QUERY.json',
-                   cache: false},
-          template: formatYid
-        }]).on('typeahead:selected', onSelected);
-        function onSelected($e, datum) {
-          console.log("Selected");
-          console.log(datum);
-          console.log (this.form.elements);
-          var yidField = this.form.elements['yid_id'];
-          console.log(datum.id);
-          yidField.value = datum.id;
-        }
-        function formatYid(datum) {
-          return datum.name + " | " + datum.email + " | " + datum.phone;
-        }
-      = submit_tag
-    / isOwner
-  / End for form

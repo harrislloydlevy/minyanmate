@@ -10,6 +10,7 @@ city:
   thu: true
   fri: false
   sat: false
+  owner: :omni_login_yid
 
 izzy:
   title: Erev Shabbos
