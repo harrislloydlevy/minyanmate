@@ -61,6 +61,38 @@ class MinyansControllerTest < ActionController::TestCase
     assert_redirected_to minyan_path(assigns(:minyan))
   end
 
+  test "should fail update" do
+    patch :update, id: @minyan,
+      minyan: {
+          title: @minyan.title,
+          description: @minyan.description,
+          sun: false,
+          mon: false,
+          tue: false,
+          wed: false,
+          thu: false,
+          fri: false,
+          sat: false
+        }
+    assert_template("edit")
+  end
+
+  test "star_minyan" do
+    yid = yids(:one)
+
+    assert_difference('Regular.count') do
+      # Test first star adds as regular
+      post :star, minyan_id: @minyan.id, format: :js
+      assert_response(:success)
+    end
+
+    assert_difference('Regular.count', -1) do
+    # Test second start removes
+    post :star, minyan_id: @minyan.id, format: :js
+    assert_response(:success)
+    end
+    end
+
   test "should fail update minyan" do
     # Login as yid who does not own minyan
     fake_login(yids(:two))
@@ -77,6 +109,12 @@ class MinyansControllerTest < ActionController::TestCase
           sat: @minyan.sat
         }
     assert_redirected_to root_path()
+  end
+
+  test "my minyans" do
+    fake_login(yids(:two))
+    post :myminyans
+    assert_response(:success)
   end
 
   test "should destroy minyan" do

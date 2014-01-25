@@ -68,12 +68,9 @@ class MinyansController < ApplicationController
       @minyan.yids << current_user
     end
 
+    @minyan.save!
     respond_to do |format|
-      if @minyan.save
-        format.js { } # fallback. to star.js.haml
-      else
-        format.js { "star_error" }
-      end
+      format.js { } # fallback. to star.js.haml
     end
   end
 

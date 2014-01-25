@@ -14,4 +14,12 @@ class Event < ActiveRecord::Base
       self.yids << yid
     end
   end
+
+  def minyan?
+    num_rsvps >= 10
+  end
+
+  def num_rsvps
+    self.yid.count
+  end
 end

@@ -1,11 +1,17 @@
 .event
-  Minyan on #{event.date}
+  Minyan on #{event.date.to_formatted_s(:long_ordinal)}
+  = link_to minyan_event_message_path(event.minyan, event) do
+    %i{:class=>"btn icon-mail"}
+      %span.hidden-phone EMail Attendees
+  = link_to minyan_event_message_path(event.minyan, event) do
+    %i{:class=>"btn icon-envelope"}
+      %span.hidden-phone EMail Attendees
+  = link_to "Cancel Event",              |
+      [event.minyan, event],             |
+      method: :delete,                   |
+      data: { confirm: "Are you sure?" }
   %div{:id => "rsvp_list#{event.id}"}
     = render event.rsvps
-  = link_to "Cancel Event",              |
-      [event.minyan, event], |
-      method: :delete,                     |
-      data: { confirm: "Are you sure?" }   |
   /Start adding new attendeed
   /  http://blog.brettjackson.org/post/55134095666/autocomplete-in-rails-with-typeahead-js
   = form_tag minyan_event_add_rsvp_path(event.minyan, event), |

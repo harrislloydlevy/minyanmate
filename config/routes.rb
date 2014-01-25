@@ -31,6 +31,9 @@ MinyanMate::Application.routes.draw do
       post 'attend' => :confirm_attend
       # For cancelling own attendance
       post 'cancel' => :cancel_attend
+      # For UI to message 
+      get 'message' => :edit_message
+      post 'message' => :post_message
     end
   end
 
