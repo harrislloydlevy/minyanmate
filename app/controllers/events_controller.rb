@@ -31,6 +31,16 @@ class EventsController < ApplicationController
     redirect_to minyan_path(@minyan)
   end
 
+  def rm_rsvp
+    @event = Event.find(params[:event_id])
+    Rsvp.delete_all(:event_id => @event.id, :yid_id => params[:yid_id])
+
+    respond_to do |format|
+      # Update the whole event with the post RSVP js
+      format.js {render "events/update"}
+    end
+  end
+
   def cancel_attend
     if not current_user
       redirect_to 'new_yid', alert: "You must be logged in to RSVP."

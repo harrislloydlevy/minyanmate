@@ -1,2 +1,5 @@
 %li
   = rsvp.yid.name
+  = link_to minyan_event_remove_rsvp_path(rsvp.event.minyan, rsvp.event, rsvp.yid), |
+      :method => :post, :remote => true  do                                  |
+    %i.glyphicon.glyphicon-remove

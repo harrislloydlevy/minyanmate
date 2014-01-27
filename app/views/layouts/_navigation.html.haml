@@ -1,11 +1,28 @@
-= nav_bar :brand => "MinyanMate", :responsive => true do
-  - menu_group :pull => "right" do
-    = menu_item "Home", root_path
-    - if current_user
-      = drop_down "Minyans" do
-        = menu_item "My Minyans", my_minyans_path
-        = menu_item "My Attendances", my_events_path
-        = menu_item "Log Out of " + current_user.name, signout_path
-    - else
-      = menu_item "Login With Google", "/auth/google_login"
-= bootstrap_flash
+%nav.navbar.navbar-default.navbar-fixed-top{ :role => "navigation"}
+  .navbar-header
+    %button.navbar-toggle{ :type => "button", "data-toggle" => "collapse", "data-target" => "#mm-navbar-collapse"}
+      %span.sr-only
+        Toggle Navigation
+      %span.icon-bar
+      %span.icon-bar
+      %span.icon-bar
+    %a.navbar-brand{ :href => "/"} MinyanMate
+  .collapse.navbar-collapse{ :id => "mm-navbar-collapse"}
+    %ul.nav.navbar-nav.navbar-right
+      - if current_user
+        %li
+          = link_to "My Minyans", my_minyans_path
+        %li
+          = link_to "My Attendances", my_events_path
+        %li
+          = link_to "Log Out of " + current_user.name, signout_path
+      - else
+        %li
+          = link_to "Login With Google", "/auth/google_login"
+%div
+  - flash.each do |key, value|
+    - alert_class = (key == :notice) ? "alert-success" : "alert-danger"
+    %div.alert.alert-dismissable{:class => "#{alert_class}"}
+      = value
+      %button.close{ :type => :button, "data-dismiss" => :alert, "aria-hidden" => :true}
+        &times;

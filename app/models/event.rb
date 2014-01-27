@@ -20,6 +20,6 @@ class Event < ActiveRecord::Base
   end
 
   def num_rsvps
-    self.yid.count
+    self.yids.count
   end
 end

@@ -26,14 +26,17 @@ MinyanMate::Application.routes.draw do
       # For adding arbitary new attendees
       post 'add_rsvp' => :rsvp
       # For adding arbitary new attendees
-      post 'remove_rsvp' => :rsvp
+      post 'remove_rsvp/:yid_id' => :rm_rsvp, as: :remove_rsvp
       # For cancelling own attendance
       post 'attend' => :confirm_attend
       # For cancelling own attendance
       post 'cancel' => :cancel_attend
       # For UI to message 
       get 'message' => :edit_message
+      # For  sending message
       post 'message' => :post_message
+      # For UI for calling it off
+      get 'cancelled' => :cancel_event
     end
   end
 
