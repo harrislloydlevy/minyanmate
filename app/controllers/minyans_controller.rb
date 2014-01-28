@@ -21,6 +21,8 @@ class MinyansController < ApplicationController
 
   def myminyans
     @minyans = Minyan.where(owner: current_user)
+    # Needed for the add new yid form hidden on the page
+    @yid = Yid.new
   end
 
   def create # Submit of new to actuall create

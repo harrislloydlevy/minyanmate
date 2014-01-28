@@ -57,14 +57,25 @@ class EventsController < ApplicationController
 
   def rsvp
     @event = Event.find(params[:event_id])
+
+    if params[:yid_id] == ""
+      # If there's not yid_id then the user has hit "add" without selecting a user
+      # so we should put up a pop-up to add a new yid. This is accomplished
+      # by returning some JS to activate the add_yid modal
+      render "events/show_add_modal", format: :js
+      return
+    end
+
     @rsvp = @event.rsvps.new(yid_id: params[:yid_id])
 
     respond_to do |format| 
       if @rsvp.save
-         format.js { } # Fallback to the events/rsvp.js.erb view
-         format.html { redirect_to minyan_path(@event.minyan),
-                       notice: 'RSVP Added' }
-         format.json {render json: @rsvp, status: :created, location: @rsvp }
+        # JS format is for my minyans and refreshes the minyan view for the
+        # page with JS.
+        format.js { } # Fallback to the events/rsvp.js.erb view
+        format.html { redirect_to minyan_path(@event.minyan),
+                      notice: 'RSVP Added' }
+        format.json {render json: @rsvp, status: :created, location: @rsvp }
       else
          format.js { render "rsvp_error" } # Fallback to the events/rsvp_error.js.erb view
          format.html { redirect_to minyan_path(@event.minyan),
