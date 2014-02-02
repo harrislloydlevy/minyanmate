@@ -1,0 +1,19 @@
+-#
+  Steps:
+  1. Close the dialog
+  2. Refresh the RSVP of the even
+  3. Clear the text field for the event
+  @event and @yid will be set as global variables
+$('#yidTypeAhead#{@event.id}').val();
+$('#yid_name').val("");
+$('#yid_email').val("");
+$('#yid_phone').val("");
+-# Clear the event id
+$('#event_id').val("");
+-# Rewrite the RSVP block for the event in the page. Uses @events global
+= render file: "events/update"
+-# Close the modal
+$('#addYid').modal('hide');
+-# Clear out the dialog with entirely new values. There could be error messages showing in there
+$("#addYidDialog").replaceWith("#{escape_javascript(render partial: "minyans/popup_add_yid", locals: {:yid=>Yid.new(), :event_id => ""})}")
+

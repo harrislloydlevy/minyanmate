@@ -4,9 +4,9 @@
   Next update the hidden event id so that on resubmit we add the yid to the
   right group.
   Next actually show the modal.
-/ Pre set the name
+-# Pre set the name
 $('#yid_name').val($('#yidTypeAhead#{@event.id}').val());
-/ Set the event id
+-# Set the event id
 $('#event_id').val(#{@event.id});
-/ Display the modal
+-# Display the modal
 $('#addYid').modal('show')

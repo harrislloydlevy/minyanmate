@@ -1,0 +1,4 @@
+-# 
+ Rewrite the whole model for adding a yid.
+ Just the content so I don't mess with the hide/unihde attributes
+$("#addYidDialog").replaceWith("#{escape_javascript(render partial: "minyans/popup_add_yid", locals: {:yid=>@yid, :event_id => @event.id})}")

@@ -19,10 +19,6 @@ class EventsController < ApplicationController
   end
 
   def confirm_attend
-    if not current_user
-      redirect_to 'new_yid', alert: "You must be logged in to RSVP."
-    end
-    
     @minyan = Minyan.find(params[:minyan_id])
     @event = @minyan.events.find_by_id(params[:event_id])
 
@@ -42,10 +38,6 @@ class EventsController < ApplicationController
   end
 
   def cancel_attend
-    if not current_user
-      redirect_to 'new_yid', alert: "You must be logged in to RSVP."
-    end
-    
     @minyan = Minyan.find(params[:minyan_id])
     @event = @minyan.events.find_by_id(params[:event_id])
 
@@ -70,9 +62,9 @@ class EventsController < ApplicationController
 
     respond_to do |format| 
       if @rsvp.save
-        # JS format is for my minyans and refreshes the minyan view for the
-        # page with JS.
-        format.js { } # Fallback to the events/rsvp.js.erb view
+        # JS format is for my minyans and calls the code to refresh the whole
+        # RSVP block for the event using @event set above
+        format.js {render "events/update"}
         format.html { redirect_to minyan_path(@event.minyan),
                       notice: 'RSVP Added' }
         format.json {render json: @rsvp, status: :created, location: @rsvp }
@@ -85,11 +77,37 @@ class EventsController < ApplicationController
     end 
   end
 
-  def star
-    if isregular(current_user) then
-    else
+  def new_yid_to_event
+    # The user has already been authenticated as the owner, so no worries there.
+    # Steps will be:
+    # 1. Create the new user
+    # 1.1 if this fails re-render the pop-up with any validation messages
+    # 2. Add him to this event
+    # 2.1 If this fails return to main page and show error on header
+    # 3. Send of JS to close popover and update this event.
+    @event = Event.find(params[:event_id])
+
+    @yid = Yid.new()
+    @yid.name = params[:yid][:name]
+    @yid.email = params[:yid][:email]
+    @yid.phone = params[:yid][:phone]
+
+    respond_to do |format| 
+      if not @yid.save
+        format.js { render partial: "minyans/popup_add_yid_error" }
+      else
+        # Now add the yid to the event
+        @event.yids << @yid
+        @event.save!
+
+        # Force a reload of the event as the last added rsvps was turning up twice for some reasons
+        @event.rsvps.reload
+        @event.yids.reload
+        format.js { render partial: "minyans/popup_add_yid_success" }
+      end
     end
   end
+
 
   private
     def event_params
@@ -99,7 +117,12 @@ class EventsController < ApplicationController
     end
 
     def confirm_owner
-      @minyan = Minyan.find(params[:minyan_id])
+      if params[:minyan_id]
+        @minyan = Minyan.find(params[:minyan_id])
+      else
+        @minyan = (Event.find(params[:event_id])).minyan
+      end
+
       if @minyan.owner != current_user
         redirect_to minyans_path,
           flash: {error: 'Not your Minyan to edit.'}

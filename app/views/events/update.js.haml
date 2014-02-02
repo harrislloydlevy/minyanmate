@@ -1,3 +1,3 @@
 -# Update all of an event post a non-adding person event
 $("#rsvp_list#{@event.id}").html("#{escape_javascript(render @event.rsvps) }");
-$("#progress_event#{@event.id}").replaceWith("#{@event.num_rsvps}");
+$("#progress_event#{@event.id}").text("#{@event.num_rsvps}");

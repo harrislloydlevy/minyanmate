@@ -4,18 +4,6 @@
 -#
   Need to have a modal div here to pop up and be activated by JS when we add
   new yids.
-#addYid.modal.fade{"aria-hidden" => "true", "data-keyboad" => "true", "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}
-  .modal-dialog
-    .modal-content
-      .modal-header
-        %button.close{"aria-hidden" => "true", "data-dismiss" => "modal", :type => "button"} &times;
-        %h4#myModalLabel.modal-title Add Yid
-      .modal-body
-        =simple_form_for @yid, :remote => true, :html => { :class => "form-horizontal" }  do |f|
-          =hidden_field_tag :event_id
-          =f.input :name
-          =f.input :phone
-          =f.input :email
-      .modal-footer
-        %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
-        %button.btn.btn-primary{:type => "button"} Save changes
+#addYid.modal.fade{"aria-hidden" => "true", "data-keyboad" => "true",            |
+  "aria-labelledby" => "myModalLabel", :role => "dialog", :tabindex => "-1"}     |
+  = render partial: "popup_add_yid", locals: {yid: @yid, event_id: ""}

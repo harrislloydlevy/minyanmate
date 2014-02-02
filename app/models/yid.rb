@@ -4,7 +4,7 @@ class Yid < ActiveRecord::Base
   has_many :regulars
   has_many :minyans, through: :regulars
   has_many :owns, foreign_key: :owner_id, class_name: "Minyan"
-  validates_uniqueness_of :uid, :scope => :provider
+  validates_uniqueness_of :uid, :scope => :provider, :allow_nil => true
   validates_uniqueness_of :email 
   validates_uniqueness_of :phone
   validates :name, presence: true
