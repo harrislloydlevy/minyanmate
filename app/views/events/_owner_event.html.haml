@@ -1,25 +1,32 @@
-.event
-  Minyan on #{event.date.to_formatted_s(:long_ordinal)}
-  .minyan_progress
-    Progress:
-    %span(id="progress_event#{event.id}")
-      =event.num_rsvps
-    \/ 10
-  .btn-group
-    =btn minyan_event_message_path(event.minyan, event), "phone", ""
-    =btn minyan_event_message_path(event.minyan, event), "envelope", ""
-    =btn minyan_event_cancelled_path(event.minyan, event), "remove", ""
-  %div{:id => "rsvp_list#{event.id}"}
-    = render event.rsvps
-  -#
-    Start adding new attendeed
-    http://blog.brettjackson.org/post/55134095666/autocomplete-in-rails-with-typeahead-js
-  = form_tag minyan_event_add_rsvp_path(event.minyan, event), |
-    method: :post, remote: :true do                                                |
-    -# Set by the onSelected callback for the typeahead JS object below.
-    = hidden_field_tag "yid_id"
-    %input.typeahead{:autocomplete => "off", :id => "yidTypeAhead#{event.id}", :type => "text"}/
-    -# Need to work out how to move this out of being repeated for each item
+.event.col-xs-12.col-sm-12.col-md-6.col-lg-3
+  .panel.panel-default
+    .panel-heading
+      %h4.panel-title
+        #{event.date.strftime('%a')}, #{event.date.to_formatted_s(:short)}:
+        %strong
+          %span(id="progress_event#{event.id}")
+            =event.num_rsvps
+          \/ 10
+    .minyan_progress.panel-body
+      .btn-group
+        =btn minyan_event_message_path(event.minyan, event), "phone", ""
+        =btn minyan_event_message_path(event.minyan, event), "envelope", ""
+        =btn minyan_event_cancelled_path(event.minyan, event), "remove", ""
+      %div{:id => "rsvp_list#{event.id}"}
+        = render event.rsvps
+      -#
+        Start adding new attendeed
+        http://blog.brettjackson.org/post/55134095666/autocomplete-in-rails-with-typeahead-js
+      = form_tag minyan_event_add_rsvp_path(event.minyan, event), |
+        method: :post, remote: :true do                                                |
+        -# Set by the onSelected callback for the typeahead JS object below.
+        = hidden_field_tag "yidId#{event.id}"
+        .input-group.position-bottom
+          %input.string.required.form-control{:autocomplete => "off", :id => "yidTypeAhead#{event.id}", :type => "text"}
+          -# Need to work out how to move this out of being repeated for each item
+          %span.input-group-btn
+            %button.btn.btn-default{type: :submit}
+              %i.glyph.glyphicon-plus
     :javascript
       $('#yidTypeAhead#{event.id}').typeahead([{
         name: 'yid#{event.id}',
@@ -29,11 +36,9 @@
         template: formatYid
       }]).on('typeahead:selected', onSelected);
       function onSelected($e, datum) {
-        var yidField = this.form.elements['yid_id'];
+        var yidField = this.form.elements['yidId#{event.id}'];
         yidField.value = datum.id;
       }
       function formatYid(datum) {
         return datum.name + " | " + datum.email + " | " + datum.phone;
       }
-    %button.btn.btn-default{type: :submit}
-      %i.glyph.glyphicon-plus

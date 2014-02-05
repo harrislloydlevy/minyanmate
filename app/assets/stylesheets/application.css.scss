@@ -14,7 +14,7 @@
  */
 
 @font-face {
-font-family: 'Glyphicons Halflings';
+  font-family: 'Glyphicons Halflings';
   src: url('../assets/glyphicons-halflings-regular.eot');
   src: url('../assets/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), 
   url('../assets/glyphicons-halflings-regular.woff') format('woff'), 
@@ -24,3 +24,7 @@ font-family: 'Glyphicons Halflings';
 
 // Adding padding as menu bar floats at top of screen
 body { padding-top: 60px; }
+
+.event {
+  height: 100%;
+}

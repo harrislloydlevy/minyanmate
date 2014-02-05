@@ -1,7 +1,24 @@
-.minyan
-  .minyan_title= minyan.title
-  .events
-    =render                                     |
-      partial: "events/owner_event",     |
-      collection: minyan.upcoming(5),           |
-      as: :event
+.minyan.panel.panel-primary
+  .panel-heading
+    %h3.panel-title= minyan.title
+  .panel-body
+    -#
+      Needs to be a row to hold the events, which hace bootstrap CSS classes to make them 4 across on wide
+      screens, 2 on medium, and 1 on small
+
+      It is kludgy that I am rendering the collection twice with a spacer
+      between - but I could not get '_counts' to work when rendeirng a
+      collection of partials across models.
+    - events = minyan.upcoming(4)
+    .events.row
+      =render                                     |
+        partial: "events/owner_event",            |
+        spacer_template: "between_events",        |
+        collection: events[0..1],                 |
+        as: :event                                |
+      .clearfix.visible-md
+      =render                                     |
+        partial: "events/owner_event",            |
+        spacer_template: "between_events",        |
+        collection: events[2..3],                 |
+        as: :event                                |

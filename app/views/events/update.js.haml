@@ -1,3 +1,11 @@
--# Update all of an event post a non-adding person event
+-#
+  Update all of an event after adding an existing person
+  Steps:
+  1. Update the RSVP list in it's entirety
+  2. Update the count of the event
+  3. Resest the hiddent field that captures the yid id from the form
+  4. Reset the text of the form
 $("#rsvp_list#{@event.id}").html("#{escape_javascript(render @event.rsvps) }");
 $("#progress_event#{@event.id}").text("#{@event.num_rsvps}");
+$("#yidTypeAhead#{@event.id}").val("");
+$("#yidId#{@event.id}").val("");

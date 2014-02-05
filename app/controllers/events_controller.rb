@@ -58,8 +58,12 @@ class EventsController < ApplicationController
       return
     end
 
-    @rsvp = @event.rsvps.new(yid_id: params[:yid_id])
+    @rsvp = @event.rsvps.new(yid_id: params["yidId" + @event.id.to_s])
 
+    # No idea why, but need to refresh teh events RSVP list here or the RSVP we just added
+    # turns up twice.
+    # PENDING: Work out why
+    ap @event.rsvps
     respond_to do |format| 
       if @rsvp.save
         # JS format is for my minyans and calls the code to refresh the whole
