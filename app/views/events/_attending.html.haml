@@ -1,0 +1,4 @@
+- class_text = e.in_attendance(y) ? ("check") : ("unchecked")
+= link_to minyan_event_toggle_attend_path(e.minyan, e), :remote => true, :method => :post,
+  :class => "btn btn-default" do
+  %span{class: "glyphicon glyphicon-#{class_text}", id: "attending_#{e.id}"}

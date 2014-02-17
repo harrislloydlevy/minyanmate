@@ -14,29 +14,18 @@
   %strong Title:
   = @minyan.title
 %p
+  %strong Owner:
+  = @minyan.owner.name
+%p
   %strong Description:
   = @minyan.description
 %p
-  %strong Sunday:
-  = @minyan.sun
+  %strong Days:
+  = @minyan.days.join(", ")
 %p
-  %strong Monday:
-  = @minyan.mon
-%p
-  %strong Tuesday:
-  = @minyan.tue
-%p
-  %strong Wednesday:
-  = @minyan.wed
-%p
-  %strong Thursday:
-  = @minyan.thu
-%p
-  %strong Friday:
-  = @minyan.fri
-%p
-  %strong Saturday:
-  = @minyan.sat
+  %strong Regulars:
+  -# I love Ruby and lambda functions :).
+  = @minyan.yids.collect { |x| x.name }.join(", ")
 %h2 Events
 = render @minyan.upcoming(5)
 %ul

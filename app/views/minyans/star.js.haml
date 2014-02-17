@@ -1,7 +1,10 @@
+-# We use 'id=xx" instead of #id because on some pages there are multiple star
+  buttons for the same minyand and they all have the same ID. # only returns the
+  first item, id= returns them all
 - if @minyan.is_regular?(current_user)
-  $("#star_#{@minyan.id}").addClass('icon-star');
-  $("#star_#{@minyan.id}").removeClass('icon-star-empty');
+  $("[id=star_#{@minyan.id}]").addClass('glyphicon-star');
+  $("[id=star_#{@minyan.id}]").removeClass('glyphicon-star-empty');
 - else
-  $("#star_#{@minyan.id}").removeClass('icon-star');
-  $("#star_#{@minyan.id}").addClass('icon-star-empty');
+  $("[id=star_#{@minyan.id}]").removeClass('glyphicon-star');
+  $("[id=star_#{@minyan.id}]").addClass('glyphicon-star-empty');
 

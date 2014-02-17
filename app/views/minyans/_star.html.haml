@@ -1,4 +1,4 @@
-- if m.is_regular?(current_user) then class_text = "icon-star" end
-- if not m.is_regular?(current_user) then class_text = "icon-star-empty" end
-= link_to minyan_star_path(m), remote: true, method: :post do
-  %i{class: "#{class_text}", id: "star_#{m.id}"}
+- if m.is_regular?(current_user) then class_text = "glyphicon-star" end
+- if not m.is_regular?(current_user) then class_text = "glyphicon-star-empty" end
+= link_to minyan_star_path(m), :remote => true, :method => :post, :class => "btn btn-default" do
+  %span{class: "glyphicon #{class_text}", id: "star_#{m.id}"}

@@ -1,7 +1,8 @@
 class YidsController < ApplicationController
-  before_action :set_yid, only: [:show, :edit, :update, :destroy, :set_current_user]
-  before_action :require_login, except: [:index, :show]
-  before_action :is_current_user, except: [:index, :suggest, :show]
+  before_action :set_yid, only: [:show, :edit, :update, :destroy]
+  before_action :require_login, except: [:index, :show, :fake_login]
+  before_action :is_current_user, except: [:index, :suggest, :show, :fake_login]
+  before_action :is_dev, only: [:fake_login]
 
   # GET /yids
   # GET /yids.json
@@ -46,6 +47,12 @@ class YidsController < ApplicationController
     end
   end
 
+  # Only used in dev. Precondition blocks in prodcution
+  def fake_login
+    session[:yid_id] = params[:yid_id]
+    redirect_to yids_url
+  end
+
   # DELETE /yids/1
   # DELETE /yids/1.json
   def destroy
@@ -67,6 +74,14 @@ class YidsController < ApplicationController
     # Never trust parameters from the scary internet, only allow the white list through.
     def yid_params
       params.require(:yid).permit(:name, :email, :phone)
+    end
+
+    def is_dev
+      if not Rails.env.development?
+       redirect_to yids_path,
+         flash: {error: 'You cannot fake login except in dev. Naughty.'}
+      end
+
     end
 
     def is_current_user

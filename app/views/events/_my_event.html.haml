@@ -1,0 +1,23 @@
+-#
+  Not sure why but the spans only visible on smaller screens work for breaking it up
+  removed spans as not needed even on oldest iphones for most events.
+.event.row
+  .event.col-xs-12
+    .well.well-sm
+      .row
+        .event.col-xs-9
+          %div.center-block.text-center
+            #{my_event.minyan.title}, 
+            -#%span.visible-xs
+            %br
+            #{my_event.date.strftime('%a')} #{my_event.date.to_formatted_s(:short)}, 
+            (
+            %strong(id="progress_event#{my_event.id}")<>
+              =my_event.num_rsvps
+            %strong<
+              ="/10)"
+            -#%span.visible-sm
+        .event.col-xs-3
+          .btn-group
+            = render "minyans/star", m: my_event.minyan
+            = render "attending", e: my_event, y: current_user

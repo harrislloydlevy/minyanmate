@@ -1,0 +1,8 @@
+- if @event.in_attendance(current_user)
+  $("[id=attending_#{@event.id}]").addClass('glyphicon-check');
+  $("[id=attending_#{@event.id}]").removeClass('glyphicon-unchecked');
+- else
+  $("[id=attending_#{@event.id}]").removeClass('glyphicon-check');
+  $("[id=attending_#{@event.id}]").addClass('glyphicon-unchecked');
+$("#progress_event#{@event.id}").text("#{@event.num_rsvps}");
+

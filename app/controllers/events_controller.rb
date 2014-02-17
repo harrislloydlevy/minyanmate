@@ -1,7 +1,7 @@
 class EventsController < ApplicationController
   before_action :require_login
   before_action :confirm_owner
-  skip_before_action :confirm_owner, only: [:confirm_attend, :cancel_attend]
+  skip_before_action :confirm_owner, only: [:toggle_attend, :confirm_attend, :cancel_attend, :my_events]
 
   def create
     @minyan = Minyan.find(params[:minyan_id])
@@ -18,13 +18,31 @@ class EventsController < ApplicationController
     redirect_to minyan_path(@minyan)
   end
 
+  # Confirm personal attendance, only used for submitted pages (nonjs)
   def confirm_attend
     @minyan = Minyan.find(params[:minyan_id])
     @event = @minyan.events.find_by_id(params[:event_id])
-
     @event.yids << current_user
 
+
     redirect_to minyan_path(@minyan)
+  end
+
+  # Toggle attendance at event using JS
+  def toggle_attend
+    @event = Event.find_by_id(params[:event_id])
+
+    if @event.in_attendance(current_user)
+      @event.yids.delete(current_user)
+    else
+      @event.yids << current_user
+    end
+
+    @event.save!
+
+    respond_to do |format|
+      format.js { }
+    end
   end
 
   def rm_rsvp
@@ -112,6 +130,50 @@ class EventsController < ApplicationController
     end
   end
 
+  def my_events
+    # To find the events a person could be interested in we look over the next 2 weeks for all
+    # events for Minyans they have either RSVP'd to at least one event in the previous two weeks
+    # or next two weeks, and all minyans they are regulars at.
+    #
+    # This is a pretty compact page so we can grab a lot of events.
+    @events = []
+
+    days_ahead = 14
+    days_look_behind = 14
+
+    # First find all events for the next two weeks of the minyans we are a regulars at
+    # NOTE: We don't use fancy active record queries here as we don't pre-emptively create
+    # event records. They're only created on demand. So DB queries would be useless.
+    current_user.minyans.each { |x| @events.concat(x.upcoming_period(days_ahead)) }
+
+    # Next we find all the minyans we're RSVP'd for in the past 2 or next 2 weeks and add
+    # their events in.
+    # First we get all the Minyan IDs for RSVPS for us in that time period
+    date_range = [Date.today() - days_look_behind .. Date.today() + days_ahead]
+    minyan_ids = Event.joins(:minyan)
+                      .joins(:rsvps)
+                      .where("rsvps.yid_id" => current_user, :date => date_range)
+                      .pluck(:minyan_id).uniq
+
+    # Remove the minyans we regullarly attend anyway that we caught above.
+    minyan_ids = minyan_ids - current_user.minyan_ids
+
+    # Now add the events for all those minyans left that we attended or promised to attend
+    # in the future but are not regulars at
+    minyan_ids.each {
+      |x| @events.concat(
+        Minyan.find(x).upcoming_period(days_ahead)
+      )
+    }
+
+    # Now we sort the events by date from most recent.
+    @events.sort! { |a,b| a.date <=> b.date }
+
+    # Now we have populated @events with all the events we want to show the user, time to render the page
+    respond_to do |format|
+      format.html
+    end
+  end
 
   private
     def event_params

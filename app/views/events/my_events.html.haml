@@ -1,0 +1,12 @@
+-#
+  First we set out a grid. We make it 4 wide on big screens, 2 on medium, 1 on small and xs.
+  set out breaks to align it at 2 for medium screen to keep the boxes in a line.
+
+  Render the event object inside each one
+
+.events.panel.panel-primary
+  .panel-heading
+    %h3.panel-title
+      Upcoming Minyans
+  .panel-body
+    =render partial: "my_event", collection: @events

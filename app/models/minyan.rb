@@ -46,6 +46,22 @@ class Minyan < ActiveRecord::Base
     return upcoming
   end
 
+  # Get all the minyans for a range of days from a given date
+  def upcoming_period(days, from_date=Date.today())
+    upcoming = []
+    to_date = from_date + days
+    next_date = next_minyan(from_date)
+
+    # Iterate updating the next date coming at end of each loop and checking up front
+    # so that we don't go one over and can deal with the situation where there are no
+    # minyans in given period
+    while next_date < to_date
+      upcoming << event_for_date(next_minyan(next_date))
+      next_date = upcoming.last.date + 1
+    end
+    return upcoming
+  end
+
   def is_valid_date(date)
     (
       (sun && date.sunday?) ||

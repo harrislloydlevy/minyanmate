@@ -18,7 +18,11 @@ MinyanMate::Application.routes.draw do
   # Example resource route (maps HTTP verbs to controller actions automatically):
   #   resources :products
 
-  resources :yids
+  resources :yids do
+    if Rails.env.development?
+      post "fake_login" => :fake_login
+    end
+  end
   get '/yid/suggest/:event/:q' => 'yids#suggest', as: :suggest_search
   # Can't have this route under minyan/event as we pre-setup the form
   # in the HTML an dynamically change which event it is for with JS.
@@ -31,10 +35,11 @@ MinyanMate::Application.routes.draw do
       post 'add_rsvp' => :rsvp
       # For adding arbitary new attendees
       post 'remove_rsvp/:yid_id' => :rm_rsvp, as: :remove_rsvp
-      # For cancelling own attendance
+      # For cancelling/confirm own attendance
       post 'attend' => :confirm_attend
-      # For cancelling own attendance
       post 'cancel' => :cancel_attend
+      # For togglign ateendance from JS pages
+      post 'toggle_attend' => :toggle_attend
       # For UI to message 
       get 'message' => :edit_message
       # For  sending message
@@ -51,7 +56,7 @@ MinyanMate::Application.routes.draw do
   match 'auth/:provider/callback', to: 'sessions#login', as: 'signin', via: [:get, :post]
   match 'auth/failure', to: redirect('/'), via: [:get, :post]
   match 'signout', to: 'sessions#logout', as: 'signout', via: [:get, :post]
-  
+
 
   # Example resource route with options:
   #   resources :products do

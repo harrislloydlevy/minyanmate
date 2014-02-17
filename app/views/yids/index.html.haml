@@ -20,8 +20,9 @@
             (Current User)
         %td= yid.email
         %td= yid.phone
-        %td= link_to 'Show', yid
-        %td= link_to 'Edit', edit_yid_path(yid)
+        %td= link_to 'Show',    yid
+        %td= link_to 'Login',   yid_fake_login_path(yid), method: :post
+        %td= link_to 'Edit',    edit_yid_path(yid)
         %td= link_to 'Destroy', yid, method: :delete, data: { confirm: 'Are you sure?' }
 %br/
 = link_to 'New Yid', new_yid_path
