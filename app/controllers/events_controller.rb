@@ -47,6 +47,10 @@ class EventsController < ApplicationController
 
   def rm_rsvp
     @event = Event.find(params[:event_id])
+    if @event.num_rsvps == 10 # We have 10, now 9, cancel it :(
+      no_more_minyan
+    end
+
     Rsvp.delete_all(:event_id => @event.id, :yid_id => params[:yid_id])
 
     respond_to do |format|
@@ -78,12 +82,11 @@ class EventsController < ApplicationController
 
     @rsvp = @event.rsvps.new(yid_id: params["yidId" + @event.id.to_s])
 
-    # No idea why, but need to refresh teh events RSVP list here or the RSVP we just added
-    # turns up twice.
-    # PENDING: Work out why
-    ap @event.rsvps
     respond_to do |format| 
       if @rsvp.save
+        if @event.num_rsvps == 10 then
+          have_a_minyan
+        end
         # JS format is for my minyans and calls the code to refresh the whole
         # RSVP block for the event using @event set above
         format.js {render "events/update"}
@@ -176,6 +179,18 @@ class EventsController < ApplicationController
   end
 
   private
+    # If we had a rails filter that ran before any rendering I could use that to
+    # set these messages and trigger mails - as I don't have to call manually. 
+    def no_more_minyan
+      flash.now[:error] ||= []
+      flash.now[:error] << "Minyan cancelled :(."
+    end
+
+    def have_a_minyan
+      flash.now[:notice] ||= []
+      flash.now[:notice] << "You made the minyan!"
+    end
+
     def event_params
       params.require(:event).permit(
         :date,
