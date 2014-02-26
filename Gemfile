@@ -56,3 +56,4 @@ gem "simplecov", :require => false, :group => :test
 # Use debugger
 gem 'debugger', group: [:development, :test]
 gem 'awesome_print', group: [:development, :test]
+gem 'single_test', group: [:development, :test]

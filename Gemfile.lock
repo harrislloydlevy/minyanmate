@@ -143,6 +143,8 @@ GEM
       multi_json
       simplecov-html (~> 0.8.0)
     simplecov-html (0.8.0)
+    single_test (0.6.0)
+      rake
     sprockets (2.10.1)
       hike (~> 1.2)
       multi_json (~> 1.0)
@@ -197,6 +199,7 @@ DEPENDENCIES
   sdoc
   simple_form
   simplecov
+  single_test
   sqlite3
   therubyracer
   turbolinks
