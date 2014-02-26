@@ -21,10 +21,3 @@
       - else
         %li
           = link_to "Login With Google", "/auth/google_login"
-%div
-  - flash.each do |key, value|
-    - alert_class = (key == :notice) ? "alert-success" : "alert-danger"
-    %div.alert.alert-dismissable{:class => "#{alert_class}"}
-      = value
-      %button.close{ :type => :button, "data-dismiss" => :alert, "aria-hidden" => :true}
-        &times;

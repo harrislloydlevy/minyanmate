@@ -10,6 +10,11 @@
   %body
     %header
       = render "layouts/navigation"
+      -#
+        Need the div outside the partial so we can just re-render the partial into this div in 
+        javascript callbacks
+      .messages(id="messages")
+        = render "layouts/messages"
     %main.container{:role => "main"}
       = yield
     %footer.container
