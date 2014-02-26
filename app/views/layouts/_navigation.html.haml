@@ -8,14 +8,16 @@
       %span.icon-bar
     %a.navbar-brand{ :href => "/"} MinyanMate
   .collapse.navbar-collapse{ :id => "mm-navbar-collapse"}
-    %ul.nav.navbar-nav.navbar-right
+    %ul.nav.navbar-nav
       - if current_user
         %li
-          = link_to "My Minyans", my_minyans_path
+          = link_to "Organise Minyans", my_minyans_path
         %li
-          = link_to "My Attendances", my_events_path
+          = link_to "RSVP to Minyans", my_events_path
         %li
-          = link_to "Log Out of " + current_user.name, signout_path
+          = link_to "My Details", edit_yid_path(current_user)
+        %li
+          = link_to "Log Out", signout_path
       - else
         %li
           = link_to "Login With Google", "/auth/google_login"
