@@ -80,25 +80,21 @@ class EventsController < ApplicationController
       return
     end
 
-    @rsvp = @event.rsvps.new(yid_id: params["yidId" + @event.id.to_s])
+    rsvp = @event.rsvps.create(yid_id: params["yidId" + @event.id.to_s])
+    # Needed as we are getting the RSVP turnign up twice in the JS due to some
+    # weird rails bug.
+    @event.rsvps.reload
 
     respond_to do |format| 
-      if @rsvp.save
-        if @event.num_rsvps == 10 then
-          have_a_minyan
-        end
-        # JS format is for my minyans and calls the code to refresh the whole
-        # RSVP block for the event using @event set above
-        format.js {render "events/update"}
-        format.html { redirect_to minyan_path(@event.minyan),
-                      notice: 'RSVP Added' }
-        format.json {render json: @rsvp, status: :created, location: @rsvp }
-      else
-         format.js { render "rsvp_error" } # Fallback to the events/rsvp_error.js.erb view
-         format.html { redirect_to minyan_path(@event.minyan),
-                       error: 'RSVP not added' }
-         format.json {render json: @rsvp.errors, status: :unprocessable_entity }
+      if @event.num_rsvps == 10 then
+        have_a_minyan
       end
+      # JS format is for my minyans and calls the code to refresh the whole
+      # RSVP block for the event using @event set above
+      format.js {render "events/update"}
+      format.html { redirect_to minyan_path(@event.minyan),
+                   notice: 'RSVP Added' }
+      format.json {render json: rsvp, status: :created, location: rsvp }
     end 
   end
 
