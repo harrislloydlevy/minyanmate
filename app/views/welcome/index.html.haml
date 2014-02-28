@@ -1,3 +1,14 @@
-%h1 Welcome to MinyanMate!
-%p Making the Gabbai's life just a little easier..
+
+#piktowrapper-embed
+  .pikto-canvas-wrap
+    .pikto-canvas
+:javascript
+  (function(d){
+      var js, id="pikto-embed-js", ref=d.getElementsByTagName("script")[0];
+      if (d.getElementById(id)) {return;}
+      js=d.createElement("script"); js.id=id; js.async=true;
+      js.src="https://magic.piktochart.com/assets/embedding/embed.js?UID=1369913-flow-2";
+      ref.parentNode.insertBefore(js, ref);
+  }(document));
+
 = link_to "Minyan Mate", controller: "minyans"
