@@ -33,9 +33,15 @@ class EventsController < ApplicationController
     @event = Event.find_by_id(params[:event_id])
 
     if @event.in_attendance(current_user)
+      if @event.num_rsvps == 10
+        no_more_minyan
+      end
       @event.yids.delete(current_user)
     else
       @event.yids << current_user
+      if @event.num_rsvps == 10
+        have_a_minyan
+      end
     end
 
     @event.save!
@@ -80,25 +86,18 @@ class EventsController < ApplicationController
       return
     end
 
-    @rsvp = @event.rsvps.new(yid_id: params["yidId" + @event.id.to_s])
+    @rsvp = Rsvp.create(event_id: @event.id, yid_id: params["yidId" + @event.id.to_s])
 
+    if @event.num_rsvps == 10 then
+      have_a_minyan
+    end
     respond_to do |format| 
-      if @rsvp.save
-        if @event.num_rsvps == 10 then
-          have_a_minyan
-        end
-        # JS format is for my minyans and calls the code to refresh the whole
-        # RSVP block for the event using @event set above
-        format.js {render "events/update"}
-        format.html { redirect_to minyan_path(@event.minyan),
-                      notice: 'RSVP Added' }
-        format.json {render json: @rsvp, status: :created, location: @rsvp }
-      else
-         format.js { render "rsvp_error" } # Fallback to the events/rsvp_error.js.erb view
-         format.html { redirect_to minyan_path(@event.minyan),
-                       error: 'RSVP not added' }
-         format.json {render json: @rsvp.errors, status: :unprocessable_entity }
-      end
+      # JS format is for my minyans and calls the code to refresh the whole
+      # RSVP block for the event using @event set above
+      format.js {render "events/update"}
+      format.html { redirect_to minyan_path(@event.minyan),
+                    notice: 'RSVP Added' }
+      format.json {render json: @rsvp, status: :created, location: @rsvp }
     end 
   end
 
