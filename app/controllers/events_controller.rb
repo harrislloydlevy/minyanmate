@@ -22,7 +22,7 @@ class EventsController < ApplicationController
   def confirm_attend
     @minyan = Minyan.find(params[:minyan_id])
     @event = @minyan.events.find_by_id(params[:event_id])
-    @event.yids << current_user
+    add_attendee(@event, current_user)
 
 
     redirect_to minyan_path(@minyan)
@@ -33,18 +33,10 @@ class EventsController < ApplicationController
     @event = Event.find_by_id(params[:event_id])
 
     if @event.in_attendance(current_user)
-      if @event.num_rsvps == 10
-        no_more_minyan
-      end
-      @event.yids.delete(current_user)
+      remove_attendee(@event, current_user)
     else
-      @event.yids << current_user
-      if @event.num_rsvps == 10
-        have_a_minyan
-      end
+      add_attendee(@event, current_user)
     end
-
-    @event.save!
 
     respond_to do |format|
       format.js { }
@@ -53,11 +45,9 @@ class EventsController < ApplicationController
 
   def rm_rsvp
     @event = Event.find(params[:event_id])
-    if @event.num_rsvps == 10 # We have 10, now 9, cancel it :(
-      no_more_minyan
-    end
+    @yid = Yid.find(params[:yid_id])
 
-    Rsvp.delete_all(:event_id => @event.id, :yid_id => params[:yid_id])
+    @rsvp = remove_attendee(@event, @yid)
 
     respond_to do |format|
       # Update the whole event with the post RSVP js
@@ -70,7 +60,7 @@ class EventsController < ApplicationController
     @event = @minyan.events.find_by_id(params[:event_id])
 
     # Remove the attedance
-    @event.yids.delete(current_user)
+    @rsvp = remove_attendee(@event, current_user.id)
 
     redirect_to minyan_path(@minyan)
   end
@@ -86,7 +76,9 @@ class EventsController < ApplicationController
       return
     end
 
-    @rsvp = Rsvp.create(event_id: @event.id, yid_id: params["yidId" + @event.id.to_s])
+    @yid = Yid.find(params[:yid_id])
+    
+    @rsvp = add_attendee(@event, @yid)
 
     if @event.num_rsvps == 10 then
       have_a_minyan
@@ -121,12 +113,8 @@ class EventsController < ApplicationController
         format.js { render partial: "minyans/popup_add_yid_error" }
       else
         # Now add the yid to the event
-        @event.yids << @yid
-        @event.save!
-
-        # Force a reload of the event as the last added rsvps was turning up twice for some reasons
-        @event.rsvps.reload
-        @event.yids.reload
+        add_attendee(@event, @yid)
+        
         format.js { render partial: "minyans/popup_add_yid_success" }
       end
     end
@@ -178,16 +166,27 @@ class EventsController < ApplicationController
   end
 
   private
-    # If we had a rails filter that ran before any rendering I could use that to
-    # set these messages and trigger mails - as I don't have to call manually. 
-    def no_more_minyan
-      flash.now[:error] ||= []
-      flash.now[:error] << "Minyan cancelled :(."
+    # Centrailised add and remove functions so that the logic for detecting making a minyan 
+    # ca be added here. Note that the model itself takes care of sending the messages out
+    # we jsut nee to detect it here so that we can add a notice.
+    def add_attendee(event, yid)
+      # Add the yid_id to the event
+      event.rsvps.create(yid: yid)
+      ap event.rsvps
+
+      if event.num_rsvps == 10
+        flash.now[:notice] ||= []
+        flash.now[:notice] << "You made the minyan!"
+      end
     end
 
-    def have_a_minyan
-      flash.now[:notice] ||= []
-      flash.now[:notice] << "You made the minyan!"
+    def remove_attendee(event, yid)
+      event.yids.delete(yid)
+
+      if event.num_rsvps == 9
+        flash.now[:error] ||= []
+        flash.now[:error] << "Minyan cancelled :(."
+      end
     end
 
     def event_params
