@@ -22,4 +22,19 @@ class Event < ActiveRecord::Base
   def num_rsvps
     self.yids.count
   end
+
+  def reminder
+      # Send email and SMSs
+    EventMailer.reminder(self)
+  end
+
+  def cancel_messages
+    # Send email and SMSs
+    EventMailer.cancellation(self)
+  end
+
+  def success_messages
+    # Send email and SMSs
+    EventMailer.success(self)
+  end
 end
