@@ -9,13 +9,14 @@ class EventMailer < ActionMailer::Base
           ).deliver
   end
 
-  def confirm(event, yid)
+  def success(event)
+    @event = event
+    logger.debug "confirming event!"
   end
 
-  def success
-  end
-
-  def cancellation
+  def cancellation(event)
+    @event = event
+    logger.debug "Cancelling event!"
   end
 
   private
