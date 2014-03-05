@@ -80,9 +80,6 @@ class EventsController < ApplicationController
     
     @rsvp = add_attendee(@event, @yid)
 
-    if @event.num_rsvps == 10 then
-      have_a_minyan
-    end
     respond_to do |format| 
       # JS format is for my minyans and calls the code to refresh the whole
       # RSVP block for the event using @event set above
@@ -172,7 +169,9 @@ class EventsController < ApplicationController
     def add_attendee(event, yid)
       # Add the yid_id to the event
       event.rsvps.create(yid: yid)
-      ap event.rsvps
+
+      # Necessary as I get the created RSVP showing up twice for some reason
+      event.rsvps.reload
 
       if event.num_rsvps == 10
         flash.now[:notice] ||= []
@@ -181,7 +180,8 @@ class EventsController < ApplicationController
     end
 
     def remove_attendee(event, yid)
-      event.yids.delete(yid)
+      rsvp = event.rsvps.find_by(yid: yid)
+      event.rsvps.destroy(rsvp)
 
       if event.num_rsvps == 9
         flash.now[:error] ||= []
