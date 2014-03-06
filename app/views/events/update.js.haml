@@ -6,7 +6,7 @@ $("#messages").html("#{escape_javascript(render "layouts/messages")}");
   2. Update the count of the event
   3. Resest the hiddent field that captures the yid id from the form
   4. Reset the text of the form
-$("#rsvp_list#{@event.id}").html("#{escape_javascript(render @event.rsvps) }");
+$("#rsvp_list#{@event.id}").html("#{escape_javascript(render(@event.rsvps) || "No RSVPs.") }");
 $("#progress_event#{@event.id}").text("#{@event.num_rsvps}");
 $("#yidTypeAhead#{@event.id}").val("");
 $("#yidId#{@event.id}").val("");

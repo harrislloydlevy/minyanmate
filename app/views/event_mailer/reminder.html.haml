@@ -1,0 +1,13 @@
+:markdown
+  #{@event.minyan.title} will b'h be held on #{@event.date.to_formatted_s(:short)}).
+
+  So far #{@event.num_rsvps} people have confirmed, we just need #{10-@event.num_rsvps} more.
+
+  If you can come please reply to this message with "coming" and MinyanMinder will take care
+  of the rest automatically.
+
+  If you'd like to RSVP for future minyans you can do so at:
+  #{url_for(controller: 'events', action:'my_events')}. RSVP'ing will mean
+  you won't get reminder messages in the future.
+
+  This is an automatic message from MinyanMinder. We're still in beta, sorry for anything.

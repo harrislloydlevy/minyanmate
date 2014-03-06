@@ -1,3 +1,4 @@
+$("#messages").html("#{escape_javascript(render "layouts/messages")}");
 - if @event.in_attendance(current_user)
   $("[id=attending_#{@event.id}]").addClass('glyphicon-check');
   $("[id=attending_#{@event.id}]").removeClass('glyphicon-unchecked');

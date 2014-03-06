@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140119103624) do
+ActiveRecord::Schema.define(version: 20140305123354) do
 
   create_table "events", force: true do |t|
     t.date     "date"
@@ -47,7 +47,7 @@ ActiveRecord::Schema.define(version: 20140119103624) do
   add_index "regulars", ["minyan_id"], name: "index_regulars_on_minyan_id"
   add_index "regulars", ["yid_id"], name: "index_regulars_on_yid_id"
 
-  create_table "rsvps", id: false, force: true do |t|
+  create_table "rsvps", force: true do |t|
     t.integer  "event_id",   null: false
     t.integer  "yid_id",     null: false
     t.datetime "created_at"
@@ -55,6 +55,7 @@ ActiveRecord::Schema.define(version: 20140119103624) do
   end
 
   add_index "rsvps", ["event_id"], name: "index_rsvps_on_event_id"
+  add_index "rsvps", ["id"], name: "index_rsvps_on_id"
   add_index "rsvps", ["yid_id"], name: "index_rsvps_on_yid_id"
 
   create_table "yids", force: true do |t|

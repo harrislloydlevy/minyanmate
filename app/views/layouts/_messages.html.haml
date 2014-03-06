@@ -1,7 +1,7 @@
 - flash.each do |key, value|
   - alert_class = (key == :notice) ? "alert-success" : "alert-danger"
-  %div.alert.alert-dismissable{:class => "#{alert_class}"}
-    = value
-    %button.close{ :type => :button, "data-dismiss" => :alert, "aria-hidden" => :true}
-      &times;
-
+  - if value.is_a? Array
+    - value.each do |message|
+      = render "message", message: message, alert_class: alert_class
+  - else
+    = render "message", message: message, alert_class: alert_class

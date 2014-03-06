@@ -26,5 +26,8 @@ module MinyanMate
     #
     # Add the font path for glyph icons for rails3
     config.assets.paths << "#{Rails}/vendor/assets/fonts"
+
+    # Set the URL for the mailer controller when generating links.
+    config.action_mailer.default_url_options = { host: 'minyanminder.com' }
   end
 end
