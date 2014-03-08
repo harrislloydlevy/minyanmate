@@ -18,6 +18,10 @@ gem 'jquery-rails'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 1.2'
 
+gem 'execjs'
+gem 'therubyracer', :platforms => :ruby
+gem 'turbolinks'
+
 group :doc do
   # bundle exec rake doc:rails generates the API under doc/api.
   gem 'sdoc', require: false
@@ -44,6 +48,9 @@ gem "simplecov", :require => false, :group => :test
 
 # Use Capistrano for deployment
 # gem 'capistrano', group: :development
+
+# Gem to manage config files
+gem 'figaro' 
 
 group :production do
   # Use Postgres during production for Heroku
