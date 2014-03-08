@@ -3,15 +3,6 @@ source 'http://rubygems.org'
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.0.3'
 
-# Use sqlite3 as the database for Active Record - for test/dev only
-gem 'sqlite3', group: [:development, :test]
-
-# Use Postgres during production for Heroku
-gem 'pg', group: [:production]
-
-# Heroku needs this gem for some asset handling
-gem 'rails_12factor', group: [:production]
-
 # Use SCSS for stylesheets
 gem 'sass-rails', '~> 4.0.0'
 
@@ -36,6 +27,7 @@ gem 'omniauth'
 gem 'omniauth-facebook'
 gem 'omniauth-google-oauth2'
 gem 'twitter-typeahead-rails'
+
 # In order to get bootstrap 3.0 get fresh from github
 gem "bootstrap-sass"
 gem "simple_form"
@@ -53,7 +45,19 @@ gem "simplecov", :require => false, :group => :test
 # Use Capistrano for deployment
 # gem 'capistrano', group: :development
 
-# Use debugger
-gem 'debugger', group: [:development, :test]
-gem 'awesome_print', group: [:development, :test]
-gem 'single_test', group: [:development, :test]
+group :production do
+  # Use Postgres during production for Heroku
+  gem 'pg'
+
+  # Heroku needs this gem for some asset handling
+  gem 'rails_12factor'
+end
+
+group :development, :test do
+  gem 'debugger'
+  gem 'awesome_print'
+  gem 'single_test'
+  gem 'sqlite3'
+end
+
+
