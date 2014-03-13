@@ -15,9 +15,13 @@
     outline: none;
     */
     width: 10px;
-    .string;
-    .required;
-    .form-control;
+
+    /*
+     * This is bad CSS and did nto compile in Heroku or asset precompile
+     * Need to work out how to apply the bootstrap styles to this thing.
+    string;
+    required;
+    form-control;*/
 }
 
 .tt-query {

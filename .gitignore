@@ -19,3 +19,6 @@
 *.swp
 # Ignore generated coverage report
 /coverage
+/Keys
+# Ignore application configuration
+/config/application.yml
