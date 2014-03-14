@@ -21,7 +21,8 @@
         %td= yid.email
         %td= yid.phone
         %td= link_to 'Show',    yid
-        %td= link_to 'Login',   yid_fake_login_path(yid), method: :post
+        - if Rails.env.development?
+          %td= link_to 'Login',   yid_fake_login_path(yid), method: :post
         %td= link_to 'Edit',    edit_yid_path(yid)
         %td= link_to 'Destroy', yid, method: :delete, data: { confirm: 'Are you sure?' }
 %br/
