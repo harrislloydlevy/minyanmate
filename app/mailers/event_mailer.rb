@@ -1,33 +1,42 @@
 class EventMailer < ActionMailer::Base
-  default from: "minder@minyanminder.com"
+  default from: "robot@TheMinyanMan.com"
 
-  def reminder(event)
+  def confirmation(event)
       @event = event
       mail(to: "",
-        bcc: recipients(event),
-        subject: sprintf("Reminder %s on %s", event.minyan.title, event.date.to_formatted_s(:short))
+        bcc: yids_to_emails(event.reminder_participants),
+        subject: sprintf("MM: Confirmation of %s on %s", event.minyan.title, event.date.to_formatted_s(:short))
+          ).deliver
+  end
+
+  def reminder(event, yids)
+      @event = event
+      mail(to: "",
+        bcc: yids_to_emails(event.reminder_participants),
+        subject: sprintf("MM: Reminder %s on %s", event.minyan.title, event.date.to_formatted_s(:short))
           ).deliver
   end
 
   def success(event)
-    @event = event
-    logger.debug "confirming event!"
+      @event = event
+      mail(to: "",
+        bcc: yids_to_emails(event.confirmation_participants),
+        subject: sprintf("MM: Minyan Confirmed for %s on %s", event.minyan.title, event.date.to_formatted_s(:short))
+          ).deliver
   end
 
   def cancellation(event)
-    @event = event
-    logger.debug "Cancelling event!"
+      @event = event
+      mail(to: "",
+        bcc: yids_to_emails(event.confirmation_participants),
+        subject: sprintf("MM: Cancellation for %s on %s", event.minyan.title, event.date.to_formatted_s(:short))
+          ).deliver
   end
 
   private
-    def recipients(event)
-      # First we find all the email addresses we can for this event. This
-      # means all regulars of the minyan, and everyone who has RSVP'd. This
-      # isn't just a reminder it's a status update
-      
-      ap recipient_yids = ((event.yids + event.minyan.yids).uniq).select{ |r| not r.email.blank? }
-
-
-      return recipient_yids.map{ |x| x.email}
+    def yids_to_emails(yids)
+      # Get an array of emails from an array of yids
+      yids.select{ |r| not r.email.blank? }.map{ |r| r.email }
     end
 end
+
