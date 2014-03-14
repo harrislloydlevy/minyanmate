@@ -3,27 +3,11 @@ class EventsController < ApplicationController
   before_action :confirm_owner
   skip_before_action :confirm_owner, only: [:toggle_attend, :confirm_attend, :cancel_attend, :my_events]
 
-  def create
-    @minyan = Minyan.find(params[:minyan_id])
-    @event = @minyan.events.create(event_params)
-
-    render 'minyans/show'
-  end
-
-  def destroy
-    @minyan = Minyan.find(params[:minyan_id])
-    @event = @minyan.events.find(params[:id])
-    @event.destroy
-
-    redirect_to minyan_path(@minyan)
-  end
-
   # Confirm personal attendance, only used for submitted pages (nonjs)
   def confirm_attend
     @minyan = Minyan.find(params[:minyan_id])
     @event = @minyan.events.find_by_id(params[:event_id])
     @event.yids << current_user
-
 
     redirect_to minyan_path(@minyan)
   end
@@ -149,6 +133,9 @@ class EventsController < ApplicationController
     # their events in.
     # First we get all the Minyan IDs for RSVPS for us in that time period
     date_range = [Date.today() - days_look_behind .. Date.today() + days_ahead]
+
+    # NOTE: I really fucking love how the activerecord library and rails array functions
+    # come together below.
     minyan_ids = Event.joins(:minyan)
                       .joins(:rsvps)
                       .where("rsvps.yid_id" => current_user, :date => date_range)
