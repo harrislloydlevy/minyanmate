@@ -71,6 +71,7 @@ class YidsControllerTest < ActionController::TestCase
     assert_not_nil assigns(:yids)
   end
 
+
   test "should show yid" do
     get :show, id: @yid
     assert_response :success
@@ -80,6 +81,12 @@ class YidsControllerTest < ActionController::TestCase
     fake_login(@yid)
     get :edit, id: @yid
     assert_response :success
+  end
+
+  test "should reject fake" do
+    post :fake_login, yid_id: @yid
+
+    assert_redirected_to yids_url
   end
 
   test "should destroy yid" do
