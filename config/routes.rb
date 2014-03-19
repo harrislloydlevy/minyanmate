@@ -19,7 +19,7 @@ MinyanMate::Application.routes.draw do
   #   resources :products
 
   resources :yids do
-    if Rails.env.development?
+    if not Rails.env.production?
       post "fake_login" => :fake_login
     end
   end
