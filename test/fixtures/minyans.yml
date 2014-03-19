@@ -22,26 +22,3 @@ izzy:
   thu: false
   fri: true
   sat: false
-
-invalid_recur:
-  title: Not Enough Dates
-  description: MyText
-  sun: false
-  mon: false
-  tue: false
-  wed: false
-  thu: false
-  fri: false
-  sat: false
-
-invalid_title:
-  title: 
-  description: MyText
-  sun: false
-  mon: false
-  tue: false
-  wed: false
-  thu: false
-  fri: false
-  sat: false
-

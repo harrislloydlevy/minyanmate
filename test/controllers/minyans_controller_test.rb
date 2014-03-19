@@ -126,26 +126,26 @@ class MinyansControllerTest < ActionController::TestCase
   end
 
   test "should fail create" do
-    @minyan = minyans(:invalid_recur)
+    @minyan = minyans(:izzy)
     assert_no_difference('Minyan.count') do
       post :create, minyan: {
           title: @minyan.title,
           description: @minyan.description,
-          sun: @minyan.sun,
-          mon: @minyan.mon,
-          tue: @minyan.tue,
-          wed: @minyan.wed,
-          thu: @minyan.thu,
-          fri: @minyan.fri,
-          sat: @minyan.sat
+          sun: false,
+          mon: false,
+          tue: false,
+          wed: false,
+          thu: false,
+          fri: false,
+          sat: false
         }
     end
     assert_response :success
     
-    @minyan = minyans(:invalid_title)
+    @minyan = minyans(:izzy)
     assert_no_difference('Minyan.count') do
       post :create, minyan: {
-          title: @minyan.title,
+          title: "",
           description: @minyan.description,
           sun: @minyan.sun,
           mon: @minyan.mon,
