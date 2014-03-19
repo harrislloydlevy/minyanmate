@@ -1,7 +1,7 @@
 class EventMailer < ActionMailer::Base
   default from: "robot@TheMinyanMan.com"
 
-  def confirmation(event)
+  def self.confirmation(event)
       @event = event
       mail(to: "",
         bcc: yids_to_emails(event.reminder_participants),
@@ -9,7 +9,7 @@ class EventMailer < ActionMailer::Base
           ).deliver
   end
 
-  def reminder(event, yids)
+  def self.reminder(event, yids)
       @event = event
       mail(to: "",
         bcc: yids_to_emails(event.reminder_participants),
@@ -17,7 +17,7 @@ class EventMailer < ActionMailer::Base
           ).deliver
   end
 
-  def success(event)
+  def self.success(event)
       @event = event
       mail(to: "",
         bcc: yids_to_emails(event.confirmation_participants),
@@ -25,7 +25,7 @@ class EventMailer < ActionMailer::Base
           ).deliver
   end
 
-  def cancellation(event)
+  def self.cancellation(event)
       @event = event
       mail(to: "",
         bcc: yids_to_emails(event.confirmation_participants),
