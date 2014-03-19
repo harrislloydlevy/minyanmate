@@ -60,7 +60,7 @@ class YidsControllerTest < ActionController::TestCase
     fake_login(@yid)
     post :update, id: @yid, yid: { email: bad_email, name: @yid.name, phone: @yid.phone }
     assert_response :success
-    assert_not_blank, flash[:error]
+    assert_not_nil flash[:error]
   end
 
   test "should get index" do

@@ -41,7 +41,8 @@ class YidsController < ApplicationController
         format.html { redirect_to @yid, notice: 'Yid was successfully updated.' }
         format.json { head :no_content }
       else
-        format.html { render action: 'edit' }
+        flash.now[:error] = 'Yid was not updated'
+        format.html { render action: 'edit'}
         format.json { render json: @yid.errors, status: :unprocessable_entity }
       end
     end
