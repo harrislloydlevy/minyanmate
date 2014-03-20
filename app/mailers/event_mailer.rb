@@ -1,42 +1,54 @@
 class EventMailer < ActionMailer::Base
   default from: "robot@TheMinyanMan.com"
 
-  def self.confirmation(event)
-      @event = event
-      mail(to: "",
-        bcc: yids_to_emails(event.reminder_participants),
-        subject: sprintf("MM: Confirmation of %s on %s", event.minyan.title, event.date.to_formatted_s(:short))
-          ).deliver
+  def confirmation(event)
+      @event  = event
+      subject = "MM: Confirmation of %s on %s" % [event.minyan.title, event.date.to_formatted_s(:short)]
+      recips  = yids_to_emails(event.confirmation_recipients)
+
+      if (recips.count > 0)
+        mail(:to => "", bcc: recip, subject: subject).deliver
+      end
   end
 
-  def self.reminder(event, yids)
-      @event = event
-      mail(to: "",
-        bcc: yids_to_emails(event.reminder_participants),
-        subject: sprintf("MM: Reminder %s on %s", event.minyan.title, event.date.to_formatted_s(:short))
-          ).deliver
+  def reminder(event)
+      @event  = event
+      subject = "MM: Reminder of %s on %s" % [event.minyan.title, event.date.to_formatted_s(:short)]
+      recips  = yids_to_emails(event.confirmation_recipients)
+
+      if (recips.count > 0)
+        mail(:to => "", bcc: recip, subject: subject).deliver
+      end
   end
 
-  def self.success(event)
-      @event = event
-      mail(to: "",
-        bcc: yids_to_emails(event.confirmation_participants),
-        subject: sprintf("MM: Minyan Confirmed for %s on %s", event.minyan.title, event.date.to_formatted_s(:short))
-          ).deliver
+  def success(event)
+      @event  = event
+      subject = "MM: Minyan for %s on %s!" % [event.minyan.title, event.date.to_formatted_s(:short)]
+      recips  = yids_to_emails(event.confirmation_recipients)
+
+      if (recips.count > 0)
+        mail(:to => "", bcc: recip, subject: subject).deliver
+      end
   end
 
-  def self.cancellation(event)
-      @event = event
-      mail(to: "",
-        bcc: yids_to_emails(event.confirmation_participants),
-        subject: sprintf("MM: Cancellation for %s on %s", event.minyan.title, event.date.to_formatted_s(:short))
-          ).deliver
+  def cancellation(event)
+      @event  = event
+      subject = "MM: Cancellation for %s on %s" % [event.minyan.title, event.date.to_formatted_s(:short)]
+      recips  = yids_to_emails(event.confirmation_recipients)
+
+      if (recips.count > 0)
+        mail(:to => "", bcc: recip, subject: subject).deliver
+      end
   end
 
-  private
-    def yids_to_emails(yids)
-      # Get an array of emails from an array of yids
-      yids.select{ |r| not r.email.blank? }.map{ |r| r.email }
-    end
+  def yids_to_emails(yids)
+    print "Yids:"
+    ap yids
+    # Get an array of emails from an array of yids
+    emails = yids.select{ |r| not r.email.blank? }.map{ |r| r.email }
+    print "Emails:"
+    ap emails
+    emails
+  end
 end
 
