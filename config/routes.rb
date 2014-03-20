@@ -19,6 +19,8 @@ MinyanMate::Application.routes.draw do
   #   resources :products
 
   resources :yids do
+    # Keep in test and staging just in case. We have automatic test that rejects
+    # any use in non-dev.
     if not Rails.env.production?
       post "fake_login" => :fake_login
     end

@@ -53,14 +53,25 @@ class YidsControllerTest < ActionController::TestCase
   end
 
   test "fail update yid" do
+<<<<<<< HEAD
     bad_email="12345"
+=======
+    bad_email = "12345"
+>>>>>>> 87249a1d9e1e0642271b1860c5d308fcccb2a57a
 
     @yid = yids(:omni_login_yid)
     # Fake login as the user first.
     fake_login(@yid)
     post :update, id: @yid, yid: { email: bad_email, name: @yid.name, phone: @yid.phone }
+<<<<<<< HEAD
     assert_response :success
     assert_not_nil flash[:error]
+=======
+
+    # Will return success if update failed and we are back at same page. Success redirects
+    # back to the view yid page.
+    assert_response(:success)
+>>>>>>> 87249a1d9e1e0642271b1860c5d308fcccb2a57a
   end
 
   test "should get index" do
@@ -68,6 +79,7 @@ class YidsControllerTest < ActionController::TestCase
     assert_response :success
     assert_not_nil assigns(:yids)
   end
+
 
   test "should show yid" do
     get :show, id: @yid
@@ -78,6 +90,12 @@ class YidsControllerTest < ActionController::TestCase
     fake_login(@yid)
     get :edit, id: @yid
     assert_response :success
+  end
+
+  test "should reject fake" do
+    post :fake_login, yid_id: @yid
+
+    assert_redirected_to yids_url
   end
 
   test "should destroy yid" do
