@@ -22,49 +22,56 @@ class Event < ActiveRecord::Base
   def num_rsvps
     self.yids.count
   end
+ 
+  # defining as self.name allows calling without instantion of class
+  def self.send_event_reminders
+    todays_minyans = Minyan.all.collect { |m| m.upcoming_period(1) }.flatten!
+    upcoming_minyans = Minyan.all.collect { |m| m.upcoming_period(2, Date.today()+1) }.flatten!
 
-  def send_reminders
-    todays_minyans = Minyan.all.collect { |m| m.upcoming_period(1) }
-    upcoming_minyans = Minyan.all.collect { |m| m.upcoming_period(2, Date.today()+1) }
+    ap todays_minyans
+    ap upcoming_minyans
 
-    todays_minyans.each {|e| e.confirmation}
-    upcoming_minyans.each {|e| e.reminder}
+    todays_minyans.each {|e| e.confirmation_message}
+    upcoming_minyans.each {|e| e.reminder_message}
   end
 
-  def confirmation(event)
-    EventMailer.confirmation(event)
+  def confirmation_message
+     EventMailer.confirmation(self)
+    # SMS code to go here when ready
   end
   
-  def reminder(event)
-    EventMailer.reminder(event)
+  def reminder_message
+    EventMailer.reminder(self)
+    # SMS code to go here when ready
   end
 
-  def cancel_messages
-    # Send email and SMSs
+  def cancel_message
     EventMailer.cancellation(self)
+    # SMS code to go here when ready
   end
 
-  def success_messages
+  def success_message
     # Send email and SMSs
     EventMailer.success(self)
+    # SMS code to go here when ready
   end
 
   # Who should be notified on reminder emails to ask people to come
   # PENDING: Implment opt out of emails
-  def reminder_recipients(event)
+  def reminder_recipients
     # For reminders we will not bother anyone who has already confirmed
     # so we sent to all of the regulars LESS those who has RSVP'd
-    (event.minyan.yids - event.yids)
+    (minyan.yids - yids)
   end
 
   # Who should be notified on confirmation emails that an event
   # is happening/not-happening
   # PENDING: Implment opt out of emails
-  def confirmation_recipients(event)
+  def confirmation_recipients
     # First we find all the email addresses we can for this event. This
     # means all regulars of the minyan, and everyone who has RSVP'd. This
     # isn't just a reminder it's a status update
     
-    ((event.yids + event.minyan.yids).uniq).select{ |r| not r.email.blank? }
+    ((yids + minyan.yids).uniq).select{ |r| not r.email.blank? }
   end
 end
