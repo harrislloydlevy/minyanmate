@@ -36,4 +36,7 @@ class ActiveSupport::TestCase
   fixtures :all
 
   # Add more helper methods to be used by all tests here...
+  
+  # Set the date to 1/1/2014 using delorean
+  Delorean.time_travel_to Date.new(2014,1,1)
 end

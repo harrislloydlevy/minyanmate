@@ -61,6 +61,7 @@ group :production do
 end
 
 group :development, :test do
+  gem 'delorean' # To set time during tests
   gem 'debugger'
   gem 'awesome_print'
   gem 'single_test'
