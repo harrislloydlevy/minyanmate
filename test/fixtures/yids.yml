@@ -18,7 +18,7 @@ two:
   phone: MyString
 
 <% for name in "Hosheah Es Amecha Uvarech Et Nachlosecha Uriem Vnaasem Ad Oilom".split(' ') do %>
-auto_<%=name%>:
+<%=name%>:
   name: <%=name%>
   email: <%=name%>
   phone: 12345

@@ -1,8 +1,18 @@
 # Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  event: city
-  yid: one
+# Setup a full minyan for the next minyan in the CBD
+<% for name in "Hosheah Es Amecha Uvarech Et Nachlosecha Uriem Vnaasem Ad Oilom".split(' ') do %>
+rsvp_auto_city_0_<%=name%>:
+  event: city_0
+  yid: <%=name%>
+<% end %>
+
+# Setup a minyan with nine for the next day %>
+<% for name in "Hosheah Es Amecha Uvarech Et Nachlosecha Uriem Vnaasem Ad".split(' ') do %>
+rsvp_auto_city_1_<%=name%>:
+  event: city_1
+  yid: <%=name%>
+<% end %>
 
 two:
   event: city
