@@ -29,4 +29,9 @@ MinyanMate::Application.configure do
   # This option may cause significant delays in view rendering with a large
   # number of complex assets.
   config.assets.debug = true
+
+  # Set the date for the dev environment to always be the start of 2014.
+  # Makes the data always current
+  Delorean.time_travel_to Date.new(2014,1,1)
+  
 end
