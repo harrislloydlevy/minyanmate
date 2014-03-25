@@ -19,7 +19,7 @@ class YidsControllerTest < ActionController::TestCase
 
   test "suggest yids" do
     fake_login(@yid)
-    @event = events(:one)
+    @event = events(:city_1)
     # Note: Fixtures have set up yids one and two to be at this event - so only
     # the omni_auth_login yid should be left.
     post :suggest, q: "omni", event: @event, format: :json
