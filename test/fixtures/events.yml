@@ -3,29 +3,24 @@
 # We start testing from 1/1/2014
 
 # Create events for city minyan
-<% for day in 0..30 do %>
+# MInyan is only Mon-Thur
+<% for day in 1..31 do %>
   <%
-    date = Date.new(2014,1,1) + day
-    if (not date.sunday?) && (not date.saturday?) then
+    date = Date.new(2014,1,1) - 1 + day
+    if (not (date.friday? || date.sunday? || date.saturday?)) then
   %>
-
-  city_<%=day%>:
-    minyan: city
-    date: <%= date.to_s %>
-
+city_<%=day%>:
+  minyan: city
+  date: <%= date.to_s %>
   <% end %> # End of checking if weekday
 <% end %>
 
-<% for day in 0..30 do %>
-  <%
-    date = Date.new(2014,1,1) + day
-    if (date.friday?) then
-  %>
-
-  izzy_<%=date%>:
-    minyan: izzy
-    date: <%= date.to_s %>
-
+<% for day in 1..31 do %>
+  <% date = Date.new(2014,1,1) - 1 + day %>
+  <% if (date.friday?) then %>
+izzy_<%=day%>:
+  minyan: izzy
+  date: <%= date.to_s %>
   <% end %> # End of checking if erev shabbos
 <% end %>
 
