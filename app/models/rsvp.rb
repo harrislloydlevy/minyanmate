@@ -12,7 +12,7 @@ class Rsvp < ActiveRecord::Base
     def check_minyan
       # This is called after an RSVP has been added. If we have 10 now send
       # out message.
-      if event.num_rsvps == 10
+      if event.minyan?
         event.success_message
       end
     end
