@@ -48,11 +48,13 @@ class YidsController < ApplicationController
     end
   end
 
+#:nocov:
   # Only used in dev. Precondition blocks in prodcution
   def fake_login
     session[:yid_id] = params[:yid_id]
     redirect_to yids_url
   end
+#:nocov:
 
   # DELETE /yids/1
   # DELETE /yids/1.json
