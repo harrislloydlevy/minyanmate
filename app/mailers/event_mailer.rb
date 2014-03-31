@@ -14,7 +14,7 @@ class EventMailer < ActionMailer::Base
   def reminder(event)
       @event  = event
       subject = "MM: Reminder of %s on %s" % [event.minyan.title, event.date.to_formatted_s(:short)]
-      recips  = yids_to_emails(event.confirmation_recipients)
+      recips  = yids_to_emails(event.reminder_recipients)
 
       if (recips.count > 0)
         mail(:to => "", bcc: recips, subject: subject).deliver
