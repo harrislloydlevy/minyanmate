@@ -59,7 +59,7 @@ class MinyanTest < ActiveSupport::TestCase
 
     # Now make sure double attending doesn't make a difference
     assert_no_difference('Rsvp.count') do
-      minyan.events[0].attend(yid)
+      minyan.upcoming(10)[0].attend(yid)
     end
   end
 end 
