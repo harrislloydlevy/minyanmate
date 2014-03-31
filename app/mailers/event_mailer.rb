@@ -7,7 +7,7 @@ class EventMailer < ActionMailer::Base
       recips  = yids_to_emails(event.confirmation_recipients)
 
       if (recips.count > 0)
-        mail(:to => "", bcc: recip, subject: subject).deliver
+        mail(:to => "", bcc: recips, subject: subject).deliver
       end
   end
 
@@ -17,7 +17,7 @@ class EventMailer < ActionMailer::Base
       recips  = yids_to_emails(event.confirmation_recipients)
 
       if (recips.count > 0)
-        mail(:to => "", bcc: recip, subject: subject).deliver
+        mail(:to => "", bcc: recips, subject: subject).deliver
       end
   end
 
@@ -27,7 +27,7 @@ class EventMailer < ActionMailer::Base
       recips  = yids_to_emails(event.confirmation_recipients)
 
       if (recips.count > 0)
-        mail(:to => "", bcc: recip, subject: subject).deliver
+        mail(:to => "", bcc: recips, subject: subject).deliver
       end
   end
 
@@ -37,18 +37,13 @@ class EventMailer < ActionMailer::Base
       recips  = yids_to_emails(event.confirmation_recipients)
 
       if (recips.count > 0)
-        mail(:to => "", bcc: recip, subject: subject).deliver
+        mail(:to => "", bcc: recips, subject: subject).deliver
       end
   end
 
   def yids_to_emails(yids)
-    print "Yids:"
-    ap yids
     # Get an array of emails from an array of yids
     emails = yids.select{ |r| not r.email.blank? }.map{ |r| r.email }
-    print "Emails:"
-    ap emails
-    emails
   end
 end
 

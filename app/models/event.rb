@@ -28,9 +28,6 @@ class Event < ActiveRecord::Base
     todays_minyans = Minyan.all.collect { |m| m.upcoming_period(1) }.flatten!
     upcoming_minyans = Minyan.all.collect { |m| m.upcoming_period(2, Date.today()+1) }.flatten!
 
-    ap todays_minyans
-    ap upcoming_minyans
-
     todays_minyans.each {|e| e.confirmation_message}
     upcoming_minyans.each {|e| e.reminder_message}
   end

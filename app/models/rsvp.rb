@@ -13,7 +13,7 @@ class Rsvp < ActiveRecord::Base
       # This is called after an RSVP has been added. If we have 10 now send
       # out message.
       if event.num_rsvps == 10
-        event.success_messages
+        event.success_message
       end
     end
 
@@ -21,7 +21,7 @@ class Rsvp < ActiveRecord::Base
       # This is called after an RSVP has been removed. If we have 9 now that
       # the 10th just cancelled, so send out a message.
       if event.num_rsvps == 10
-        event.cancel_messages
+        event.cancel_message
       end
     end
 end
