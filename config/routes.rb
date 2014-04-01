@@ -26,10 +26,13 @@ MinyanMate::Application.routes.draw do
     end
   end
   get '/yid/suggest/:event/:q' => 'yids#suggest', as: :suggest_search
+
   # Can't have this route under minyan/event as we pre-setup the form
-  # in the HTML an dynamically change which event it is for with JS.
-  # This messes up statically setting the form up.
+  # in the HTML and dynamically change which event it is for with JS.
+  # This messes up statically setting the form up if we included the
+  # minyan and event_id in the route.
   post '/new_yid_to_event' => 'events#new_yid_to_event'
+
   resources :minyans do
     post "star" => :star
     resources :events do
