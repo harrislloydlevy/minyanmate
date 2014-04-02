@@ -20,6 +20,6 @@ two:
 <% for name in "Hosheah Es Amecha Uvarech Et Nachlosecha Uriem Vnaasem Ad Oilom".split(' ') do %>
 <%=name%>:
   name: <%=name%>
-  email: <%=name%>
+  email: <%=name%>@asdfg.org
   phone: 12345
 <% end %>

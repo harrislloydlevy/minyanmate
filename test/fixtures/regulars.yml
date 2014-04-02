@@ -1,0 +1,16 @@
+# Create 5 regulars for the city minyan
+<% for name in "Hosheah Es Amecha Uvarech Et".split(' ') do %>
+regular_auto_city_1_<%=name%>:
+  minyan: city
+  yid: <%=name%>
+<% end %>
+
+# Create 6 for izzy's. Notice tha "Et" is a regular at both
+<% for name in "Et Nachlosecha Uriem Vnaasem Ad Oilom".split(' ') do %>
+regular_auto_izzy_1_<%=name%>:
+  minyan: izzy
+  yid: <%=name%>
+<% end %>
+
+
+

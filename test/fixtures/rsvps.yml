@@ -2,17 +2,49 @@
 
 # Setup a full minyan for the next minyan in the CBD
 <% for name in "Hosheah Es Amecha Uvarech Et Nachlosecha Uriem Vnaasem Ad Oilom".split(' ') do %>
-rsvp_auto_city_0_<%=name%>:
-  event: city_0
+rsvp_auto_city_1_<%=name%>:
+  event: city_1
+  yid: <%=name%>
+<% end %>
+
+# Setup a minyan with only 9 for the next day
+<% for name in "Hosheah Es Amecha Uvarech Et Nachlosecha Uriem Vnaasem Ad".split(' ') do %>
+rsvp_auto_city_2_<%=name%>:
+  event: city_2
+  yid: <%=name%>
+<% end %>
+
+# Setup a minyan with only 9 for the next day
+
+# Setup a full minyan for izzy on a set friday
+<% for name in "Hosheah Es Amecha Uvarech Et Nachlosecha Uriem Vnaasem Ad Oilom".split(' ') do %>
+rsvp_auto_izzy_3_<%=name%>:
+  event: izzy_3
+  yid: <%=name%>
+<% end %>
+
+# Setup a full minyan for izzy on a set friday
+<% for name in "Hosheah Es Amecha Uvarech Et Nachlosecha Uriem Vnaasem Ad Oilom".split(' ') do %>
+rsvp_auto_izzy_10_<%=name%>:
+  event: izzy_10
   yid: <%=name%>
 <% end %>
 
 # Setup a minyan with nine for the next day %>
 <% for name in "Hosheah Es Amecha Uvarech Et Nachlosecha Uriem Vnaasem Ad".split(' ') do %>
-rsvp_auto_city_1_<%=name%>:
-  event: city_1
+rsvp_auto_city_4_<%=name%>:
+  event: city_4
   yid: <%=name%>
 <% end %>
+
+# Setup a minyan with nine that we can use to test RSVP on 10
+<% for name in "Hosheah Es Amecha Uvarech Et Nachlosecha Uriem Vnaasem Ad".split(' ') do %>
+rsvp_auto_city_4_<%=name%>:
+  event: city_4
+  yid: <%=name%>
+<% end %>
+
+two:
 
 two:
   event: city
