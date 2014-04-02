@@ -1,13 +1,5 @@
-= simple_form_for @yid, :html => {class: "form_horizontal"} do |f|
-  - if @yid.errors.any?
-    #error_explanation
-      %h2
-        = pluralize(@yid.errors.count, "error")
-        prohibited this yid from being saved:
-      %ul
-        - @yid.errors.full_messages.each do |msg|
-          %li= msg
-  = f.input :name
-  = f.input :email
-  = f.input :phone
-  = f.button :submit
+= bootstrap_form_for(@yid, layout: :horizontal, label_col: "col-xs-2", control_col: "col-xs-10") do |f|
+  = f.text_field :name
+  = f.email_field :email
+  = f.phone_field :phone
+  = f.submit

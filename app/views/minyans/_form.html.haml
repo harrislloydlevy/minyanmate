@@ -1,21 +1,16 @@
-= simple_form_for @minyan, :html => {class: 'form-horizontal'} do |f|
-  - if @minyan.errors.any?
-    #error
-      %h2
-        = pluralize(@minyan.errors.count, "error")
-        prohibited this post
-        from being saved:
-      %ul
-        - @minyan.errors.full_messages.each do |e|
-          %li
-            = e
-  = f.input :title
-  = f.input :description
-  = f.input :sun
-  = f.input :mon
-  = f.input :tue
-  = f.input :wed
-  = f.input :thu
-  = f.input :fri
-  = f.input :sat
-  = f.button :submit
+= bootstrap_form_for(@minyan, layout: :horizontal, label_col: "col-sm-2", control_col: "col-sm-10") do |f|
+  = f.text_field :title
+  = f.text_area :description
+  -#
+    :days matches the name that the model will use when
+    throwing a vlaidation error on having the right items
+    checked.
+  = f.form_group :days, label: {text: "Days"} do
+    = f.check_box :sun
+    = f.check_box :mon
+    = f.check_box :tue
+    = f.check_box :wed
+    = f.check_box :thu
+    = f.check_box :fri
+    = f.check_box :sat
+  = f.submit
