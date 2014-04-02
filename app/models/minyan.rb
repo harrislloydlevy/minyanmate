@@ -12,7 +12,10 @@ class Minyan < ActiveRecord::Base
   # Make sure that there is at least one regular day set for each minyan
   def has_recurrence?
     if not (sun || mon || tue || wed || thu || fri || sat)
-      errors.add(:mon, "Minyan must have at least one regular day. " +
+      # Add error on :days as that is the group name in the 
+      # form view so errors will show up over the whole set of
+      # days.
+      errors.add(:days, "Minyan must have at least one regular day. " +
                  "Sorry, more complicated recurrence not supported.")
     end
   end
@@ -44,6 +47,17 @@ class Minyan < ActiveRecord::Base
       next_date = upcoming.last.date + 1
     end
     return upcoming
+  end
+
+  # Adds yid as a regular at the minyan to get updates and
+  # follow updates.
+  def star(new_follower)
+      self.yids << new_follower
+  end
+
+  # Unfollow a minyan
+  def unstar(unfollower)
+      self.yids.delete(unfollower)
   end
 
   # Get all the minyans for a range of days from a given date
