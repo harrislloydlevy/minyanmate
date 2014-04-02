@@ -30,7 +30,7 @@ end
 gem 'omniauth'
 gem 'omniauth-facebook'
 gem 'omniauth-google-oauth2'
-gem 'twitter-typeahead-rails'
+gem 'twitter-typeahead-rails', '= 0.9.3'
 
 gem "bootstrap-sass"
 gem "bootstrap_form"
