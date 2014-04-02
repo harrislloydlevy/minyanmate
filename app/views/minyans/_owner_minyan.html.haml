@@ -1,13 +1,29 @@
 .minyan.panel.panel-primary
   .panel-heading
-    %h3.panel-title= minyan.title
+    %h3.panel-title(valign="centre")
+      =link_to(edit_minyan_path(minyan)) do
+        %span.glyphicon.glyphicon-edit
+      =minyan.title
+      -# Adding in a list of days, so that I don't have to have a seperate "View" page
+      (#{minyan.days.join(", ")})
   .panel-body
     -#
-      Needs to be a row to hold the events, which hace bootstrap CSS classes to make them 4 across on wide
+      I'm putting the description in the top row, at least the first 512 char or so. This is so
+      that I never have to have a seperate view page. Why 512? Because I'm an ex-C programmer that's
+      why.
+    .events.row
+      .col-sm-12
+        %p.text-muted
+          - if minyan.description.length > 512
+            #{minyan.description[0,512]}...
+          - else
+            =minyan.description
+    -#
+      Needs to be a row to hold the events, which have bootstrap CSS classes to make them 4 across on wide
       screens, 2 on medium, and 1 on small
 
       It is kludgy that I am rendering the collection twice with a spacer
-      between - but I could not get '_counts' to work when rendeirng a
+      between - but I could not get '_counts' to work when rendering a
       collection of partials across models.
     - events = minyan.upcoming(4)
     .events.row

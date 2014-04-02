@@ -32,7 +32,8 @@ class MinyansControllerTest < ActionController::TestCase
         }
     end
 
-    assert_redirected_to minyan_path(assigns(:minyan))
+    assert_redirected_to my_minyans_path
+    assert_not_nil flash[:notice]
   end
 
   test "should show minyan" do
@@ -58,7 +59,10 @@ class MinyansControllerTest < ActionController::TestCase
           fri: @minyan.fri,
           sat: @minyan.sat
         }
-    assert_redirected_to minyan_path(assigns(:minyan))
+
+    assert_redirected_to my_minyans_path
+    assert_not_nil flash[:notice]
+    assert_nil flash[:error]
   end
 
   test "should fail update" do
@@ -91,7 +95,7 @@ class MinyansControllerTest < ActionController::TestCase
     post :star, minyan_id: @minyan.id, format: :js
     assert_response(:success)
     end
-    end
+  end
 
   test "should fail update minyan" do
     # Login as yid who does not own minyan
@@ -123,6 +127,8 @@ class MinyansControllerTest < ActionController::TestCase
     end
 
     assert_redirected_to minyans_path
+    assert_not_nil flash[:notice]
+    assert_nil flash[:error]
   end
 
   test "should fail create" do
@@ -141,6 +147,7 @@ class MinyansControllerTest < ActionController::TestCase
         }
     end
     assert_response :success
+    assert_not_nil flash[:error]
     
     @minyan = minyans(:izzy)
     assert_no_difference('Minyan.count') do
@@ -157,6 +164,6 @@ class MinyansControllerTest < ActionController::TestCase
         }
     end
     assert_response :success
+    assert_not_nil flash[:error]
   end
-
 end

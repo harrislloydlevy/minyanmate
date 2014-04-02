@@ -28,10 +28,19 @@ class MinyansController < ApplicationController
   def create # Submit of new to actuall create
     @minyan = Minyan.new(minyan_params)
     @minyan.owner = current_user
+
     if @minyan.save
-      redirect_to @minyan
+      @minyan.star(current_user)
+      respond_to do |format| 
+        format.html { redirect_to my_minyans_path, notice: 'Created new minyan.'}
+        format.json { head json: @minyan }
+      end
     else
-      render 'new'
+      flash.now[:error] = 'Could not create new Minyan.'
+      respond_to do |format| 
+        format.html { render action: 'new' }
+        format.json { render json: @minyan.errors, status: :unprocessable_entity }
+      end
     end
   end
 
@@ -44,30 +53,39 @@ class MinyansController < ApplicationController
     @minyan = Minyan.find(params[:id])
   end
 
-  # Makre updates to object
+  # Make updates to object
   def update
     @minyan = Minyan.find(params[:id])
     if @minyan.update(minyan_params)
-      redirect_to @minyan
+      respond_to do |format| 
+        format.html { redirect_to my_minyans_path, notice: 'Updated minyan.'}
+        format.json { head json: @minyan }
+      end
     else
-      render 'edit'
+      respond_to do |format| 
+        flash.now[:error] = 'Could not update Minyan'
+        format.html { render 'minyans/edit' }
+        format.json { render json: @minyan.errors, status: :unprocessable_entity }
+      end
     end
   end
 
   def destroy
     @minyan = Minyan.find(params[:id])
     @minyan.destroy
-
-    redirect_to minyans_path
+     
+    respond_to do |format|
+      format.html {redirect_to minyans_path, notice: 'Deleted minyan.'}
+    end
   end
 
   def star
     # This action toggles whether the user is a follower of this minyan
     @minyan = Minyan.find(params[:minyan_id])
     if @minyan.is_regular?(current_user) then
-      @minyan.yids.delete(current_user)
+      @minyan.unstar(current_user)
     else
-      @minyan.yids << current_user
+      @minyan.star(current_user)
     end
 
     @minyan.save!
