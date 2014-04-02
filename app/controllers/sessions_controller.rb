@@ -6,8 +6,6 @@ class SessionsController < ApplicationController
     # yid may have been udpated with new info from logging in so will
     # need to save
 
-    logger.ap yid
-
     if yid.save then
       logger.debug "Save succeeded"
       session[:yid_id] = yid.id
@@ -15,7 +13,6 @@ class SessionsController < ApplicationController
         :notice => "Signed in!"
     else
       logger.debug "Save failed"
-      logger.ap yid.errors
       redirect_to request.env['omniauth.origin'] || '/',
         :flash => {:error => ["Could not login."] + yid.errors.full_messages}
     end
