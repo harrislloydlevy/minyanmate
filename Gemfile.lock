@@ -26,10 +26,11 @@ GEM
       thread_safe (~> 0.1)
       tzinfo (~> 0.3.37)
     arel (4.0.2)
-    atomic (1.1.15)
+    atomic (1.1.16)
     awesome_print (1.2.0)
     bootstrap-sass (3.1.1.0)
       sass (~> 3.2)
+    bootstrap_form (2.1.0)
     builder (3.1.4)
     chronic (0.10.2)
     coffee-rails (4.0.1)
@@ -88,7 +89,7 @@ GEM
       textutils (>= 0.6.4)
     mime-types (1.25.1)
     minitest (4.7.5)
-    multi_json (1.9.0)
+    multi_json (1.9.2)
     multi_xml (0.5.5)
     multipart-post (2.0.0)
     oauth2 (0.9.3)
@@ -150,9 +151,6 @@ GEM
       json (~> 1.8)
       rdoc (~> 4.0, < 5.0)
     sexp_processor (4.4.1)
-    simple_form (3.0.1)
-      actionpack (>= 4.0.0, < 4.1)
-      activemodel (>= 4.0.0, < 4.1)
     simplecov (0.8.2)
       docile (~> 1.1.0)
       multi_json
@@ -176,7 +174,7 @@ GEM
       libv8 (~> 3.16.14.0)
       ref
     thor (0.18.1)
-    thread_safe (0.2.0)
+    thread_safe (0.3.1)
       atomic (>= 1.1.7, < 2)
     tilt (1.4.1)
     treetop (1.4.15)
@@ -188,7 +186,7 @@ GEM
       actionpack (>= 3.1)
       jquery-rails
       railties (>= 3.1)
-    tzinfo (0.3.38)
+    tzinfo (0.3.39)
     uglifier (2.4.0)
       execjs (>= 0.3.0)
       json (>= 1.8.0)
@@ -199,6 +197,7 @@ PLATFORMS
 DEPENDENCIES
   awesome_print
   bootstrap-sass
+  bootstrap_form
   debugger
   delorean
   execjs
@@ -216,7 +215,6 @@ DEPENDENCIES
   rails_12factor
   sass-rails (~> 4.0.0)
   sdoc
-  simple_form
   simplecov
   single_test
   sqlite3

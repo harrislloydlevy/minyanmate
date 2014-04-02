@@ -32,13 +32,11 @@ gem 'omniauth-facebook'
 gem 'omniauth-google-oauth2'
 gem 'twitter-typeahead-rails'
 
-# In order to get bootstrap 3.0 get fresh from github
 gem "bootstrap-sass"
-gem "simple_form"
+gem "bootstrap_form"
 gem "haml"
 gem "html2haml"
 gem "markdown"
-gem "simplecov", :require => false, :group => :test
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt-ruby', '~> 3.1.2'
@@ -61,6 +59,7 @@ group :production do
 end
 
 group :development, :test do
+  gem "simplecov"
   gem 'delorean' # To set time during tests
   gem 'debugger'
   gem 'awesome_print'
