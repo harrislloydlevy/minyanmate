@@ -1,7 +1,0 @@
-- flash.each do |key, value|
-  - alert_class = (key == :notice) ? "alert-success" : "alert-danger"
-  - if value.is_a? Array
-    - value.each do |message|
-      = render "message", message: message, alert_class: alert_class
-  - else
-    = render "message", message: value, alert_class: alert_class

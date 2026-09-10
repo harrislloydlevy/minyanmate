@@ -1,0 +1,42 @@
+name: minyanmate
+
+services:
+  dev:
+    image: minyanmate-dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+      args:
+        OPENCODE_VERSION: ${OPENCODE_VERSION:-latest}
+    init: true
+    tty: true
+    stdin_open: true
+    command: ["sleep", "infinity"]
+    env_file: .env
+    ports:
+      # Host 3000 is taken by another service on this machine
+      - "3100:3000"
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+      - pnpm-store:/pnpm/store
+      - oc-config:/home/node/.config/opencode
+      - oc-data:/home/node/.local/share/opencode
+      - ${HOME}/.gitconfig:/home/node/.gitconfig:ro
+
+  ci:
+    image: minyanmate-ci
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: ci
+    init: true
+    env_file: .env
+    profiles: ["ci"]
+
+volumes:
+  node_modules:
+  pnpm-store:
+  oc-config:
+  oc-data:
