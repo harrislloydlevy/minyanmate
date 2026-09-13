@@ -1,3 +1,5 @@
+Full disclosure - this is one step up form vibe-coded.
+
 # MinyanMate
 
 Coordinate minyans, RSVP from WhatsApp, never miss quorum. Greenfield rewrite of the original 2014 Rails app.
