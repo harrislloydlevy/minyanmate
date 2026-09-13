@@ -34,9 +34,9 @@ describe("schedule", () => {
   });
 
   it("skips weekdays not in the schedule", () => {
-    const schedule: WeeklySchedule = { weekdays: [2], time: "20:45" }; // Wednesdays
+    const schedule: WeeklySchedule = { weekdays: [2], time: "20:45" }; // Tuesdays
     const from = new Date(2026, 8, 6, 12, 0); // Sunday noon
-    expect(nextOccurrence(schedule, from)).toEqual(new Date(2026, 8, 9, 20, 45));
+    expect(nextOccurrence(schedule, from)).toEqual(new Date(2026, 8, 8, 20, 45));
   });
 
   it("returns null for an empty weekday list", () => {

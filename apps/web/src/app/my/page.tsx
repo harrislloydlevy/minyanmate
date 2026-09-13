@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { CalendarPlus } from "lucide-react";
 import { SignOutButton } from "./sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -35,7 +37,7 @@ export default async function MyPage() {
         </div>
       </header>
 
-      <main className="container flex-1 py-10">
+      <main className="container flex-1 space-y-6 py-10">
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Welcome{session.user.name ? `, ${session.user.name}` : ""}</CardTitle>
@@ -43,9 +45,17 @@ export default async function MyPage() {
               Signed in as {session.user.phoneNumber ?? session.user.email}
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-muted-foreground text-sm">
-            Minyan discovery, scheduling, and WhatsApp notifications are coming
-            in the next milestones.
+          <CardContent className="flex flex-col gap-3">
+            <Button asChild className="w-full">
+              <Link href="/events/new">
+                <CalendarPlus className="size-4" />
+                New event
+              </Link>
+            </Button>
+            <p className="text-muted-foreground text-xs">
+              Minyan discovery, recurring schedules, and WhatsApp notifications
+              are coming in the next milestones.
+            </p>
           </CardContent>
         </Card>
       </main>

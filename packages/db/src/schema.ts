@@ -130,26 +130,39 @@ export const minyanFollowers = sqliteTable(
   (t) => [primaryKey({ columns: [t.minyanId, t.userId] })],
 );
 
-/** One dated occurrence of a minyan, materialized by the worker. */
+/** One dated occurrence of a minyan, materialized by the worker or created ad-hoc. */
 export const events = sqliteTable(
   "events",
   {
     id: id(),
-    minyanId: text("minyan_id")
-      .notNull()
-      .references(() => minyans.id, { onDelete: "cascade" }),
+    /** Nullable: NULL means this is a one-off event (not tied to a recurring minyan). */
+    minyanId: text("minyan_id").references(() => minyans.id, {
+      onDelete: "cascade",
+    }),
     /** Local calendar date, YYYY-MM-DD. */
     date: text("date").notNull(),
     /** Local datetime, ISO-like YYYY-MM-DDTHH:MM. */
     startsAt: text("starts_at").notNull(),
+    /** Free-text location (e.g. "Shul on Main, downstairs"). */
+    locationText: text("location_text"),
+    /** Optional notes the organiser wants to share. */
+    notes: text("notes"),
+    /** Optional type tag for one-off events. */
+    typeTag: text("type_tag", { enum: ["minyan", "pickup"] }),
     status: text("status", { enum: ["scheduled", "confirmed", "cancelled"] })
       .notNull()
       .default("scheduled"),
     /** Snapshot of the minyan's quorum target at materialization time. */
     quorumTarget: integer("quorum_target").notNull().default(10),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
     ...timestamps,
   },
-  (t) => [uniqueIndex("events_minyan_date_uq").on(t.minyanId, t.date)],
+  (t) => [
+    uniqueIndex("events_minyan_date_uq").on(t.minyanId, t.date),
+    index("events_owner_idx").on(t.ownerId),
+  ],
 );
 
 export const rsvps = sqliteTable(

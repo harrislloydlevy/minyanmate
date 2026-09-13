@@ -35,7 +35,7 @@ describe("schema", () => {
       .returning();
     const [event] = await db
       .insert(events)
-      .values({ minyanId: minyan!.id, date: "2026-09-06", startsAt: "2026-09-06T06:30" })
+      .values({ minyanId: minyan!.id, date: "2026-09-06", startsAt: "2026-09-06T06:30", ownerId: user.id })
       .returning();
 
     await db.insert(rsvps).values({ eventId: event!.id, userId: user.id, status: "in" });
@@ -62,6 +62,28 @@ describe("schema", () => {
     expect(await db.select().from(messages)).toHaveLength(2);
   });
 
+  it("allows a one-off event without a minyan reference", async () => {
+    const db = migratedDb();
+    const user = await seedUser(db, "Mordy");
+    const [event] = await db
+      .insert(events)
+      .values({
+        minyanId: null,
+        date: "2026-10-01",
+        startsAt: "2026-10-01T18:30",
+        locationText: "123 Main St",
+        notes: "Bring a siddur",
+        typeTag: "minyan",
+        ownerId: user.id,
+      })
+      .returning();
+    expect(event).toBeDefined();
+    expect(event.minyanId).toBeNull();
+    expect(event.locationText).toBe("123 Main St");
+    expect(event.notes).toBe("Bring a siddur");
+    expect(event.typeTag).toBe("minyan");
+  });
+
   it("cascades event deletion to rsvps", async () => {
     const db = migratedDb();
     const user = await seedUser(db, "Mordy");
@@ -71,7 +93,7 @@ describe("schema", () => {
       .returning();
     const [event] = await db
       .insert(events)
-      .values({ minyanId: minyan!.id, date: "2026-09-06", startsAt: "2026-09-06T06:30" })
+      .values({ minyanId: minyan!.id, date: "2026-09-06", startsAt: "2026-09-06T06:30", ownerId: user.id })
       .returning();
     await db.insert(rsvps).values({ eventId: event!.id, userId: user.id, status: "in" });
 
