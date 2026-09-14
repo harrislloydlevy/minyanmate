@@ -39,7 +39,7 @@ async function claimDue(): Promise<string[]> {
         .run();
     }
     return rows.map((row) => row.id);
-  });
+  })();
 
   return ids;
 }

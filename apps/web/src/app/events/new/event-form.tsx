@@ -17,10 +17,10 @@ import { Label } from "@/components/ui/label";
 
 export function EventForm() {
   const router = useRouter();
-  const [state, formAction, pending] = useActionState<CreateEventResult | null>(
-    createEvent,
-    null,
-  );
+  const [state, formAction, pending] = useActionState<
+    CreateEventResult | null,
+    FormData
+  >(createEvent, null);
 
   if (state?.success) {
     router.push("/my");
