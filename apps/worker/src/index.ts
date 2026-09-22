@@ -9,8 +9,32 @@ import { createDb, jobs } from "@minyanmate/db";
 
 type JobHandler = (payload: Record<string, unknown>) => Promise<void> | void;
 
+/**
+ * Job type: `event_edited`
+ *
+ * Enqueued by the web `updateEvent` server action whenever an organiser
+ * changes event details within the last hour. Payload contract:
+ * `{ eventId: string; editedAt: string /* ISO-8601 *\/ }`.
+ *
+ * TODO(minyanmate#11): replace the log-only handler with a real fan-out that
+ *   loads the confirmed RSVPs for `eventId` and sends each attendee a
+ *   WhatsApp message (or template) describing the change. This requires the
+ *   Meta WhatsApp credentials, which are not available in this environment,
+ *   so the handler currently only records intent. The job row is still
+ *   durable and will be retried/observed like any other job.
+ */
+function handleEventEdited(payload: Record<string, unknown>): void {
+  const eventId = typeof payload.eventId === "string" ? payload.eventId : null;
+  console.log(
+    "[worker] event_edited: %s editedAt=%s (notification fan-out not yet implemented)",
+    eventId ?? "<unknown>",
+    payload.editedAt ?? "<unknown>",
+  );
+}
+
 const handlers: Record<string, JobHandler> = {
   noop: () => {},
+  event_edited: handleEventEdited,
 };
 
 const POLL_INTERVAL_MS = 5_000;
@@ -39,7 +63,7 @@ async function claimDue(): Promise<string[]> {
         .run();
     }
     return rows.map((row) => row.id);
-  });
+  })();
 
   return ids;
 }

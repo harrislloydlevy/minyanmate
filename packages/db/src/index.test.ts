@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { createMemoryDb, events, messages, minyans, rsvps, users } from "./index";
 
@@ -99,5 +100,50 @@ describe("schema", () => {
 
     await db.delete(events);
     expect(await db.select().from(rsvps)).toHaveLength(0);
+  });
+
+  it("allows setting lastEditedAt on an event", async () => {
+    const db = migratedDb();
+    const user = await seedUser(db, "Golda");
+    // SQLite stores timestamps as integer seconds, so round to whole seconds
+    const now = new Date(Math.floor(Date.now() / 1000) * 1000);
+
+    const [event] = await db
+      .insert(events)
+      .values({
+        minyanId: null,
+        date: "2026-10-15",
+        startsAt: "2026-10-15T09:00",
+        locationText: "Shul",
+        ownerId: user.id,
+        lastEditedAt: now,
+      })
+      .returning();
+
+    expect(event).toBeDefined();
+    expect(event.lastEditedAt).toBeInstanceOf(Date);
+    expect(event.lastEditedAt!.getTime()).toBe(now.getTime());
+  });
+
+  it("update sets lastEditedAt", async () => {
+    const db = migratedDb();
+    const user = await seedUser(db, "Yossi");
+    const [event] = await db
+      .insert(events)
+      .values({ date: "2026-10-15", startsAt: "2026-10-15T09:00", locationText: "Old shul", ownerId: user.id })
+      .returning();
+
+    expect(event.lastEditedAt).toBeNull();
+
+    const updatedAt = new Date(2026, 9, 15, 10, 0);
+    await db
+      .update(events)
+      .set({ locationText: "New shul", lastEditedAt: updatedAt })
+      .where(eq(events.id, event.id));
+
+    const [refetched] = await db.select().from(events).where(eq(events.id, event.id)).limit(1);
+    expect(refetched!.locationText).toBe("New shul");
+    expect(refetched!.lastEditedAt).toBeInstanceOf(Date);
+    expect(refetched!.lastEditedAt!.getTime()).toBe(updatedAt.getTime());
   });
 });

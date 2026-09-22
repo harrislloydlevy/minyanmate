@@ -158,6 +158,8 @@ export const events = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     ...timestamps,
+    /** Set by the update-event action to track when details last changed. */
+    lastEditedAt: integer("last_edited_at", { mode: "timestamp" }),
   },
   (t) => [
     uniqueIndex("events_minyan_date_uq").on(t.minyanId, t.date),

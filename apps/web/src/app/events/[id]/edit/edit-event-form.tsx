@@ -1,9 +1,9 @@
 "use client";
 
-import { CalendarPlus, LoaderCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { ArrowLeft, LoaderCircle, Save } from "lucide-react";
 import { useActionState } from "react";
-import { createEvent, type CreateEventResult } from "@/lib/actions/create-event";
+import { useRouter } from "next/navigation";
+import { updateEvent, type UpdateEventResult } from "@/lib/actions/update-event";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,40 +15,44 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function EventForm() {
+interface EditEventFormProps {
+  eventId: string;
+  defaultDate: string;
+  defaultTime: string;
+  defaultLocation: string | null;
+  defaultNotes: string | null;
+  defaultTypeTag: string | null;
+}
+
+export function EditEventForm({
+  eventId,
+  defaultDate,
+  defaultTime,
+  defaultLocation,
+  defaultNotes,
+  defaultTypeTag,
+}: EditEventFormProps) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState<
-    CreateEventResult | null,
+    UpdateEventResult | null,
     FormData
-  >(createEvent, null);
+  >(updateEvent, null);
 
   if (state?.success) {
-    router.push("/my");
+    router.push(`/events/${eventId}`);
   }
 
   return (
     <Card className="w-full max-w-lg">
       <CardHeader className="text-center">
-        <div className="bg-primary/10 text-primary mx-auto mb-2 flex size-12 items-center justify-center rounded-xl">
-          <CalendarPlus className="size-6" />
-        </div>
-        <CardTitle className="text-xl">New event</CardTitle>
+        <CardTitle className="text-xl">Edit event</CardTitle>
         <CardDescription>
-          Create a one-off minyan or pickup.
+          Update the event details below.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form action={formAction} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="name">Event title</Label>
-            <Input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="Shacharis at the shul"
-              required
-            />
-          </div>
+          <input type="hidden" name="eventId" value={eventId} />
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="date">Date</Label>
@@ -56,6 +60,7 @@ export function EventForm() {
               id="date"
               name="date"
               type="date"
+              defaultValue={defaultDate}
               required
             />
           </div>
@@ -66,6 +71,7 @@ export function EventForm() {
               id="time"
               name="time"
               type="time"
+              defaultValue={defaultTime}
               required
             />
           </div>
@@ -78,6 +84,7 @@ export function EventForm() {
               id="location"
               name="location"
               type="text"
+              defaultValue={defaultLocation ?? ""}
               placeholder="123 Main St, room 2"
             />
           </div>
@@ -90,6 +97,7 @@ export function EventForm() {
               id="notes"
               name="notes"
               type="text"
+              defaultValue={defaultNotes ?? ""}
               placeholder="Bring a siddur"
             />
           </div>
@@ -103,6 +111,7 @@ export function EventForm() {
               name="typeTag"
               data-slot="input"
               className="border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/40 focus-visible:ring-[3px]"
+              defaultValue={defaultTypeTag ?? ""}
             >
               <option value="">No type</option>
               <option value="minyan">Minyan</option>
@@ -114,14 +123,25 @@ export function EventForm() {
             <p className="text-destructive text-sm">{state.error}</p>
           )}
 
-          <Button type="submit" disabled={pending} className="w-full">
-            {pending ? (
-              <LoaderCircle className="size-4 animate-spin" />
-            ) : (
-              <CalendarPlus className="size-4" />
-            )}
-            {pending ? "Creating…" : "Create event"}
-          </Button>
+          <div className="flex gap-3">
+            <Button type="submit" disabled={pending} className="flex-1">
+              {pending ? (
+                <LoaderCircle className="size-4 animate-spin" />
+              ) : (
+                <Save className="size-4" />
+              )}
+              {pending ? "Saving…" : "Save changes"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={pending}
+              onClick={() => router.back()}
+            >
+              <ArrowLeft className="size-4" />
+              Cancel
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>
