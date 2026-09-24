@@ -3,8 +3,16 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { CalendarDays, Clock, MapPin, Pencil, StickyNote, Tag, Users } from "lucide-react";
-import { events, rsvps } from "@minyanmate/db/schema";
+import {
+  CalendarDays,
+  Clock,
+  MapPin,
+  Pencil,
+  StickyNote,
+  Tag,
+  Users,
+} from "lucide-react";
+import { events, rsvps, users } from "@minyanmate/db/schema";
 import { relativeAge } from "@minyanmate/core";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -107,10 +115,15 @@ export default async function EventDetailPage({
 
   const isOwner = event.ownerId === session.user.id;
 
-  // RSVP counts and current user's RSVP
+  // RSVP counts, user names, and current user's RSVP
   const rsvpRows = await db
-    .select({ status: rsvps.status, userId: rsvps.userId })
+    .select({
+      status: rsvps.status,
+      userId: rsvps.userId,
+      userName: users.name,
+    })
     .from(rsvps)
+    .leftJoin(users, eq(rsvps.userId, users.id))
     .where(eq(rsvps.eventId, event.id));
 
   const confirmedCount = rsvpRows.filter((r) => r.status === "in").length;
@@ -118,6 +131,10 @@ export default async function EventDetailPage({
   const declinedCount = rsvpRows.filter((r) => r.status === "out").length;
   const userRsvp =
     rsvpRows.find((r) => r.userId === session.user.id)?.status ?? null;
+
+  const comingRsvps = rsvpRows.filter((r) => r.status === "in");
+  const maybeRsvps = rsvpRows.filter((r) => r.status === "maybe");
+  const notComingRsvps = rsvpRows.filter((r) => r.status === "out");
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -213,6 +230,53 @@ export default async function EventDetailPage({
 
               <RsvpButtons eventId={event.id} currentStatus={userRsvp as RsvpStatus | null} />
             </div>
+
+            {(comingRsvps.length > 0 ||
+              maybeRsvps.length > 0 ||
+              notComingRsvps.length > 0) && (
+              <div className="border-t pt-4 flex flex-col gap-3">
+                <h3 className="text-sm font-semibold">RSVPs</h3>
+
+                {comingRsvps.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                      Coming ({comingRsvps.length})
+                    </p>
+                    <ul className="mt-1 list-inside list-disc text-sm text-muted-foreground">
+                      {comingRsvps.map((r) => (
+                        <li key={r.userId}>{r.userName ?? "Unknown"}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {maybeRsvps.length > 0 && (
+                  <div>
+                    <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
+                      Maybe ({maybeRsvps.length})
+                    </p>
+                    <ul className="mt-1 list-inside list-disc text-sm text-muted-foreground">
+                      {maybeRsvps.map((r) => (
+                        <li key={r.userId}>{r.userName ?? "Unknown"}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {notComingRsvps.length > 0 && (
+                  <details className="group">
+                    <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
+                      Not coming ({notComingRsvps.length})
+                    </summary>
+                    <ul className="mt-1 list-inside list-disc text-sm text-muted-foreground">
+                      {notComingRsvps.map((r) => (
+                        <li key={r.userId}>{r.userName ?? "Unknown"}</li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </div>
+            )}
 
             <Button asChild variant="outline" className="w-full">
               <Link href="/my">Back to my minyans</Link>
