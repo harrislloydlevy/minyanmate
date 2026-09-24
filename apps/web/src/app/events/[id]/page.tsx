@@ -15,6 +15,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { RsvpButtons } from "@/components/rsvp-buttons";
+import type { RsvpStatus } from "@/lib/actions/rsvp";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -105,15 +107,17 @@ export default async function EventDetailPage({
 
   const isOwner = event.ownerId === session.user.id;
 
-  // RSVP counts by status. RSVP UI does not exist yet, so these will normally
-  // be zero — the counts are derived from whatever rows exist in the table.
+  // RSVP counts and current user's RSVP
   const rsvpRows = await db
-    .select({ status: rsvps.status })
+    .select({ status: rsvps.status, userId: rsvps.userId })
     .from(rsvps)
     .where(eq(rsvps.eventId, event.id));
 
   const confirmedCount = rsvpRows.filter((r) => r.status === "in").length;
+  const maybeCount = rsvpRows.filter((r) => r.status === "maybe").length;
   const declinedCount = rsvpRows.filter((r) => r.status === "out").length;
+  const userRsvp =
+    rsvpRows.find((r) => r.userId === session.user.id)?.status ?? null;
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -201,23 +205,14 @@ export default async function EventDetailPage({
               )}
             </dl>
 
-            {isOwner ? (
-              <div className="border-t pt-4">
-                <div className="text-muted-foreground flex items-center gap-2 text-xs">
-                  <Users className="size-4" />
-                  {confirmedCount} in · {declinedCount} out
-                </div>
+            <div className="border-t pt-4 flex flex-col gap-3">
+              <div className="text-muted-foreground flex items-center gap-2 text-xs">
+                <Users className="size-4" />
+                {confirmedCount} in · {maybeCount} maybe · {declinedCount} out
               </div>
-            ) : (
-              event.lastEditedAt && (
-                <p
-                  className="text-muted-foreground border-t pt-4 text-xs"
-                  data-testid="attendee-change-indicator"
-                >
-                  Event details have changed since this event was created.
-                </p>
-              )
-            )}
+
+              <RsvpButtons eventId={event.id} currentStatus={userRsvp as RsvpStatus | null} />
+            </div>
 
             <Button asChild variant="outline" className="w-full">
               <Link href="/my">Back to my minyans</Link>

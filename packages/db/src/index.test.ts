@@ -125,6 +125,7 @@ describe("schema", () => {
     expect(event.lastEditedAt!.getTime()).toBe(now.getTime());
   });
 
+
   it("update sets lastEditedAt", async () => {
     const db = migratedDb();
     const user = await seedUser(db, "Yossi");

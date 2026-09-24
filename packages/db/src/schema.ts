@@ -177,7 +177,7 @@ export const rsvps = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    status: text("status", { enum: ["in", "out"] }).notNull(),
+    status: text("status", { enum: ["in", "out", "maybe"] }).notNull(),
     /** Where the RSVP came from: web UI, WhatsApp reply/button, or organizer. */
     source: text("source", { enum: ["web", "whatsapp", "organizer"] })
       .notNull()
