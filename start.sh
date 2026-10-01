@@ -47,20 +47,29 @@ case "${1:-start}" in
     echo "▸ Logs: $LOG_FILE"
     cd "$APP_DIR"
 
+    # Resolve absolute DB path to avoid workspace-root resolution issues
+    ABS_DB="$(realpath "$DB_PATH" 2>/dev/null || echo "$DB_PATH")"
+
     nohup node -e "
       const { spawn } = require('child_process');
+      const fs = require('fs');
       const nextPath = require.resolve('next/dist/bin/next');
+      const logFd = fs.openSync('$LOG_FILE', 'a');
+      const errFd = fs.openSync('$LOG_FILE', 'a');
       const p = spawn('node', [nextPath, 'start', '--port', '$PORT'], {
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: ['ignore', logFd, errFd],
         detached: true,
-        env: { ...process.env, NODE_ENV: '$NODE_ENV', BETTER_AUTH_URL: '$BETTER_AUTH_URL', DB_PATH: '$DB_PATH' }
+        env: {
+          ...process.env,
+          NODE_ENV: '$NODE_ENV',
+          BETTER_AUTH_URL: '$BETTER_AUTH_URL',
+          DB_PATH: '$ABS_DB',
+          APP_ENV: '\${APP_ENV:-development}'
+        }
       });
-      p.stdout.pipe(process.stdout);
-      p.stderr.pipe(process.stderr);
-      console.log('PID:', p.pid);
-      require('fs').writeFileSync('$PID_FILE', String(p.pid));
+      fs.writeFileSync('$PID_FILE', String(p.pid));
       p.unref();
-    " >> "$LOG_FILE" 2>&1 &
+    " 2>&1
 
     # Wait a few seconds and check
     sleep 3

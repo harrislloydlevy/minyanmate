@@ -20,9 +20,12 @@ export const auth = betterAuth({
   }),
   plugins: [
     phoneNumber({
+      signUpOnVerification: {
+        getTempEmail: (phone) => `${phone.replace(/[^+\d]/g, "")}@minyanmate.app`,
+        getTempName: (phone) => phone,
+      },
       sendOTP: async ({ phoneNumber: to, code }) => {
         if (!isProduction) {
-          // Dev mode: no Meta credentials needed, the code lands in the web logs
           console.log(`[dev-otp] WhatsApp OTP for ${to}: ${code}`);
           return;
         }
