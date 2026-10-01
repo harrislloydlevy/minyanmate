@@ -9,6 +9,7 @@ const isProduction = process.env.APP_ENV === "production";
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET ?? "dev-insecure-secret-change-me",
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+  trustedOrigins: ["http://server:3001"],
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: {
@@ -20,6 +21,10 @@ export const auth = betterAuth({
   }),
   plugins: [
     phoneNumber({
+      signUpOnVerification: {
+        getTempEmail: (phone) => `${phone.replace(/\s/g, "")}@minyanmate.local`,
+        getTempName: (phone) => phone,
+      },
       sendOTP: async ({ phoneNumber: to, code }) => {
         if (!isProduction) {
           // Dev mode: no Meta credentials needed, the code lands in the web logs
