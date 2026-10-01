@@ -2,7 +2,7 @@
 
 import { CalendarPlus, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { createEvent, type CreateEventResult } from "@/lib/actions/create-event";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,9 +22,11 @@ export function EventForm() {
     FormData
   >(createEvent, null);
 
-  if (state?.success) {
-    router.push("/my");
-  }
+  useEffect(() => {
+    if (state?.success) {
+      router.push("/my");
+    }
+  }, [state?.success, router]);
 
   return (
     <Card className="w-full max-w-lg">
