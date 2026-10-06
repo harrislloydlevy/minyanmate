@@ -158,6 +158,8 @@ export const events = sqliteTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     ...timestamps,
+    /** Set by the update-event action to track when details last changed. */
+    lastEditedAt: integer("last_edited_at", { mode: "timestamp" }),
   },
   (t) => [
     uniqueIndex("events_minyan_date_uq").on(t.minyanId, t.date),
@@ -175,7 +177,7 @@ export const rsvps = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    status: text("status", { enum: ["in", "out"] }).notNull(),
+    status: text("status", { enum: ["in", "out", "maybe"] }).notNull(),
     /** Where the RSVP came from: web UI, WhatsApp reply/button, or organizer. */
     source: text("source", { enum: ["web", "whatsapp", "organizer"] })
       .notNull()

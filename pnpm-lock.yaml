@@ -78,6 +78,9 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.1.0
         version: 4.3.3
+      '@types/better-sqlite3':
+        specifier: ^7.6.13
+        version: 7.6.13
       '@types/node':
         specifier: ^24.0.0
         version: 24.13.4
@@ -102,9 +105,6 @@ importers:
       '@minyanmate/whatsapp':
         specifier: workspace:*
         version: link:../../packages/whatsapp
-      better-sqlite3:
-        specifier: ^12.2.0
-        version: 12.11.1
       drizzle-orm:
         specifier: ^0.44.2
         version: 0.44.7(@types/better-sqlite3@7.6.13)(better-sqlite3@12.11.1)(kysely@0.29.5)
