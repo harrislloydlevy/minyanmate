@@ -88,13 +88,13 @@ export default async function EventDetailPage({
   if (!event) {
     return (
       <div className="flex min-h-svh flex-col">
-        <header className="container flex h-16 items-center justify-between">
+        <header className="flex h-16 items-center justify-between">
           <Link href="/" className="text-lg font-bold tracking-tight">
             Minyan<span className="text-primary">Mate</span>
           </Link>
           <ThemeToggle />
         </header>
-        <main className="container flex flex-1 items-start justify-center py-10">
+        <main className="flex flex-1 items-start justify-center py-10">
           <Card className="w-full max-w-lg">
             <CardHeader>
               <CardTitle>Event not found</CardTitle>
@@ -138,7 +138,7 @@ export default async function EventDetailPage({
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="container flex h-16 items-center justify-between">
+      <header className="flex h-16 items-center justify-between">
         <Link href="/" className="text-lg font-bold tracking-tight">
           Minyan<span className="text-primary">Mate</span>
         </Link>
@@ -147,7 +147,7 @@ export default async function EventDetailPage({
         </div>
       </header>
 
-      <main className="container flex flex-1 items-start justify-center py-10">
+      <main className="flex flex-1 items-start justify-center py-10">
         <Card className="w-full max-w-lg">
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
@@ -231,50 +231,29 @@ export default async function EventDetailPage({
               <RsvpButtons eventId={event.id} currentStatus={userRsvp as RsvpStatus | null} />
             </div>
 
-            {(comingRsvps.length > 0 ||
-              maybeRsvps.length > 0 ||
-              notComingRsvps.length > 0) && (
+            {rsvpRows.length > 0 && (
               <div className="border-t pt-4 flex flex-col gap-3">
                 <h3 className="text-sm font-semibold">RSVPs</h3>
-
-                {comingRsvps.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                      Coming ({comingRsvps.length})
-                    </p>
-                    <ul className="mt-1 list-inside list-disc text-sm text-muted-foreground">
-                      {comingRsvps.map((r) => (
-                        <li key={r.userId}>{r.userName ?? "Unknown"}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {maybeRsvps.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                      Maybe ({maybeRsvps.length})
-                    </p>
-                    <ul className="mt-1 list-inside list-disc text-sm text-muted-foreground">
-                      {maybeRsvps.map((r) => (
-                        <li key={r.userId}>{r.userName ?? "Unknown"}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {notComingRsvps.length > 0 && (
-                  <details className="group">
-                    <summary className="cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground">
-                      Not coming ({notComingRsvps.length})
-                    </summary>
-                    <ul className="mt-1 list-inside list-disc text-sm text-muted-foreground">
-                      {notComingRsvps.map((r) => (
-                        <li key={r.userId}>{r.userName ?? "Unknown"}</li>
-                      ))}
-                    </ul>
-                  </details>
-                )}
+                <ul className="list-inside list-disc text-sm text-muted-foreground">
+                  {rsvpRows.map((r) => (
+                    <li key={r.userId} className="flex items-center gap-2">
+                      <span
+                        className={
+                          r.status === "in"
+                            ? "text-green-600 dark:text-green-400"
+                            : r.status === "maybe"
+                              ? "text-amber-600 dark:text-amber-400"
+                              : "text-muted-foreground"
+                        }
+                      >
+                        {r.userName ?? "Unknown"}
+                      </span>
+                      <span className="text-xs">
+                        ({r.status === "in" ? "coming" : r.status === "maybe" ? "maybe" : "not coming"})
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
 

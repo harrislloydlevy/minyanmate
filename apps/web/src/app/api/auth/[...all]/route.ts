@@ -1,5 +1,4 @@
 import { auth } from "@/lib/auth";
-
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {

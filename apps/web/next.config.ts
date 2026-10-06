@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   transpilePackages: ["@minyanmate/core", "@minyanmate/db", "@minyanmate/whatsapp"],
   // better-sqlite3 is a native module; keep it out of the bundler
   serverExternalPackages: ["better-sqlite3"],
+  allowedDevOrigins: ["minyanmate.tiyrah.duckdns.org"],
+  devIndicators: {
+    buildActivity: false,
+  },
 };
 
 export default nextConfig;

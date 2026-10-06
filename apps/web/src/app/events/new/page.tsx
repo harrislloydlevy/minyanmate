@@ -18,7 +18,7 @@ export default async function NewEventPage() {
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="container flex h-16 items-center justify-between">
+      <header className="flex h-16 items-center justify-between">
         <Link href="/" className="text-lg font-bold tracking-tight">
           Minyan<span className="text-primary">Mate</span>
         </Link>
@@ -27,7 +27,7 @@ export default async function NewEventPage() {
         </div>
       </header>
 
-      <main className="container flex flex-1 items-start justify-center py-10">
+      <main className="flex flex-1 items-start justify-center py-10">
         <EventForm />
       </main>
     </div>

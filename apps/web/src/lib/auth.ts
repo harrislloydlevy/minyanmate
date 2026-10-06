@@ -9,6 +9,10 @@ const isProduction = process.env.APP_ENV === "production";
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET ?? "dev-insecure-secret-change-me",
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
+  trustedOrigins: [
+    "http://server:3001",
+    "http://minyanmate.tiyrah.duckdns.org:3100",
+  ],
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: {

@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, LoaderCircle, Save } from "lucide-react";
+import { useEffect } from "react";
 import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { updateEvent, type UpdateEventResult } from "@/lib/actions/update-event";
@@ -38,9 +39,11 @@ export function EditEventForm({
     FormData
   >(updateEvent, null);
 
-  if (state?.success) {
-    router.push(`/events/${eventId}`);
-  }
+  useEffect(() => {
+    if (state?.success) {
+      router.push(`/events/${eventId}`);
+    }
+  }, [state, eventId, router]);
 
   return (
     <Card className="w-full max-w-lg">
