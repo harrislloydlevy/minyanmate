@@ -102,7 +102,7 @@ export default async function MyPage() {
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="container flex h-16 items-center justify-between">
+      <header className="flex h-16 items-center justify-between">
         <Link href="/" className="text-lg font-bold tracking-tight">
           Minyan<span className="text-primary">Mate</span>
         </Link>
@@ -112,7 +112,7 @@ export default async function MyPage() {
         </div>
       </header>
 
-      <main className="container flex-1 space-y-6 py-10">
+      <main className="flex-1 space-y-6 py-10">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">

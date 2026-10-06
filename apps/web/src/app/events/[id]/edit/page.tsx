@@ -42,13 +42,13 @@ export default async function EditEventPage({
   if (!event) {
     return (
       <div className="flex min-h-svh flex-col">
-        <header className="container flex h-16 items-center justify-between">
+        <header className="flex h-16 items-center justify-between">
           <Link href="/" className="text-lg font-bold tracking-tight">
             Minyan<span className="text-primary">Mate</span>
           </Link>
           <ThemeToggle />
         </header>
-        <main className="container flex flex-1 items-start justify-center py-10">
+        <main className="flex flex-1 items-start justify-center py-10">
           <Card className="w-full max-w-lg">
             <CardHeader>
               <CardTitle>Event not found</CardTitle>
@@ -77,7 +77,7 @@ export default async function EditEventPage({
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="container flex h-16 items-center justify-between">
+      <header className="flex h-16 items-center justify-between">
         <Link href="/" className="text-lg font-bold tracking-tight">
           Minyan<span className="text-primary">Mate</span>
         </Link>
@@ -86,7 +86,7 @@ export default async function EditEventPage({
         </div>
       </header>
 
-      <main className="container flex flex-1 items-start justify-center py-10">
+      <main className="flex flex-1 items-start justify-center py-10">
         <EditEventForm
           eventId={event.id}
           defaultDate={date}
