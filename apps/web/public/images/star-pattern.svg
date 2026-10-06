@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-  <defs>
-    <pattern id="stars" width="120" height="120" patternUnits="userSpaceOnUse">
-      <path d="M60 15 L72 45 L105 45 L78 63 L88 95 L60 75 L32 95 L42 63 L15 45 L48 45 Z" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.08"/>
-      <path d="M0 75 L9 93 L36 93 L15 105 L22 120 L0 110 L-22 120 L-15 105 L-36 93 L-9 93 Z" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.06"/>
-    </pattern>
-  </defs>
-  <rect width="120" height="120" fill="url(#stars)"/>
-</svg>
