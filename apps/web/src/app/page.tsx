@@ -58,7 +58,7 @@ export default function Home() {
       </header>
 
       <main className="flex-1">
-        <section className="container flex flex-col items-center gap-6 py-24 text-center">
+        <section className="flex flex-col items-center gap-6 px-4 py-24 text-center sm:px-6 lg:px-8">
           <h1 className="max-w-2xl text-4xl font-extrabold tracking-tight text-balance sm:text-5xl">
             Never miss a{" "}
             <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
@@ -81,7 +81,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="container grid gap-4 pb-24 sm:grid-cols-2">
+        <section className="grid gap-4 px-4 pb-24 sm:grid-cols-2 sm:px-6 lg:px-8">
           {features.map((feature) => (
             <Card key={feature.title}>
               <CardHeader>
