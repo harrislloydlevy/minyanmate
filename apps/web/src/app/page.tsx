@@ -1,10 +1,6 @@
-import {
-  BellRing,
-  CalendarCheck,
-  MessageCircle,
-  Users,
-} from "lucide-react";
+import { BellRing, CalendarCheck, MessageCircle, Users } from "lucide-react";
 import Link from "next/link";
+import { sql } from "drizzle-orm";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { db } from "@/lib/db";
 
 const features = [
   {
@@ -42,7 +39,19 @@ const features = [
   },
 ];
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  let userCount = 0;
+  try {
+    const [result] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(sql`users`);
+    userCount = result?.count ?? 0;
+  } catch {
+    // DB not available — page still renders
+  }
+
   return (
     <div className="flex min-h-svh flex-col">
       <header className="container flex h-16 items-center justify-between">
@@ -71,6 +80,14 @@ export default function Home() {
             alerts everyone the second quorum is reached, and lets people RSVP
             right from WhatsApp.
           </p>
+
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span className="inline-block size-2 rounded-full bg-green-500" />
+            {userCount > 0
+              ? `${userCount} registered user${userCount === 1 ? "" : "s"}`
+              : "Stack is live — database connected"}
+          </div>
+
           <div className="flex gap-3">
             <Button asChild size="lg">
               <Link href="/login">Get started</Link>
