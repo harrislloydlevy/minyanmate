@@ -9,17 +9,6 @@ const nextConfig: NextConfig = {
   devIndicators: {
     buildActivity: false,
   },
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.devServer = {
-        ...config.devServer,
-        client: {
-          webSocketURL: "ws://minyanmate.tiyrah.duckdns.org:3100/_next/webpack-hmr",
-        },
-      };
-    }
-    return config;
-  },
 };
 
 export default nextConfig;
