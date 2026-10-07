@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { createMemoryDb, events, messages, minyans, rsvps, users } from "./index";
+import { createMemoryDb, events, guests, messages, minyans, rsvps, users } from "./index";
 
 const migrationsFolder = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -125,6 +125,66 @@ describe("schema", () => {
     expect(event.lastEditedAt!.getTime()).toBe(now.getTime());
   });
 
+
+  it("enforces one guest rsvp per event per token", async () => {
+    const db = migratedDb();
+    const user = await seedUser(db, "Mordy");
+    const [event] = await db
+      .insert(events)
+      .values({ date: "2026-10-15", startsAt: "2026-10-15T09:00", locationText: "Shul", ownerId: user.id })
+      .returning();
+
+    await db.insert(guests).values({ eventId: event!.id, name: "Guest A", status: "in", token: "tok-1" });
+    await expect(
+      db.insert(guests).values({ eventId: event!.id, name: "Guest A again", status: "out", token: "tok-1" }),
+    ).rejects.toThrow();
+  });
+
+  it("allows multiple guests for the same event with different tokens", async () => {
+    const db = migratedDb();
+    const user = await seedUser(db, "Mordy");
+    const [event] = await db
+      .insert(events)
+      .values({ date: "2026-10-15", startsAt: "2026-10-15T09:00", locationText: "Shul", ownerId: user.id })
+      .returning();
+
+    await db.insert(guests).values([
+      { eventId: event!.id, name: "Guest A", status: "in", token: "tok-a" },
+      { eventId: event!.id, name: "Guest B", status: "maybe", token: "tok-b" },
+      { eventId: event!.id, name: "Guest C", status: "out", token: "tok-c" },
+    ]);
+
+    const rows = await db.select().from(guests).where(eq(guests.eventId, event!.id));
+    expect(rows).toHaveLength(3);
+    expect(rows.filter((r) => r.status === "in")).toHaveLength(1);
+    expect(rows.filter((r) => r.status === "maybe")).toHaveLength(1);
+    expect(rows.filter((r) => r.status === "out")).toHaveLength(1);
+  });
+
+  it("cascades event deletion to guests", async () => {
+    const db = migratedDb();
+    const user = await seedUser(db, "Mordy");
+    const [event] = await db
+      .insert(events)
+      .values({ date: "2026-10-15", startsAt: "2026-10-15T09:00", locationText: "Shul", ownerId: user.id })
+      .returning();
+    await db.insert(guests).values({ eventId: event!.id, name: "Guest", status: "in", token: "tok-1" });
+
+    await db.delete(events);
+    expect(await db.select().from(guests)).toHaveLength(0);
+  });
+
+  it("allows same guest token across different events", async () => {
+    const db = migratedDb();
+    const user = await seedUser(db, "Mordy");
+    const [e1] = await db.insert(events).values({ date: "2026-10-15", startsAt: "2026-10-15T09:00", locationText: "Shul A", ownerId: user.id }).returning();
+    const [e2] = await db.insert(events).values({ date: "2026-10-16", startsAt: "2026-10-16T09:00", locationText: "Shul B", ownerId: user.id }).returning();
+
+    await db.insert(guests).values({ eventId: e1!.id, name: "Guest", status: "in", token: "tok-same" });
+    await db.insert(guests).values({ eventId: e2!.id, name: "Guest", status: "maybe", token: "tok-same" });
+
+    expect(await db.select().from(guests)).toHaveLength(2);
+  });
 
   it("update sets lastEditedAt", async () => {
     const db = migratedDb();
