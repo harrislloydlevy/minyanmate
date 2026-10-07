@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -12,7 +11,7 @@ import {
   Tag,
   Users,
 } from "lucide-react";
-import { events, rsvps, users } from "@minyanmate/db/schema";
+import { events, rsvps, guests, users } from "@minyanmate/db/schema";
 import { relativeAge } from "@minyanmate/core";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -24,6 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { RsvpButtons } from "@/components/rsvp-buttons";
+import { GuestRsvpButtons } from "@/components/guest-rsvp-buttons";
 import type { RsvpStatus } from "@/lib/actions/rsvp";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -75,7 +75,7 @@ export default async function EventDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
+  const isAuthenticated = !!session;
 
   const { id } = await params;
 
@@ -113,9 +113,9 @@ export default async function EventDetailPage({
     );
   }
 
-  const isOwner = event.ownerId === session.user.id;
+  const isOwner = session ? event.ownerId === session.user.id : false;
 
-  // RSVP counts, user names, and current user's RSVP
+  // RSVP counts from authenticated users
   const rsvpRows = await db
     .select({
       status: rsvps.status,
@@ -126,15 +126,43 @@ export default async function EventDetailPage({
     .leftJoin(users, eq(rsvps.userId, users.id))
     .where(eq(rsvps.eventId, event.id));
 
-  const confirmedCount = rsvpRows.filter((r) => r.status === "in").length;
-  const maybeCount = rsvpRows.filter((r) => r.status === "maybe").length;
-  const declinedCount = rsvpRows.filter((r) => r.status === "out").length;
-  const userRsvp =
-    rsvpRows.find((r) => r.userId === session.user.id)?.status ?? null;
+  // Guest RSVPs
+  const guestRows = await db
+    .select()
+    .from(guests)
+    .where(eq(guests.eventId, event.id));
 
-  const comingRsvps = rsvpRows.filter((r) => r.status === "in");
-  const maybeRsvps = rsvpRows.filter((r) => r.status === "maybe");
-  const notComingRsvps = rsvpRows.filter((r) => r.status === "out");
+  const confirmedCount =
+    rsvpRows.filter((r) => r.status === "in").length +
+    guestRows.filter((r) => r.status === "in").length;
+  const maybeCount =
+    rsvpRows.filter((r) => r.status === "maybe").length +
+    guestRows.filter((r) => r.status === "maybe").length;
+  const declinedCount =
+    rsvpRows.filter((r) => r.status === "out").length +
+    guestRows.filter((r) => r.status === "out").length;
+  const userRsvp =
+    (session ? rsvpRows.find((r) => r.userId === session.user.id)?.status : null) ??
+    null;
+
+  type RsvpDisplay = {
+    name: string;
+    status: string;
+    isGuest: boolean;
+  };
+
+  const allRsvps: RsvpDisplay[] = [
+    ...rsvpRows.map((r) => ({
+      name: r.userName ?? "Unknown",
+      status: r.status,
+      isGuest: false,
+    })),
+    ...guestRows.map((r) => ({
+      name: r.name,
+      status: r.status,
+      isGuest: true,
+    })),
+  ];
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -228,15 +256,19 @@ export default async function EventDetailPage({
                 {confirmedCount} in · {maybeCount} maybe · {declinedCount} out
               </div>
 
-              <RsvpButtons eventId={event.id} currentStatus={userRsvp as RsvpStatus | null} />
+              {isAuthenticated ? (
+                <RsvpButtons eventId={event.id} currentStatus={userRsvp as RsvpStatus | null} />
+              ) : (
+                <GuestRsvpButtons eventId={event.id} />
+              )}
             </div>
 
-            {rsvpRows.length > 0 && (
+            {allRsvps.length > 0 && (
               <div className="border-t pt-4 flex flex-col gap-3">
                 <h3 className="text-sm font-semibold">RSVPs</h3>
                 <ul className="list-inside list-disc text-sm text-muted-foreground">
-                  {rsvpRows.map((r) => (
-                    <li key={r.userId} className="flex items-center gap-2">
+                  {allRsvps.map((r, i) => (
+                    <li key={i} className="flex items-center gap-2">
                       <span
                         className={
                           r.status === "in"
@@ -246,7 +278,7 @@ export default async function EventDetailPage({
                               : "text-muted-foreground"
                         }
                       >
-                        {r.userName ?? "Unknown"}
+                        {r.name}
                       </span>
                       <span className="text-xs">
                         ({r.status === "in" ? "coming" : r.status === "maybe" ? "maybe" : "not coming"})
@@ -257,9 +289,11 @@ export default async function EventDetailPage({
               </div>
             )}
 
-            <Button asChild variant="outline" className="w-full">
-              <Link href="/my">Back to my minyans</Link>
-            </Button>
+            {isAuthenticated && (
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/my">Back to my minyans</Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       </main>

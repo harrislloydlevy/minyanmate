@@ -187,6 +187,23 @@ export const rsvps = sqliteTable(
   (t) => [uniqueIndex("rsvps_event_user_uq").on(t.eventId, t.userId)],
 );
 
+/** Guest RSVP — unauthenticated participants. */
+export const guests = sqliteTable(
+  "guests",
+  {
+    id: id(),
+    name: text("name").notNull(),
+    eventId: text("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    status: text("status", { enum: ["in", "out", "maybe"] }).notNull(),
+    /** Cookie token for remembering the guest. */
+    token: text("token").notNull(),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("guests_event_token_uq").on(t.eventId, t.token)],
+);
+
 /** Outbound WhatsApp message log. Dedupe key prevents duplicate notifications. */
 export const messages = sqliteTable(
   "messages",
