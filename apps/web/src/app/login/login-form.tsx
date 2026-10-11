@@ -4,6 +4,7 @@ import { MessageCircle, Smartphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { mergeGuestRsvps } from "@/lib/actions/rsvp";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -43,11 +44,14 @@ export function LoginForm() {
     setError(null);
     setLoading(true);
     const { error } = await authClient.phoneNumber.verify({ phoneNumber, code });
-    setLoading(false);
     if (error) {
+      setLoading(false);
       setError(error.message ?? "That code didn't work. Try again.");
       return;
     }
+    // Carry over any RSVPs the visitor made before signing up.
+    await mergeGuestRsvps();
+    setLoading(false);
     router.push("/my");
   }
 

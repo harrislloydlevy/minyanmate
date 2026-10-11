@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { createMemoryDb, events, groups, guests, messages, minyans, rsvps, users } from "./index";
+import { createMemoryDb, events, groupMembers, groups, guests, messages, minyans, rsvps, users } from "./index";
 
 const migrationsFolder = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -283,6 +283,71 @@ describe("schema", () => {
         .returning();
       expect(group.description).toBeNull();
       expect(group.defaultLocation).toBeNull();
+    });
+  });
+
+  describe("groupMembers", () => {
+    async function seedGroup(db: ReturnType<typeof migratedDb>, ownerId: string) {
+      const [group] = await db
+        .insert(groups)
+        .values({
+          name: "Members Group",
+          slug: `members-group-${Math.random().toString(36).slice(2, 8)}`,
+          typeTag: "minyan",
+          ownerId,
+        })
+        .returning();
+      if (!group) throw new Error("group insert failed");
+      return group;
+    }
+
+    it("inserts a member and defaults role to member", async () => {
+      const db = migratedDb();
+      const owner = await seedUser(db, "Mordy");
+      const member = await seedUser(db, "Golda");
+      const group = await seedGroup(db, owner.id);
+
+      const [row] = await db
+        .insert(groupMembers)
+        .values({ groupId: group.id, userId: member.id })
+        .returning();
+
+      expect(row).toBeDefined();
+      expect(row.role).toBe("member");
+    });
+
+    it("rejects the same user twice in the same group", async () => {
+      const db = migratedDb();
+      const owner = await seedUser(db, "Mordy");
+      const member = await seedUser(db, "Golda");
+      const group = await seedGroup(db, owner.id);
+
+      await db.insert(groupMembers).values({ groupId: group.id, userId: member.id });
+      await expect(
+        db.insert(groupMembers).values({ groupId: group.id, userId: member.id }),
+      ).rejects.toThrow();
+    });
+
+    it("cascades delete when the group is deleted", async () => {
+      const db = migratedDb();
+      const owner = await seedUser(db, "Mordy");
+      const member = await seedUser(db, "Golda");
+      const group = await seedGroup(db, owner.id);
+      await db.insert(groupMembers).values({ groupId: group.id, userId: member.id });
+
+      await db.delete(groups).where(eq(groups.id, group.id));
+      expect(await db.select().from(groupMembers)).toHaveLength(0);
+    });
+
+    it("cascades delete when the user is deleted", async () => {
+      const db = migratedDb();
+      const owner = await seedUser(db, "Mordy");
+      const member = await seedUser(db, "Golda");
+      const group = await seedGroup(db, owner.id);
+      await db.insert(groupMembers).values({ groupId: group.id, userId: member.id });
+
+      await db.delete(users).where(eq(users.id, member.id));
+      expect(await db.select().from(groupMembers)).toHaveLength(0);
     });
   });
 });

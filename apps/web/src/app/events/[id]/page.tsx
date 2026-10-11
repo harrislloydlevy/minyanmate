@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import Link from "next/link";
 import {
   CalendarDays,
@@ -23,6 +23,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { RsvpButtons } from "@/components/rsvp-buttons";
+import { GuestBanner } from "@/components/guest-banner";
 import { GuestRsvpButtons } from "@/components/guest-rsvp-buttons";
 import type { RsvpStatus } from "@/lib/actions/rsvp";
 import { auth } from "@/lib/auth";
@@ -164,6 +165,21 @@ export default async function EventDetailPage({
     })),
   ];
 
+  // Nudge repeat guests (3+ RSVPs from this browser) to create an account.
+  let showGuestBanner = false;
+  if (!isAuthenticated) {
+    const cookieStore = await cookies();
+    const guestToken = cookieStore.get("guest_token")?.value;
+    const dismissed = cookieStore.get("guest_banner_dismissed")?.value === "1";
+    if (guestToken && !dismissed) {
+      const guestRsvpRows = await db
+        .select({ id: guests.id })
+        .from(guests)
+        .where(eq(guests.token, guestToken));
+      showGuestBanner = guestRsvpRows.length >= 3;
+    }
+  }
+
   return (
     <div className="flex min-h-svh flex-col">
       <header className="flex h-16 items-center justify-between">
@@ -198,6 +214,8 @@ export default async function EventDetailPage({
           </CardHeader>
 
           <CardContent className="flex flex-col gap-5">
+            {showGuestBanner && <GuestBanner />}
+
             {event.lastEditedAt && (
               <p className="text-muted-foreground text-xs" data-testid="last-edited">
                 Details updated {relativeLabel(event.lastEditedAt)}

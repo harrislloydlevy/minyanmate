@@ -118,8 +118,29 @@ export const groups = sqliteTable("groups", {
   ownerId: text("owner_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
+  /** When set, the group is joinable via `/groups/[slug]?join=<token>`. */
+  joinToken: text("join_token"),
   ...timestamps,
 });
+
+/** Membership of a user in a group, with a role. */
+export const groupMembers = sqliteTable(
+  "group_members",
+  {
+    id: id(),
+    groupId: text("group_id")
+      .notNull()
+      .references(() => groups.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: text("role", { enum: ["organiser", "member"] })
+      .notNull()
+      .default("member"),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("group_members_group_user_uq").on(t.groupId, t.userId)],
+);
 
 /** Follow ("regulars") — subscribe a user to a group's notifications. */
 export const minyanFollowers = sqliteTable(

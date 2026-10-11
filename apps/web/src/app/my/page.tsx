@@ -6,6 +6,7 @@ import Link from "next/link";
 import { CalendarPlus, UsersRound } from "lucide-react";
 import { events, rsvps, users } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
+import { GuestMerge } from "@/components/guest-merge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -102,6 +103,7 @@ export default async function MyPage() {
 
   return (
     <div className="flex min-h-svh flex-col">
+      <GuestMerge />
       <header className="flex h-16 items-center justify-between">
         <Link href="/" className="text-lg font-bold tracking-tight">
           Minyan<span className="text-primary">Mate</span>

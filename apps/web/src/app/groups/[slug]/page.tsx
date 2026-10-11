@@ -3,7 +3,10 @@ import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { MapPin, StickyNote, UsersRound } from "lucide-react";
-import { groups, users } from "@minyanmate/db/schema";
+import { groupMembers, groups, users } from "@minyanmate/db/schema";
+import { JoinGroup } from "@/components/join-group";
+import { JoinLink } from "@/components/join-link";
+import { MemberActions } from "@/components/member-actions";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,15 +25,25 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
+type MemberRow = {
+  userId: string;
+  role: "organiser" | "member";
+  name: string;
+  isOwner: boolean;
+};
+
 export default async function GroupDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ join?: string }>;
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
   const isAuthenticated = !!session;
 
   const { slug } = await params;
+  const { join: joinTokenParam } = await searchParams;
 
   const [group] = await db
     .select({
@@ -41,6 +54,7 @@ export default async function GroupDetailPage({
       defaultLocation: groups.defaultLocation,
       description: groups.description,
       ownerId: groups.ownerId,
+      joinToken: groups.joinToken,
     })
     .from(groups)
     .where(eq(groups.slug, slug))
@@ -80,8 +94,54 @@ export default async function GroupDetailPage({
     .where(eq(users.id, group.ownerId))
     .limit(1);
 
+  const memberRows = await db
+    .select({
+      userId: groupMembers.userId,
+      role: groupMembers.role,
+      name: users.name,
+    })
+    .from(groupMembers)
+    .innerJoin(users, eq(groupMembers.userId, users.id))
+    .where(eq(groupMembers.groupId, group.id));
+
+  const memberById = new Map<string, MemberRow>(
+    memberRows.map((m) => [
+      m.userId,
+      {
+        userId: m.userId,
+        role: m.role,
+        name: m.name,
+        isOwner: m.userId === group.ownerId,
+      },
+    ]),
+  );
+  // The owner is always an organiser, even on groups created before memberships existed.
+  if (!memberById.has(group.ownerId)) {
+    memberById.set(group.ownerId, {
+      userId: group.ownerId,
+      role: "organiser",
+      name: owner?.name || "Unknown",
+      isOwner: true,
+    });
+  }
+  const members: MemberRow[] = Array.from(memberById.values()).sort(
+    (a, b) => Number(b.isOwner) - Number(a.isOwner),
+  );
+
   const typeLabel = group.typeTag === "pickup" ? "Pickup" : "Minyan";
   const isOwner = isAuthenticated && group.ownerId === session.user.id;
+  const viewerMember = isAuthenticated
+    ? memberById.get(session.user.id)
+    : undefined;
+  const isMember = isOwner || !!viewerMember;
+  const canManage = isOwner || viewerMember?.role === "organiser";
+
+  const inviteAccepted =
+    !!joinTokenParam && !!group.joinToken && joinTokenParam === group.joinToken;
+  const showJoin =
+    isAuthenticated && !isMember && !!joinTokenParam && inviteAccepted;
+  const invalidInvite =
+    isAuthenticated && !isMember && !!joinTokenParam && !inviteAccepted;
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -136,6 +196,50 @@ export default async function GroupDetailPage({
                 </div>
               )}
             </dl>
+
+            {showJoin && <JoinGroup slug={group.slug} token={joinTokenParam} />}
+            {invalidInvite && (
+              <p className="text-destructive text-sm">This invite link is not valid.</p>
+            )}
+
+            {canManage && (
+              <div className="border-t pt-4 flex flex-col gap-2">
+                <h3 className="text-sm font-semibold">Invite link</h3>
+                <p className="text-muted-foreground text-xs">
+                  Share this link so people can join as members.
+                </p>
+                <JoinLink slug={group.slug} initialToken={group.joinToken} />
+              </div>
+            )}
+
+            <div className="border-t pt-4 flex flex-col gap-3">
+              <h3 className="text-sm font-semibold">Members</h3>
+              <ul className="flex flex-col gap-2 text-sm">
+                {members.map((m) => (
+                  <li key={m.userId} className="flex items-center justify-between gap-2">
+                    <span>{m.name || "Unknown"}</span>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={
+                          m.role === "organiser"
+                            ? "bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs"
+                            : "text-muted-foreground rounded-full px-2 py-0.5 text-xs"
+                        }
+                      >
+                        {m.role === "organiser" ? "Organiser" : "Member"}
+                      </span>
+                      {canManage && !m.isOwner && (
+                        <MemberActions
+                          groupId={group.id}
+                          userId={m.userId}
+                          role={m.role}
+                        />
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <Button asChild variant="outline" className="w-full">
               <Link href="/my">Back to my minyans</Link>

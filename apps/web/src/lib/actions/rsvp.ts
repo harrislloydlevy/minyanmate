@@ -1,6 +1,6 @@
 "use server";
 
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { rsvps, guests } from "@minyanmate/db/schema";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
@@ -79,6 +79,53 @@ export async function setGuestRsvp(
     });
 
     return { success: true, guestToken: token };
+  } catch {
+    return { success: false, error: "An unexpected error occurred." };
+  }
+}
+
+export type MergeGuestRsvpsResult =
+  | { success: true; merged: number }
+  | { success: false; error: string };
+
+/**
+ * Transfers a guest's RSVP rows to their account after they sign in.
+ * Called from the login flow once a session exists.
+ */
+export async function mergeGuestRsvps(): Promise<MergeGuestRsvpsResult> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return { success: false, error: "You must be signed in." };
+
+  const cookieStore = await cookies();
+  const token = cookieStore.get("guest_token")?.value;
+  if (!token) return { success: true, merged: 0 };
+
+  try {
+    const guestRows = await db
+      .select()
+      .from(guests)
+      .where(eq(guests.token, token));
+
+    for (const row of guestRows) {
+      await db
+        .insert(rsvps)
+        .values({
+          eventId: row.eventId,
+          userId: session.user.id,
+          status: row.status,
+          source: "web",
+        })
+        .onConflictDoUpdate({
+          target: [rsvps.eventId, rsvps.userId],
+          set: { status: row.status, updatedAt: sql`(unixepoch())` },
+        });
+    }
+
+    if (guestRows.length > 0) {
+      await db.delete(guests).where(eq(guests.token, token));
+    }
+
+    return { success: true, merged: guestRows.length };
   } catch {
     return { success: false, error: "An unexpected error occurred." };
   }
