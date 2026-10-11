@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { createMemoryDb, events, guests, messages, minyans, rsvps, users } from "./index";
+import { createMemoryDb, events, groups, guests, messages, minyans, rsvps, users } from "./index";
 
 const migrationsFolder = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -24,6 +24,13 @@ async function seedUser(db: ReturnType<typeof migratedDb>, name: string) {
     .returning();
   if (!user) throw new Error("user insert failed");
   return user;
+}
+
+function expectGroupHasNullableFields(group: unknown) {
+  expect(group).toMatchObject({
+    description: null,
+    defaultLocation: null,
+  });
 }
 
 describe("schema", () => {
@@ -206,5 +213,76 @@ describe("schema", () => {
     expect(refetched!.locationText).toBe("New shul");
     expect(refetched!.lastEditedAt).toBeInstanceOf(Date);
     expect(refetched!.lastEditedAt!.getTime()).toBe(updatedAt.getTime());
+  });
+
+  describe("groups", () => {
+    it("inserts a group with all fields", async () => {
+      const db = migratedDb();
+      const user = await seedUser(db, "Mordy");
+      const [group] = await db
+        .insert(groups)
+        .values({
+          name: "Shul on Main",
+          slug: "shul-on-main",
+          typeTag: "minyan",
+          defaultLocation: "123 Main St",
+          description: "The main shul",
+          ownerId: user.id,
+        })
+        .returning();
+      expect(group).toBeDefined();
+      expect(group.name).toBe("Shul on Main");
+      expect(group.slug).toBe("shul-on-main");
+      expect(group.typeTag).toBe("minyan");
+    });
+
+    it("rejects duplicate slug", async () => {
+      const db = migratedDb();
+      const user = await seedUser(db, "Mordy");
+      await db.insert(groups).values({
+        name: "First Group",
+        slug: "first-group",
+        typeTag: "minyan",
+        ownerId: user.id,
+      });
+      await expect(
+        db.insert(groups).values({
+          name: "Second Group",
+          slug: "first-group",
+          typeTag: "pickup",
+          ownerId: user.id,
+        }),
+      ).rejects.toThrow();
+    });
+
+    it("cascades delete when owner user is deleted", async () => {
+      const db = migratedDb();
+      const user = await seedUser(db, "Mordy");
+      await db.insert(groups).values({
+        name: "Owner Group",
+        slug: "owner-group",
+        typeTag: "minyan",
+        ownerId: user.id,
+      });
+      await db.delete(users).where(eq(users.id, user.id));
+      const [group] = await db.select().from(groups).where(eq(groups.slug, "owner-group"));
+      expect(group).toBeUndefined();
+    });
+
+    it("allows nullable description and defaultLocation", async () => {
+      const db = migratedDb();
+      const user = await seedUser(db, "Mordy");
+      const [group] = await db
+        .insert(groups)
+        .values({
+          name: "Bare Bones Group",
+          slug: "bare-bones-group",
+          typeTag: "pickup",
+          ownerId: user.id,
+        })
+        .returning();
+      expect(group.description).toBeNull();
+      expect(group.defaultLocation).toBeNull();
+    });
   });
 });

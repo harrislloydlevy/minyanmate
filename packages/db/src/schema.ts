@@ -107,7 +107,21 @@ export const minyans = sqliteTable("minyans", {
   ...timestamps,
 });
 
-/** Follow ("regulars") — subscribe a user to a minyan's notifications. */
+/** A group (shul, workplace crew, football team, etc.) that owns events. */
+export const groups = sqliteTable("groups", {
+  id: id(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  typeTag: text("type_tag", { enum: ["minyan", "pickup"] }).notNull(),
+  defaultLocation: text("default_location"),
+  description: text("description"),
+  ownerId: text("owner_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  ...timestamps,
+});
+
+/** Follow ("regulars") — subscribe a user to a group's notifications. */
 export const minyanFollowers = sqliteTable(
   "minyan_followers",
   {
