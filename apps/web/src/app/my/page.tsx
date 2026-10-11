@@ -3,7 +3,7 @@ import { eq, asc } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { CalendarPlus } from "lucide-react";
+import { CalendarPlus, UsersRound } from "lucide-react";
 import { events, rsvps, users } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -122,12 +122,20 @@ export default async function MyPage() {
               Signed in as {session.user.phoneNumber ?? session.user.email}
             </p>
           </div>
-          <Button asChild>
-            <Link href="/events/new">
-              <CalendarPlus className="size-4" />
-              New event
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+              <Link href="/groups/new">
+                <UsersRound className="size-4" />
+                New group
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/events/new">
+                <CalendarPlus className="size-4" />
+                New event
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {eventsList.length === 0 ? (

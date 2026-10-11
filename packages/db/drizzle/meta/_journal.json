@@ -22,6 +22,13 @@
       "when": 1791371539021,
       "tag": "0002_slim_cerebro",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1791727275612,
+      "tag": "0003_third_sage",
+      "breakpoints": true
     }
   ]
 }
