@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { createMemoryDb, events, groupMembers, groups, guests, messages, minyans, rsvps, users } from "./index";
+import { createMemoryDb, events, generateInstances, groupMembers, groups, guests, messages, minyans, rsvps, users } from "./index";
 
 const migrationsFolder = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -349,5 +349,104 @@ describe("schema", () => {
       await db.delete(users).where(eq(users.id, member.id));
       expect(await db.select().from(groupMembers)).toHaveLength(0);
     });
+  });
+});
+
+describe("generateInstances", () => {
+  async function seedMinyan(
+    db: ReturnType<typeof migratedDb>,
+    ownerId: string,
+    overrides: Partial<typeof minyans.$inferInsert> = {},
+  ) {
+    const [minyan] = await db
+      .insert(minyans)
+      .values({
+        name: "Shacharis",
+        schedule: '{"weekdays":[3],"time":"07:00"}',
+        serviceTag: "shacharit",
+        locationText: "Shul on Main",
+        quorumTarget: 10,
+        ownerId,
+        ...overrides,
+      })
+      .returning();
+    if (!minyan) throw new Error("minyan insert failed");
+    return minyan;
+  }
+
+  it("creates instances for each weekday within the horizon", async () => {
+    const db = migratedDb();
+    const user = await seedUser(db, "Mordy");
+    const minyan = await seedMinyan(db, user.id);
+    const now = new Date(2026, 8, 6); // Sunday Sept 6 2026
+
+    const created = await generateInstances(db, minyan, 28, now);
+
+    expect(created.map((i) => i.date)).toEqual([
+      "2026-09-09",
+      "2026-09-16",
+      "2026-09-23",
+      "2026-09-30",
+    ]);
+    for (const instance of created) {
+      expect(instance.minyanId).toBe(minyan.id);
+      expect(instance.startsAt).toBe(`${instance.date}T07:00`);
+    }
+
+    const rows = await db.select().from(events).where(eq(events.minyanId, minyan.id));
+    expect(rows).toHaveLength(4);
+    for (const row of rows) {
+      expect(row.minyanId).toBe(minyan.id);
+      expect(row.serviceTag).toBe("shacharit");
+      expect(row.locationText).toBe("Shul on Main");
+      expect(row.quorumTarget).toBe(10);
+      expect(row.ownerId).toBe(user.id);
+      expect(row.typeTag).toBe("minyan");
+      expect(row.status).toBe("scheduled");
+    }
+  });
+
+  it("is idempotent: a second call inserts nothing", async () => {
+    const db = migratedDb();
+    const user = await seedUser(db, "Mordy");
+    const minyan = await seedMinyan(db, user.id);
+    const now = new Date(2026, 8, 6);
+
+    const first = await generateInstances(db, minyan, 28, now);
+    expect(first.length).toBeGreaterThan(0);
+
+    const second = await generateInstances(db, minyan, 28, now);
+    expect(second).toEqual([]);
+    expect(
+      await db.select().from(events).where(eq(events.minyanId, minyan.id)),
+    ).toHaveLength(first.length);
+  });
+
+  it("leaves one-off events (minyanId null) untouched", async () => {
+    const db = migratedDb();
+    const user = await seedUser(db, "Mordy");
+    const minyan = await seedMinyan(db, user.id);
+    await db.insert(events).values({
+      minyanId: null,
+      date: "2026-09-09", // same date the minyan also generates
+      startsAt: "2026-09-09T19:00",
+      ownerId: user.id,
+    });
+    const now = new Date(2026, 8, 6);
+
+    const created = await generateInstances(db, minyan, 28, now);
+
+    expect(created.map((i) => i.date)).toContain("2026-09-09");
+    const rows = await db.select().from(events);
+    expect(rows.filter((r) => r.minyanId === null)).toHaveLength(1);
+    expect(rows.filter((r) => r.minyanId === minyan.id)).toHaveLength(4);
+  });
+
+  it("returns nothing when the schedule is invalid", async () => {
+    const db = migratedDb();
+    const user = await seedUser(db, "Mordy");
+    const minyan = await seedMinyan(db, user.id, { schedule: "not json" });
+
+    expect(await generateInstances(db, minyan, 28, new Date(2026, 8, 6))).toEqual([]);
   });
 });

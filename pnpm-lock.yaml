@@ -130,6 +130,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@minyanmate/core':
+        specifier: workspace:*
+        version: link:../core
       better-sqlite3:
         specifier: ^12.2.0
         version: 12.11.1

@@ -96,6 +96,8 @@ export const minyans = sqliteTable("minyans", {
   locationText: text("location_text"),
   /** JSON WeeklySchedule: { weekdays: number[], time: "HH:MM" } */
   schedule: text("schedule").notNull(),
+  /** Prayer service label, copied onto generated instances. */
+  serviceTag: text("service_tag", { enum: ["shacharit", "mincha", "maariv"] }),
   /** How many attendees make a quorum (default 10). */
   quorumTarget: integer("quorum_target").notNull().default(10),
   status: text("status", { enum: ["active", "archived"] })
@@ -184,6 +186,8 @@ export const events = sqliteTable(
     notes: text("notes"),
     /** Optional type tag for one-off events. */
     typeTag: text("type_tag", { enum: ["minyan", "pickup"] }),
+    /** Optional prayer service label for minyan instances. */
+    serviceTag: text("service_tag", { enum: ["shacharit", "mincha", "maariv"] }),
     status: text("status", { enum: ["scheduled", "confirmed", "cancelled"] })
       .notNull()
       .default("scheduled"),

@@ -11,6 +11,7 @@ import {
   parseWeeklySchedule,
   type WeeklySchedule,
 } from "./schedule";
+import { occurrencesBetween } from "./recurrence";
 
 describe("schedule", () => {
   it("parses valid schedule JSON", () => {
@@ -52,6 +53,50 @@ describe("schedule", () => {
     expect(isValidWeeklySchedule({ weekdays: [1], time: "08:00" })).toBe(true);
     expect(isValidWeeklySchedule(null)).toBe(false);
     expect(isValidWeeklySchedule({ weekdays: "monday", time: "08:00" })).toBe(false);
+  });
+});
+
+describe("recurrence", () => {
+  it("returns dates for schedule weekdays within the horizon", () => {
+    const schedule: WeeklySchedule = { weekdays: [0, 3], time: "19:00" }; // Sun + Wed
+    const from = new Date(2026, 8, 6, 12, 0); // Sunday noon
+    expect(occurrencesBetween(schedule, from, 7)).toEqual([
+      "2026-09-09",
+      "2026-09-13",
+    ]);
+  });
+
+  it("uses a 28-day horizon by default", () => {
+    const schedule: WeeklySchedule = { weekdays: [3], time: "19:00" }; // Wednesdays
+    const from = new Date(2026, 8, 6); // Sunday
+    expect(occurrencesBetween(schedule, from)).toEqual([
+      "2026-09-09",
+      "2026-09-16",
+      "2026-09-23",
+      "2026-09-30",
+    ]);
+  });
+
+  it("returns an empty list for empty weekdays", () => {
+    const schedule: WeeklySchedule = { weekdays: [], time: "06:30" };
+    expect(occurrencesBetween(schedule, new Date(2026, 8, 6))).toEqual([]);
+  });
+
+  it("includes an occurrence exactly at the horizon boundary", () => {
+    const schedule: WeeklySchedule = { weekdays: [0], time: "06:30" }; // Sundays
+    const from = new Date(2026, 8, 6, 12, 0); // Sunday noon
+    expect(occurrencesBetween(schedule, from, 6)).toEqual([]);
+    expect(occurrencesBetween(schedule, from, 7)).toEqual(["2026-09-13"]);
+  });
+
+  it("ignores time of day when computing dates", () => {
+    const schedule: WeeklySchedule = { weekdays: [2], time: "20:45" }; // Tuesdays
+    const morning = new Date(2026, 8, 6, 5, 0);
+    const lateNight = new Date(2026, 8, 6, 23, 59);
+    expect(occurrencesBetween(schedule, morning, 2)).toEqual(["2026-09-08"]);
+    expect(occurrencesBetween(schedule, morning, 2)).toEqual(
+      occurrencesBetween(schedule, lateNight, 2),
+    );
   });
 });
 

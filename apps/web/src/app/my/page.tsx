@@ -3,7 +3,7 @@ import { eq, asc } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { CalendarPlus, UsersRound } from "lucide-react";
+import { CalendarPlus, Church, UsersRound } from "lucide-react";
 import { events, rsvps, users } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { GuestMerge } from "@/components/guest-merge";
@@ -125,6 +125,12 @@ export default async function MyPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+              <Link href="/minyans/new">
+                <Church className="size-4" />
+                New minyan
+              </Link>
+            </Button>
             <Button asChild variant="outline">
               <Link href="/groups/new">
                 <UsersRound className="size-4" />

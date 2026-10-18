@@ -266,6 +266,16 @@ export default async function EventDetailPage({
                   </div>
                 </div>
               )}
+
+              {event.serviceTag && (
+                <div className="flex items-start gap-3">
+                  <Tag className="text-muted-foreground mt-0.5 size-4 shrink-0" />
+                  <div>
+                    <dt className="text-muted-foreground text-xs">Service</dt>
+                    <dd className="capitalize">{event.serviceTag}</dd>
+                  </div>
+                </div>
+              )}
             </dl>
 
             <div className="border-t pt-4 flex flex-col gap-3">
