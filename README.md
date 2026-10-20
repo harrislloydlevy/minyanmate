@@ -47,6 +47,12 @@ docker compose run --rm ci pnpm lint       # eslint
 docker compose run --rm ci pnpm build      # production build
 ```
 
+## Feature docs
+
+Each feature lives in `features/` as a Markdown file (`<issue>-<slug>.md`) with its goal, acceptance criteria, implementation notes, and verification steps.
+
+**When a feature's behaviour changes — a fix, follow-up request, or review wiring — update its feature file in the same commit as the code.** Keep the acceptance criteria checkboxes and Implementation Notes accurate: what was built, any deviations or known gaps, and how to verify. Don't leave the file describing the branch's original implementation once `main` behaves differently.
+
 ## Layout
 
 ```
