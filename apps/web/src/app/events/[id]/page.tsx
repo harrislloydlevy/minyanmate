@@ -14,6 +14,7 @@ import {
 import { events, rsvps, guests, users } from "@minyanmate/db/schema";
 import { relativeAge } from "@minyanmate/core";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CopyLinkButton } from "@/components/copy-link-button";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -186,14 +187,17 @@ export default async function EventDetailPage({
                 </CardTitle>
                 <CardDescription>Event details</CardDescription>
               </div>
-              {isOwner && (
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/events/${event.id}/edit`}>
-                    <Pencil className="size-4" />
-                    Edit
-                  </Link>
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                <CopyLinkButton />
+                {isOwner && (
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/events/${event.id}/edit`}>
+                      <Pencil className="size-4" />
+                      Edit
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
 
