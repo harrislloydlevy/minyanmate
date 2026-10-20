@@ -31,19 +31,25 @@ Events sometimes need to be cancelled — weather, venue issues, not enough peop
 
 ## Implementation Notes
 
-**What was built:**
-- Created `cancelEvent()` server action in `apps/web/src/lib/actions/cancel-event.ts` — sets event status to "cancelled", only by event owner
-- Created `CancelEventButton` client component with confirmation dialog (window.confirm)
-- Updated event detail page: shows "Cancelled" badge for cancelled events, hides RSVP buttons when cancelled
-- Event already had `status` field with `"cancelled"` enum in the schema — no migration needed
+**What was built (final state on `main`):**
+- `cancelEvent()` server action (`apps/web/src/lib/actions/cancel-event.ts`) — owner-only; sets `status = "cancelled"`, stamps `lastEditedAt`, and enqueues an `event_cancelled` job.
+- `CancelEventButton` (`apps/web/src/components/cancel-event-button.tsx`) — destructive button with a `window.confirm` dialog and a submitting state.
+- Event detail page (`apps/web/src/app/events/[id]/page.tsx`):
+  - renders the button for the owner at the bottom of the event card; it disappears once the event is cancelled
+  - shows a "Cancelled" pill next to "Event details"
+  - replaces the RSVP controls with "This event has been cancelled — RSVPs are closed", while keeping the RSVP list visible
+- My Minyans (`apps/web/src/app/my/page.tsx`) — "Cancelled" pill on both Upcoming and Past cards; the user's stale Going / Maybe / Not going pill is hidden for cancelled events.
+- RSVP freeze (`apps/web/src/lib/actions/rsvp.ts`) — `setRsvp` and `setGuestRsvp` reject writes to cancelled events server-side; hiding the UI alone would not stop an already-open client.
+- Worker (`apps/worker/src/index.ts`) — `event_cancelled` handler logs intent (`TODO(minyanmate#15)`) until Meta WhatsApp credentials are available; same durable-job pattern as `event_edited`.
+- No migration needed — `events.status` already has the `"cancelled"` enum value.
 
-**Follow-up wiring (merged into `main` after branch review — `482fb38`, `cb492a4`):**
-- The original branch never rendered `CancelEventButton`, so the button was invisible. Now rendered for the owner at the bottom of the event card, hidden once cancelled.
-- Event detail page shows a "Cancelled" badge and replaces the RSVP controls with "RSVPs are closed".
-- `setRsvp` / `setGuestRsvp` now reject RSVPs for cancelled events (server-side freeze, not just hidden UI).
-- My Minyans (`/my`) shows a "Cancelled" pill on both Upcoming and Past cards and hides the stale RSVP pill.
-- `cancelEvent` enqueues an `event_cancelled` job; the worker handler is log-only (`TODO(minyanmate#15)`) until Meta WhatsApp credentials are available — same pattern as `event_edited`.
-- Deferred: optional cancellation reason needs a new column + migration. Deliberately not added on `main` while branches 5/6 still carry their own migrations (0004/0005), to avoid numbering collisions.
+**Branch review follow-up (`482fb38`, `cb492a4`, doc `a47d035`):**
+- The original branch added the action and component but never imported them, so the button never rendered. The event-page and `/my` wiring were added during review.
+- The original branch notes claimed the event page already showed the badge and hid RSVP buttons; that was not true until this follow-up.
+
+**Known gaps:**
+- Optional cancellation reason (AC 1) is not implemented: it needs a new `events` column + migration. Deliberately deferred while branches 5/6 still carry their own migrations (0004/0005), to avoid numbering collisions.
+- Notifications (AC 3) are enqueued but not sent: the handler is log-only until WhatsApp credentials are available.
 
 **How to verify:**
 1. Sign in as the event owner and navigate to an event detail page
