@@ -165,9 +165,16 @@ export default async function MyPage() {
                                 : "Minyan"}{" "}
                               — {formatDate(event.date)}
                             </CardTitle>
-                            <span className="text-muted-foreground text-xs">
-                              {formatTime(event.startsAt)}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground text-xs">
+                                {formatTime(event.startsAt)}
+                              </span>
+                              {event.status === "cancelled" && (
+                                <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[10px] font-medium">
+                                  Cancelled
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <CardDescription className="text-xs">
                             {event.locationText ?? "No location set"}
@@ -185,7 +192,7 @@ export default async function MyPage() {
                           <span className="text-muted-foreground">
                             {counts.out} out
                           </span>
-                          {userRsvp && (
+                          {userRsvp && event.status !== "cancelled" && (
                             <span className="ml-auto rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize">
                               {userRsvp === "in"
                                 ? "Going"
@@ -219,9 +226,16 @@ export default async function MyPage() {
                                 : "Minyan"}{" "}
                               — {formatDate(event.date)}
                             </CardTitle>
-                            <span className="text-muted-foreground text-xs">
-                              {formatTime(event.startsAt)}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground text-xs">
+                                {formatTime(event.startsAt)}
+                              </span>
+                              {event.status === "cancelled" && (
+                                <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[10px] font-medium">
+                                  Cancelled
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <CardDescription className="text-xs">
                             {event.locationText ?? "No location set"}

@@ -15,6 +15,7 @@ import { events, rsvps, guests, users } from "@minyanmate/db/schema";
 import { relativeAge } from "@minyanmate/core";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CopyLinkButton } from "@/components/copy-link-button";
+import { CancelEventButton } from "@/components/cancel-event-button";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -185,7 +186,14 @@ export default async function EventDetailPage({
                   {event.typeTag === "pickup" ? "Pickup" : "Minyan"} on{" "}
                   {formatDate(event.date)}
                 </CardTitle>
-                <CardDescription>Event details</CardDescription>
+                <div className="flex items-center gap-2">
+                  <CardDescription>Event details</CardDescription>
+                  {event.status === "cancelled" && (
+                    <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-xs font-medium">
+                      Cancelled
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <CopyLinkButton />
@@ -260,7 +268,11 @@ export default async function EventDetailPage({
                 {confirmedCount} in · {maybeCount} maybe · {declinedCount} out
               </div>
 
-              {isAuthenticated ? (
+              {event.status === "cancelled" ? (
+                <p className="text-muted-foreground text-sm">
+                  This event has been cancelled — RSVPs are closed.
+                </p>
+              ) : isAuthenticated ? (
                 <RsvpButtons eventId={event.id} currentStatus={userRsvp as RsvpStatus | null} />
               ) : (
                 <GuestRsvpButtons eventId={event.id} />
@@ -290,6 +302,12 @@ export default async function EventDetailPage({
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {isOwner && event.status !== "cancelled" && (
+              <div className="border-t pt-4">
+                <CancelEventButton eventId={event.id} />
               </div>
             )}
 
