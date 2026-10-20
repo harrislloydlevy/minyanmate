@@ -16,9 +16,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function EventForm({
+  groupId,
   groupName,
   defaultLocation,
 }: {
+  groupId?: string;
   groupName?: string;
   defaultLocation?: string;
 } = {}) {
@@ -49,6 +51,8 @@ export function EventForm({
       </CardHeader>
       <CardContent>
         <form action={formAction} className="flex flex-col gap-4">
+          <input type="hidden" name="groupId" value={groupId ?? ""} />
+
           <div className="flex flex-col gap-2">
             <Label htmlFor="name">Event title</Label>
             <Input

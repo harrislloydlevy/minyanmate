@@ -56,12 +56,20 @@ Groups are the organisational home. A shul, a workplace, a neighbourhood minyan.
 - Removed the type labels from the group detail page and from the "Your groups" list on `/my`.
 - Creating an event from a group now only pre-fills the default location (the event type prefill is gone, since events have no type either).
 
+**Follow-up (2026-10-21): events persist their group**
+- Added `events.group_id` (nullable FK to `groups.id`, indexed) in migration `0005_unknown_quentin_quire`; applied to `data/dev.db`.
+- Creating an event from a group page now stores the group id: `/events/new?group=<slug>` passes a hidden `groupId`; `createEvent` validates that the group exists and inserts the link.
+- `/my` joins `groups` and renders the card title as `<Event Title> - <Group Name>` when the event is linked; unlinked or legacy events keep the plain title.
+- The group reference is set only at creation time. There is still no group event feed on the group page, and changing a group's defaults does not update existing events.
+
 **Known gaps:**
-- Events are not persisted with a group reference (no `events.group_id`). Creating an event from a group pre-fills the defaults, but the event is not linked to the group, so there is no group event feed and later group-default changes do not propagate. Adding the column needs a migration; the migration head is now `0004` (event titles), so branches 5/6 migrations must be renumbered before they land (planned: branch 5 `0004` → `0005`, branch 6 `0005` → `0006`), then implement together with the group event listing.
+- There is no group event feed on `/groups/[slug]` yet, and no `events.group_id` editing. The link is create-only for now.
+- `events.group_id` was added with `ALTER TABLE ... ADD COLUMN`, so SQLite does not record the schema's `ON DELETE SET NULL` (it lands as NO ACTION). Group deletion is not implemented; if it is added, null out `events.group_id` explicitly or rebuild the table.
+- Migration head is `0005`; branches 5/6 must renumber their migrations before landing (planned: branch 5 `0004` → `0006`, branch 6 `0005` → `0007`).
 
 **How to verify:**
 1. Sign in → `/my` → "New group". Create one with a name, default location, and description — there is no Type field.
 2. A second group with the same name gets a unique slug suffix.
 3. Back on `/my`, the group appears under "Your groups" (name only) and opens its detail page by slug.
-4. On the group page, click "New event for this group" — the location is pre-filled and no type is asked for. Creating it returns to `/my`.
-5. Tests: `pnpm test` — 37 passing (core 18, db 15, whatsapp 7); `pnpm typecheck` and `pnpm lint` clean.
+4. On the group page, click "New event for this group" — fill the title/date/time and create it. Back on `/my`, the card reads `<Event Title> - <Group Name>`, and the location is pre-filled.
+5. Tests: `pnpm test` — 41 passing (core 18, db 16, whatsapp 7); `pnpm typecheck` and `pnpm lint` clean.

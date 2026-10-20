@@ -32,6 +32,7 @@ export default async function NewEventPage({
     ? (
         await db
           .select({
+            id: groups.id,
             name: groups.name,
             defaultLocation: groups.defaultLocation,
           })
@@ -54,6 +55,7 @@ export default async function NewEventPage({
 
       <main className="flex flex-1 items-start justify-center py-10">
         <EventForm
+          groupId={group?.id}
           groupName={group?.name}
           defaultLocation={group?.defaultLocation ?? undefined}
         />

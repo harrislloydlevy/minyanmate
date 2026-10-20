@@ -36,6 +36,13 @@
       "when": 1792503684867,
       "tag": "0004_known_firebird",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1792504144038,
+      "tag": "0005_unknown_quentin_quire",
+      "breakpoints": true
     }
   ]
 }

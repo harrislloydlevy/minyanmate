@@ -1,6 +1,7 @@
 "use server";
 
-import { events } from "@minyanmate/db/schema";
+import { eq } from "drizzle-orm";
+import { events, groups } from "@minyanmate/db/schema";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
@@ -18,6 +19,7 @@ export async function createEvent(
   if (!session) return { success: false, error: "You must be signed in." };
 
   const name = form.get("name")?.toString().trim();
+  const groupId = form.get("groupId")?.toString().trim() || null;
   const date = form.get("date")?.toString().trim();
   const time = form.get("time")?.toString().trim();
   const location = form.get("location")?.toString().trim() || null;
@@ -27,6 +29,15 @@ export async function createEvent(
   if (!date) return { success: false, error: "Event date is required." };
   if (!time) return { success: false, error: "Start time is required." };
 
+  if (groupId) {
+    const [group] = await db
+      .select({ id: groups.id })
+      .from(groups)
+      .where(eq(groups.id, groupId))
+      .limit(1);
+    if (!group) return { success: false, error: "Group not found." };
+  }
+
   const startsAt = `${date}T${time}`;
 
   try {
@@ -34,6 +45,7 @@ export async function createEvent(
       .insert(events)
       .values({
         minyanId: null,
+        groupId,
         title: name,
         date,
         startsAt,

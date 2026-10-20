@@ -54,11 +54,13 @@ export default async function MyPage() {
   const allEvents = await db
     .select({
       event: events,
+      groupName: groups.name,
       rsvpStatus: rsvps.status,
       rsvpUserId: rsvps.userId,
       rsvpUserName: users.name,
     })
     .from(events)
+    .leftJoin(groups, eq(events.groupId, groups.id))
     .leftJoin(rsvps, eq(rsvps.eventId, events.id))
     .leftJoin(users, eq(rsvps.userId, users.id))
     .orderBy(asc(events.date), asc(events.startsAt));
@@ -68,6 +70,7 @@ export default async function MyPage() {
     string,
     {
       event: (typeof allEvents)[0]["event"];
+      groupName: string | null;
       counts: { in: number; maybe: number; out: number };
       userRsvp: string | null;
     }
@@ -91,7 +94,12 @@ export default async function MyPage() {
       if (row.rsvpUserId === session.user.id && row.rsvpStatus) {
         userRsvp = row.rsvpStatus;
       }
-      eventMap.set(row.event.id, { event: row.event, counts, userRsvp });
+      eventMap.set(row.event.id, {
+        event: row.event,
+        groupName: row.groupName,
+        counts,
+        userRsvp,
+      });
     }
   }
 
@@ -188,13 +196,14 @@ export default async function MyPage() {
               <section>
                 <h2 className="mb-3 text-lg font-semibold">Upcoming</h2>
                 <div className="flex flex-col gap-3">
-                  {upcoming.map(({ event, counts, userRsvp }) => (
+                  {upcoming.map(({ event, groupName, counts, userRsvp }) => (
                     <Link key={event.id} href={`/events/${event.id}`}>
                       <Card className="transition-colors hover:bg-accent/50">
                         <CardHeader className="pb-2">
                           <div className="flex items-start justify-between">
                             <CardTitle className="text-base">
                               {event.title ?? "Minyan"}
+                              {groupName ? ` - ${groupName}` : ""}
                             </CardTitle>
                             <div className="flex items-center gap-2">
                               <span className="text-muted-foreground text-xs">
@@ -247,13 +256,14 @@ export default async function MyPage() {
                   Past
                 </h2>
                 <div className="flex flex-col gap-3 opacity-70">
-                  {past.map(({ event, counts }) => (
+                  {past.map(({ event, groupName, counts }) => (
                     <Link key={event.id} href={`/events/${event.id}`}>
                       <Card>
                         <CardHeader className="pb-2">
                           <div className="flex items-start justify-between">
                             <CardTitle className="text-base">
                               {event.title ?? "Minyan"}
+                              {groupName ? ` - ${groupName}` : ""}
                             </CardTitle>
                             <div className="flex items-center gap-2">
                               <span className="text-muted-foreground text-xs">

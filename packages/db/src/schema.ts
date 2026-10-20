@@ -157,6 +157,10 @@ export const events = sqliteTable(
     minyanId: text("minyan_id").references(() => minyans.id, {
       onDelete: "cascade",
     }),
+    /** Optional group this event belongs to (set when created from a group page). */
+    groupId: text("group_id").references(() => groups.id, {
+      onDelete: "set null",
+    }),
     /** Title the organiser gave this event. NULL for events created before titles were stored. */
     title: text("title"),
     /** Local calendar date, YYYY-MM-DD. */
@@ -187,6 +191,7 @@ export const events = sqliteTable(
   (t) => [
     uniqueIndex("events_minyan_date_uq").on(t.minyanId, t.date),
     index("events_owner_idx").on(t.ownerId),
+    index("events_group_idx").on(t.groupId),
   ],
 );
 

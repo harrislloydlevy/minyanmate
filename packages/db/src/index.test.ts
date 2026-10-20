@@ -238,6 +238,32 @@ describe("schema", () => {
       expect(group.typeTag).toBe("minyan");
     });
 
+    it("links a one-off event to a group", async () => {
+      const db = migratedDb();
+      const user = await seedUser(db, "Mordy");
+      const [group] = await db
+        .insert(groups)
+        .values({
+          name: "Shul on Main",
+          slug: "shul-on-main",
+          typeTag: "minyan",
+          ownerId: user.id,
+        })
+        .returning();
+      const [event] = await db
+        .insert(events)
+        .values({
+          title: "Shacharis",
+          groupId: group!.id,
+          date: "2026-10-22",
+          startsAt: "2026-10-22T07:00",
+          ownerId: user.id,
+        })
+        .returning();
+      expect(event.groupId).toBe(group!.id);
+      expect(event.minyanId).toBeNull();
+    });
+
     it("rejects duplicate slug", async () => {
       const db = migratedDb();
       const user = await seedUser(db, "Mordy");
