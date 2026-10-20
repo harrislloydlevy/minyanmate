@@ -28,8 +28,11 @@ export function GuestRsvpButtons({ eventId }: GuestRsvpButtonsProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = getCookie("guest_token");
-    setGuestToken(token);
+    // Restore identity from cookies: the token finds this guest's RSVP row,
+    // the name pre-fills the input so it stays the same on their next visit.
+    setGuestToken(getCookie("guest_token"));
+    const savedName = getCookie("guest_name");
+    if (savedName) setName((current) => current || savedName);
   }, []);
 
   async function handleClick(status: RsvpStatus) {
@@ -53,14 +56,12 @@ export function GuestRsvpButtons({ eventId }: GuestRsvpButtonsProps) {
 
   return (
     <div className="flex flex-col gap-3">
-      {!guestToken && (
-        <Input
-          placeholder="Your name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          disabled={submitting}
-        />
-      )}
+      <Input
+        placeholder="Your name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        disabled={submitting}
+      />
 
       <div className="flex gap-2">
         {options.map((opt) => (
@@ -69,7 +70,7 @@ export function GuestRsvpButtons({ eventId }: GuestRsvpButtonsProps) {
             variant={currentStatus === opt.status ? "default" : "outline"}
             size="sm"
             onClick={() => handleClick(opt.status)}
-            disabled={submitting || (!guestToken && !name.trim())}
+            disabled={submitting || !name.trim()}
             className="flex-1"
           >
             {opt.icon}

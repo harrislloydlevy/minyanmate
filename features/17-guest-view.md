@@ -48,3 +48,11 @@ The no-barrier entry point for casual users (Shan persona). When someone receive
 3. Refresh the page — your name and choice are remembered (via cookie)
 4. Open the same event in a logged-in session — the normal RSVP buttons appear
 5. The RSVP count includes both guests and registered users
+
+### Follow-up (2026-10-20): name-matched guest RSVPs
+
+- `setGuestRsvp()` now updates the existing guest row when the exact same (trimmed) name re-submits for the same event instead of inserting a duplicate — guest rows are always anonymous, so a name match means the same person returning. Matching is case-sensitive ("Mordi" ≠ "mordi") and scoped to the event.
+- On a name match the browser adopts the matched row's token, so the same name from a new browser/device converges onto the one row.
+- New `guest_name` cookie remembers the name used; the guest form pre-fills it and the name input is now always visible (it used to disappear once a token existed).
+- `guest_token` is no longer `httpOnly` — the client component reads it via `document.cookie`; the flag previously made that impossible and caused one new row per submit.
+- Duplicate rows created before this change (e.g. two "Check" rows from an older session) are not removed automatically; the oldest row is reused going forward.
