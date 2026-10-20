@@ -37,7 +37,6 @@ export default async function GroupDetailPage({
       id: groups.id,
       name: groups.name,
       slug: groups.slug,
-      typeTag: groups.typeTag,
       defaultLocation: groups.defaultLocation,
       description: groups.description,
       ownerId: groups.ownerId,
@@ -80,12 +79,6 @@ export default async function GroupDetailPage({
     .where(eq(users.id, group.ownerId))
     .limit(1);
 
-  const typeLabel =
-    group.typeTag === "pickup"
-      ? "Pickup"
-      : group.typeTag === "both"
-        ? "Minyan & pickup"
-        : "Minyan";
   const isOwner = isAuthenticated && group.ownerId === session.user.id;
 
   return (
@@ -103,7 +96,6 @@ export default async function GroupDetailPage({
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1.5">
                 <CardTitle className="text-xl">{group.name}</CardTitle>
-                <CardDescription>{typeLabel} group</CardDescription>
               </div>
               {isOwner && (
                 <span className="text-muted-foreground text-xs">You own this group</span>

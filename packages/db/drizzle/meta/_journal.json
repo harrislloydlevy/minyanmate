@@ -29,6 +29,13 @@
       "when": 1791727275612,
       "tag": "0003_third_sage",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792503684867,
+      "tag": "0004_known_firebird",
+      "breakpoints": true
     }
   ]
 }

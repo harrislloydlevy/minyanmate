@@ -112,6 +112,10 @@ export const groups = sqliteTable("groups", {
   id: id(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
+  /**
+   * @deprecated Groups no longer have a type; new groups store "minyan".
+   * Kept for legacy rows until the column is dropped.
+   */
   typeTag: text("type_tag", { enum: ["minyan", "pickup", "both"] }).notNull(),
   defaultLocation: text("default_location"),
   description: text("description"),
@@ -153,6 +157,8 @@ export const events = sqliteTable(
     minyanId: text("minyan_id").references(() => minyans.id, {
       onDelete: "cascade",
     }),
+    /** Title the organiser gave this event. NULL for events created before titles were stored. */
+    title: text("title"),
     /** Local calendar date, YYYY-MM-DD. */
     date: text("date").notNull(),
     /** Local datetime, ISO-like YYYY-MM-DDTHH:MM. */
@@ -161,7 +167,10 @@ export const events = sqliteTable(
     locationText: text("location_text"),
     /** Optional notes the organiser wants to share. */
     notes: text("notes"),
-    /** Optional type tag for one-off events. */
+    /**
+     * @deprecated The product treats every event as a minyan; type is no longer
+     * collected or displayed. Kept for legacy rows until the column is dropped.
+     */
     typeTag: text("type_tag", { enum: ["minyan", "pickup"] }),
     status: text("status", { enum: ["scheduled", "confirmed", "cancelled"] })
       .notNull()

@@ -102,7 +102,6 @@ export default async function MyPage() {
       id: groups.id,
       name: groups.name,
       slug: groups.slug,
-      typeTag: groups.typeTag,
     })
     .from(groups)
     .where(eq(groups.ownerId, session.user.id))
@@ -156,15 +155,8 @@ export default async function MyPage() {
               {myGroups.map((group) => (
                 <Link key={group.id} href={`/groups/${group.slug}`}>
                   <Card className="transition-colors hover:bg-accent/50">
-                    <CardContent className="flex items-center justify-between py-4 text-sm">
+                    <CardContent className="py-4 text-sm">
                       <span className="font-medium">{group.name}</span>
-                      <span className="text-muted-foreground text-xs">
-                        {group.typeTag === "pickup"
-                          ? "Pickup"
-                          : group.typeTag === "both"
-                            ? "Minyan & pickup"
-                            : "Minyan"}
-                      </span>
                     </CardContent>
                   </Card>
                 </Link>
@@ -178,8 +170,7 @@ export default async function MyPage() {
             <CardHeader>
               <CardTitle>No events yet</CardTitle>
               <CardDescription>
-                Create your first event to get started. You can set up a one-off
-                minyan, a pickup game, or anything else.
+                Create your first event to get started.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -203,10 +194,7 @@ export default async function MyPage() {
                         <CardHeader className="pb-2">
                           <div className="flex items-start justify-between">
                             <CardTitle className="text-base">
-                              {event.typeTag === "pickup"
-                                ? "Pickup"
-                                : "Minyan"}{" "}
-                              — {formatDate(event.date)}
+                              {event.title ?? "Minyan"}
                             </CardTitle>
                             <div className="flex items-center gap-2">
                               <span className="text-muted-foreground text-xs">
@@ -220,6 +208,7 @@ export default async function MyPage() {
                             </div>
                           </div>
                           <CardDescription className="text-xs">
+                            {formatDate(event.date)} ·{" "}
                             {event.locationText ?? "No location set"}
                           </CardDescription>
                         </CardHeader>
@@ -264,10 +253,7 @@ export default async function MyPage() {
                         <CardHeader className="pb-2">
                           <div className="flex items-start justify-between">
                             <CardTitle className="text-base">
-                              {event.typeTag === "pickup"
-                                ? "Pickup"
-                                : "Minyan"}{" "}
-                              — {formatDate(event.date)}
+                              {event.title ?? "Minyan"}
                             </CardTitle>
                             <div className="flex items-center gap-2">
                               <span className="text-muted-foreground text-xs">
@@ -281,6 +267,7 @@ export default async function MyPage() {
                             </div>
                           </div>
                           <CardDescription className="text-xs">
+                            {formatDate(event.date)} ·{" "}
                             {event.locationText ?? "No location set"}
                           </CardDescription>
                         </CardHeader>

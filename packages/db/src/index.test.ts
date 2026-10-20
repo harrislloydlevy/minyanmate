@@ -77,6 +77,7 @@ describe("schema", () => {
       .insert(events)
       .values({
         minyanId: null,
+        title: "Shacharis at the shul",
         date: "2026-10-01",
         startsAt: "2026-10-01T18:30",
         locationText: "123 Main St",
@@ -87,6 +88,7 @@ describe("schema", () => {
       .returning();
     expect(event).toBeDefined();
     expect(event.minyanId).toBeNull();
+    expect(event.title).toBe("Shacharis at the shul");
     expect(event.locationText).toBe("123 Main St");
     expect(event.notes).toBe("Bring a siddur");
     expect(event.typeTag).toBe("minyan");

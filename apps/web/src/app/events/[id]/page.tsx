@@ -8,7 +8,6 @@ import {
   MapPin,
   Pencil,
   StickyNote,
-  Tag,
   Users,
 } from "lucide-react";
 import { events, rsvps, guests, users } from "@minyanmate/db/schema";
@@ -183,8 +182,7 @@ export default async function EventDetailPage({
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1.5">
                 <CardTitle className="text-xl">
-                  {event.typeTag === "pickup" ? "Pickup" : "Minyan"} on{" "}
-                  {formatDate(event.date)}
+                  {event.title ?? "Minyan"}
                 </CardTitle>
                 <div className="flex items-center gap-2">
                   <CardDescription>Event details</CardDescription>
@@ -247,16 +245,6 @@ export default async function EventDetailPage({
                   <div>
                     <dt className="text-muted-foreground text-xs">Notes</dt>
                     <dd>{event.notes}</dd>
-                  </div>
-                </div>
-              )}
-
-              {event.typeTag && (
-                <div className="flex items-start gap-3">
-                  <Tag className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-                  <div>
-                    <dt className="text-muted-foreground text-xs">Type</dt>
-                    <dd className="capitalize">{event.typeTag}</dd>
                   </div>
                 </div>
               )}

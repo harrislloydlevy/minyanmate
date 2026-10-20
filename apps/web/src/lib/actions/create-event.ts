@@ -22,7 +22,6 @@ export async function createEvent(
   const time = form.get("time")?.toString().trim();
   const location = form.get("location")?.toString().trim() || null;
   const notes = form.get("notes")?.toString().trim() || null;
-  const typeTag = form.get("typeTag")?.toString().trim() || null;
 
   if (!name) return { success: false, error: "Event title is required." };
   if (!date) return { success: false, error: "Event date is required." };
@@ -30,20 +29,16 @@ export async function createEvent(
 
   const startsAt = `${date}T${time}`;
 
-  if (typeTag !== null && typeTag !== "minyan" && typeTag !== "pickup") {
-    return { success: false, error: "Type tag must be minyan or pickup." };
-  }
-
   try {
     const [event] = await db
       .insert(events)
       .values({
         minyanId: null,
+        title: name,
         date,
         startsAt,
         locationText: location,
         notes,
-        typeTag: typeTag as "minyan" | "pickup" | null,
         status: "scheduled",
         ownerId: session.user.id,
       })

@@ -34,7 +34,6 @@ export default async function NewEventPage({
           .select({
             name: groups.name,
             defaultLocation: groups.defaultLocation,
-            typeTag: groups.typeTag,
           })
           .from(groups)
           .where(eq(groups.slug, groupSlug))
@@ -57,9 +56,6 @@ export default async function NewEventPage({
         <EventForm
           groupName={group?.name}
           defaultLocation={group?.defaultLocation ?? undefined}
-          defaultTypeTag={
-            group && group.typeTag !== "both" ? group.typeTag : null
-          }
         />
       </main>
     </div>

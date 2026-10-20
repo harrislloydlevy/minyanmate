@@ -18,11 +18,9 @@ import { Label } from "@/components/ui/label";
 export function EventForm({
   groupName,
   defaultLocation,
-  defaultTypeTag,
 }: {
   groupName?: string;
   defaultLocation?: string;
-  defaultTypeTag?: "minyan" | "pickup" | null;
 } = {}) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState<
@@ -46,7 +44,7 @@ export function EventForm({
         <CardDescription>
           {groupName
             ? `Creating for ${groupName} — defaults are pre-filled.`
-            : "Create a one-off minyan or pickup."}
+            : "Create a one-off minyan."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -105,23 +103,6 @@ export function EventForm({
               type="text"
               placeholder="Bring a siddur"
             />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="typeTag">
-              Type <span className="text-muted-foreground">(optional)</span>
-            </Label>
-            <select
-              id="typeTag"
-              name="typeTag"
-              defaultValue={defaultTypeTag ?? ""}
-              data-slot="input"
-              className="border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/40 focus-visible:ring-[3px]"
-            >
-              <option value="">No type</option>
-              <option value="minyan">Minyan</option>
-              <option value="pickup">Pickup</option>
-            </select>
           </div>
 
           {state && !state.success && (

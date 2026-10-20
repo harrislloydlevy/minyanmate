@@ -10,7 +10,7 @@ The no-barrier entry point for casual users (Shan persona). When someone receive
 ## Acceptance Criteria
 
 - [ ] Event link opens to a fully functional event detail page in any mobile browser
-- [ ] Page shows: event name, type, date/time, location, notes, current RSVP counts by status
+- [ ] Page shows: event name, date/time, location, notes, current RSVP counts by status
 - [ ] No account creation prompt before viewing
 - [ ] Page loads in under 2 seconds on a 4G connection
 - [ ] Works on WhatsApp, SMS, iMessage, Telegram, email link previews
@@ -61,3 +61,8 @@ The no-barrier entry point for casual users (Shan persona). When someone receive
 ### Follow-up (2026-10-20): guest marker in the RSVP list
 
 - Guest RSVPs now render as `Name (guest)` in the event's RSVP list, so anonymous responses are distinguishable from registered users. Registered users are unmarked.
+
+### Follow-up (2026-10-21): title shown, type removed
+
+- The event page heading now shows the stored event title (`events.title`), with the date still listed in the details block. Events created before titles were stored fall back to "Minyan".
+- Removed the "Type" row from the event details; all events are minyans.
