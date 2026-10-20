@@ -47,6 +47,18 @@ docker compose run --rm ci pnpm lint       # eslint
 docker compose run --rm ci pnpm build      # production build
 ```
 
+## Branch workflow
+
+**All work happens on a feature branch — never directly on `main`.**
+
+Each feature branch is the feature *view*: before it is tested or merged back, bring `main` into it so it already contains every previously merged feature. Resolve conflicts and fix wiring on the branch, not on `main`.
+
+1. Branch from `main` when starting a feature.
+2. Merge `main` **into** the branch before testing/merging: `git merge main` — this is where integration conflicts get resolved.
+3. Get the branch to 100%: implementation complete and wired, feature file updated, `pnpm test` / `pnpm typecheck` / `pnpm lint` clean, and a manual pass on the running app.
+4. Only then merge the branch into `main` and delete it (local and remote).
+5. Never merge a partial branch into `main` — "present but unwired" counts as partial.
+
 ## Feature docs
 
 Each feature lives in `features/` as a Markdown file (`<issue>-<slug>.md`) with its goal, acceptance criteria, implementation notes, and verification steps.
