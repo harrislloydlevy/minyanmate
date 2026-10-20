@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CalendarPlus, UsersRound } from "lucide-react";
-import { events, rsvps, users } from "@minyanmate/db/schema";
+import { events, groups, rsvps, users } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -97,6 +97,17 @@ export default async function MyPage() {
 
   const eventsList = Array.from(eventMap.values());
 
+  const myGroups = await db
+    .select({
+      id: groups.id,
+      name: groups.name,
+      slug: groups.slug,
+      typeTag: groups.typeTag,
+    })
+    .from(groups)
+    .where(eq(groups.ownerId, session.user.id))
+    .orderBy(asc(groups.name));
+
   const upcoming = eventsList.filter((e) => e.event.date >= today);
   const past = eventsList.filter((e) => e.event.date < today);
 
@@ -137,6 +148,30 @@ export default async function MyPage() {
             </Button>
           </div>
         </div>
+
+        {myGroups.length > 0 && (
+          <section>
+            <h2 className="mb-3 text-lg font-semibold">Your groups</h2>
+            <div className="flex flex-col gap-2">
+              {myGroups.map((group) => (
+                <Link key={group.id} href={`/groups/${group.slug}`}>
+                  <Card className="transition-colors hover:bg-accent/50">
+                    <CardContent className="flex items-center justify-between py-4 text-sm">
+                      <span className="font-medium">{group.name}</span>
+                      <span className="text-muted-foreground text-xs">
+                        {group.typeTag === "pickup"
+                          ? "Pickup"
+                          : group.typeTag === "both"
+                            ? "Minyan & pickup"
+                            : "Minyan"}
+                      </span>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {eventsList.length === 0 ? (
           <Card className="max-w-md">

@@ -281,8 +281,7 @@ describe("schema", () => {
           ownerId: user.id,
         })
         .returning();
-      expect(group.description).toBeNull();
-      expect(group.defaultLocation).toBeNull();
+      expectGroupHasNullableFields(group);
     });
   });
 });

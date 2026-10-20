@@ -112,7 +112,7 @@ export const groups = sqliteTable("groups", {
   id: id(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
-  typeTag: text("type_tag", { enum: ["minyan", "pickup"] }).notNull(),
+  typeTag: text("type_tag", { enum: ["minyan", "pickup", "both"] }).notNull(),
   defaultLocation: text("default_location"),
   description: text("description"),
   ownerId: text("owner_id")

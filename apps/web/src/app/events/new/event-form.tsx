@@ -15,7 +15,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function EventForm() {
+export function EventForm({
+  groupName,
+  defaultLocation,
+  defaultTypeTag,
+}: {
+  groupName?: string;
+  defaultLocation?: string;
+  defaultTypeTag?: "minyan" | "pickup" | null;
+} = {}) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState<
     CreateEventResult | null,
@@ -36,7 +44,9 @@ export function EventForm() {
         </div>
         <CardTitle className="text-xl">New event</CardTitle>
         <CardDescription>
-          Create a one-off minyan or pickup.
+          {groupName
+            ? `Creating for ${groupName} — defaults are pre-filled.`
+            : "Create a one-off minyan or pickup."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -80,6 +90,7 @@ export function EventForm() {
               id="location"
               name="location"
               type="text"
+              defaultValue={defaultLocation}
               placeholder="123 Main St, room 2"
             />
           </div>
@@ -103,6 +114,7 @@ export function EventForm() {
             <select
               id="typeTag"
               name="typeTag"
+              defaultValue={defaultTypeTag ?? ""}
               data-slot="input"
               className="border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/40 focus-visible:ring-[3px]"
             >

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { MapPin, StickyNote, UsersRound } from "lucide-react";
+import { CalendarPlus, MapPin, StickyNote, UsersRound } from "lucide-react";
 import { groups, users } from "@minyanmate/db/schema";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -80,7 +80,12 @@ export default async function GroupDetailPage({
     .where(eq(users.id, group.ownerId))
     .limit(1);
 
-  const typeLabel = group.typeTag === "pickup" ? "Pickup" : "Minyan";
+  const typeLabel =
+    group.typeTag === "pickup"
+      ? "Pickup"
+      : group.typeTag === "both"
+        ? "Minyan & pickup"
+        : "Minyan";
   const isOwner = isAuthenticated && group.ownerId === session.user.id;
 
   return (
@@ -136,6 +141,15 @@ export default async function GroupDetailPage({
                 </div>
               )}
             </dl>
+
+            {isAuthenticated && (
+              <Button asChild className="w-full">
+                <Link href={`/events/new?group=${group.slug}`}>
+                  <CalendarPlus className="size-4" />
+                  New event for this group
+                </Link>
+              </Button>
+            )}
 
             <Button asChild variant="outline" className="w-full">
               <Link href="/my">Back to my minyans</Link>

@@ -31,8 +31,8 @@ export async function createGroup(
 
   if (!name) return { success: false, error: "Group name is required." };
   if (!typeTag) return { success: false, error: "Group type is required." };
-  if (typeTag !== "minyan" && typeTag !== "pickup") {
-    return { success: false, error: "Type tag must be minyan or pickup." };
+  if (typeTag !== "minyan" && typeTag !== "pickup" && typeTag !== "both") {
+    return { success: false, error: "Type tag must be minyan, pickup, or both." };
   }
 
   try {
@@ -53,7 +53,7 @@ export async function createGroup(
       .values({
         name,
         slug,
-        typeTag: typeTag as "minyan" | "pickup",
+        typeTag: typeTag as "minyan" | "pickup" | "both",
         defaultLocation,
         description,
         ownerId: session.user.id,
