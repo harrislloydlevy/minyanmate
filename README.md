@@ -14,6 +14,12 @@ Coordinate minyans, RSVP from WhatsApp, never miss quorum. Greenfield rewrite of
 - **Worker**: job queue poller (reminders, notifications) — `apps/worker`
 - **Auth**: Better Auth, phone-number OTP delivered via WhatsApp (dev: code in logs)
 
+## Running the app
+
+The dev server is **run externally by the human developer** (currently `pnpm dev` — web on `http://localhost:3100` plus the worker; see the Docker section below for the container workflow).
+
+**Agents / automation: never start the dev server yourself.** Assume it is already running and hot-reloading your edits. Verify changes with `pnpm test`, `pnpm typecheck`, and `pnpm lint` instead. Do not run `pnpm build` against the same working copy while the dev server is up — a production build reuses `apps/web/.next` and leaves the running dev server returning 500s.
+
 ## Development (Docker)
 
 Everything runs inside the container defined by the `Dockerfile` / `docker-compose.yml`:
