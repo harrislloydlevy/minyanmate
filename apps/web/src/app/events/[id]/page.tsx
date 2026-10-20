@@ -296,6 +296,11 @@ export default async function EventDetailPage({
                       >
                         {r.name}
                       </span>
+                      {r.isGuest && (
+                        <span className="text-muted-foreground text-xs">
+                          (guest)
+                        </span>
+                      )}
                       <span className="text-xs">
                         ({r.status === "in" ? "coming" : r.status === "maybe" ? "maybe" : "not coming"})
                       </span>

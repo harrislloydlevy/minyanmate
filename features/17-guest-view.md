@@ -48,6 +48,7 @@ The no-barrier entry point for casual users (Shan persona). When someone receive
 3. Refresh the page — your name and choice are remembered (via cookie)
 4. Open the same event in a logged-in session — the normal RSVP buttons appear
 5. The RSVP count includes both guests and registered users
+6. In the RSVP list, guest responses show `(guest)` after the name; signed-in users are unmarked
 
 ### Follow-up (2026-10-20): name-matched guest RSVPs
 
@@ -56,3 +57,7 @@ The no-barrier entry point for casual users (Shan persona). When someone receive
 - New `guest_name` cookie remembers the name used; the guest form pre-fills it and the name input is now always visible (it used to disappear once a token existed).
 - `guest_token` is no longer `httpOnly` — the client component reads it via `document.cookie`; the flag previously made that impossible and caused one new row per submit.
 - Duplicate rows created before this change (e.g. two "Check" rows from an older session) are not removed automatically; the oldest row is reused going forward.
+
+### Follow-up (2026-10-20): guest marker in the RSVP list
+
+- Guest RSVPs now render as `Name (guest)` in the event's RSVP list, so anonymous responses are distinguishable from registered users. Registered users are unmarked.
