@@ -1,7 +1,7 @@
 "use server";
 
 import { and, asc, eq, sql } from "drizzle-orm";
-import { rsvps, guests } from "@minyanmate/db/schema";
+import { events, guests, rsvps } from "@minyanmate/db/schema";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -25,6 +25,17 @@ export async function setRsvp(
   }
 
   try {
+    // Cancelled events are frozen: reject new or changed RSVPs.
+    const [event] = await db
+      .select({ status: events.status })
+      .from(events)
+      .where(eq(events.id, eventId))
+      .limit(1);
+    if (!event) return { success: false, error: "Event not found." };
+    if (event.status === "cancelled") {
+      return { success: false, error: "This event has been cancelled." };
+    }
+
     // Upsert: insert or update the existing RSVP for this user + event
     await db
       .insert(rsvps)
@@ -60,6 +71,17 @@ export async function setGuestRsvp(
   }
 
   try {
+    // Cancelled events are frozen: reject new or changed RSVPs.
+    const [event] = await db
+      .select({ status: events.status })
+      .from(events)
+      .where(eq(events.id, eventId))
+      .limit(1);
+    if (!event) return { success: false, error: "Event not found." };
+    if (event.status === "cancelled") {
+      return { success: false, error: "This event has been cancelled." };
+    }
+
     // Guest rows are always anonymous, so an exact name match on this event
     // means the same person coming back: update their RSVP in place instead
     // of inserting a duplicate row.
