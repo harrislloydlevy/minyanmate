@@ -12,6 +12,7 @@ Groups are the organisational home. A shul, a workplace, a neighbourhood minyan.
 - [x] Group creation form: name, default location, optional description
 - [x] Groups are minyan groups only — the minyan/pickup/both type was removed after product testing; no type labels remain anywhere in the app
 - [x] Default location auto-filled on new events created in this group
+- [x] Events created from a group are linked to it and shown on `/my` as `<Event Title> - <Group Name>`
 - [x] Group has a unique slug for URLs
 - [x] Creator is automatically the group organiser
 - [x] Group creation takes under 30 seconds
@@ -25,7 +26,7 @@ Groups are the organisational home. A shul, a workplace, a neighbourhood minyan.
 
 ## Definition of Done
 
-- [x] Feature implemented and working per the Goal / Acceptance Criteria (event↔group persistence excepted — see Known gaps)
+- [x] Feature implemented and working per the Goal / Acceptance Criteria
 - [x] Tests / build pass where the repo defines them (`pnpm test`, `pnpm typecheck`, `pnpm lint`)
 - [x] This feature file is committed together with the code
 - [x] A short **Implementation Notes** section is appended below

@@ -10,7 +10,7 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 ## Acceptance Criteria
 
 - [ ] `/my` page shows all events in the database, ordered by date (upcoming first, then past)
-- [ ] Each event card shows: date, time, location, RSVP counts, and the user's own RSVP status
+- [ ] Each event card shows: the stored title (`<Event Title> - <Group Name>` when the event belongs to a group), date, time, location, RSVP counts, and the user's own RSVP status
 - [ ] Events are split into two sections: "Upcoming" and "Past"
 - [ ] A quick "New event" button is still accessible
 - [ ] Empty state: if no events exist yet, show a friendly message
@@ -36,7 +36,7 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 **What was built:**
 - Replaced the empty welcome card on `/my` with a full chronological event feed
 - Events split into "Upcoming" and "Past" sections based on today's date
-- Each event card shows: event title, date, time, location, RSVP counts (in/maybe/out), and the user's own RSVP badge
+- Each event card shows: event title (with ` - <Group Name>` appended when the event was created from a group), date, time, location, RSVP counts (in/maybe/out), and the user's own RSVP badge
 - Clicking any event card navigates to its detail page
 - "New event" button is still accessible at the top right
 - Empty state shows a friendly message with a CTA to create the first event
@@ -49,6 +49,7 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 1. Run the seed: `pnpm --filter @minyanmate/db tsx src/seed.ts`
 2. Start the app and log in with any of the seeded phone numbers
 3. See upcoming events listed, past events faded, RSVP badges on events you've responded to
+4. Create an event from a group page (`/groups/<slug>` → "New event for this group") and confirm `/my` shows `<Event Title> - <Group Name>`
 
 ### Follow-up (2026-10-21): event titles in the feed
 
