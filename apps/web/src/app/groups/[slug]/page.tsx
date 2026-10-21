@@ -151,10 +151,8 @@ export default async function GroupDetailPage({
 
   const inviteAccepted =
     !!joinTokenParam && !!group.joinToken && joinTokenParam === group.joinToken;
-  const showJoin =
-    isAuthenticated && !isMember && !!joinTokenParam && inviteAccepted;
-  const invalidInvite =
-    isAuthenticated && !isMember && !!joinTokenParam && !inviteAccepted;
+  const showJoin = !isMember && !!joinTokenParam && inviteAccepted;
+  const invalidInvite = !isMember && !!joinTokenParam && !inviteAccepted;
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -214,6 +212,7 @@ export default async function GroupDetailPage({
                 slug={group.slug}
                 name={group.name}
                 token={joinTokenParam}
+                signedIn={isAuthenticated}
               />
             )}
             {invalidInvite && (

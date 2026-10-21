@@ -48,6 +48,7 @@ Groups need members and role management, and regular guests should be able to co
 - The group page shows all future events for the group; `/my` shows each group's next 3 upcoming scheduled events with a **Details** link to the full group page.
 - Creating a group event is organiser-only: the "New event for this group" button is hidden for regular members, `/events/new?group=<slug>` redirects them back to the group, and `createEvent` rejects a `groupId` the user cannot manage. Shared `canManageGroup` helper lives in `apps/web/src/lib/group-permissions.ts`.
 - `join-link.tsx` (generate + copy link + revoke), `join-group.tsx` (shows a confirmation prompt on ?join=<token>; joins only after the user clicks "Join group", and "Not now" drops the token param without joining)
+- Signed-out invite visitors see the same explanation with a **Join group** button; it goes to `/login?joinGroup=<slug>&joinToken=<token>`, and after OTP verification the login form calls `joinGroup` and lands on the group page already joined.
 - Copy uses shared `copy-to-clipboard.ts`: Clipboard API with a temporary-textarea fallback, so invite links can be copied over plain-HTTP LAN access where `navigator.clipboard` is unavailable. The event page's copy-link button uses the same helper.
 
 **#30 Manage roles**
