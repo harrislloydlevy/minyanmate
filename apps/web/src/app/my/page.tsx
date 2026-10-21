@@ -55,7 +55,12 @@ export default async function MyPage() {
     { kind: "my", groupIds: myGroups.map((group) => group.id) },
   );
 
-  const oneOffEvents = upcomingEvents.filter((summary) => !summary.event.groupId);
+  const oneOffEvents = upcomingEvents.filter(
+    (summary) =>
+      !summary.event.groupId &&
+      summary.event.status !== "cancelled" &&
+      summary.userRsvp !== null,
+  );
 
   const groupSections = myGroups.map((group) => ({
     ...group,
