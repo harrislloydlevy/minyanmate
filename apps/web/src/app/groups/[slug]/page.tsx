@@ -199,7 +199,13 @@ export default async function GroupDetailPage({
               )}
             </dl>
 
-            {showJoin && <JoinGroup slug={group.slug} token={joinTokenParam} />}
+            {showJoin && (
+              <JoinGroup
+                slug={group.slug}
+                name={group.name}
+                token={joinTokenParam}
+              />
+            )}
             {invalidInvite && (
               <p className="text-destructive text-sm">This invite link is not valid.</p>
             )}
