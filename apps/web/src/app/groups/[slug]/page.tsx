@@ -11,6 +11,7 @@ import {
 import { groupMembers, groups, users } from "@minyanmate/db/schema";
 import { JoinGroup } from "@/components/join-group";
 import { JoinLink } from "@/components/join-link";
+import { LeaveGroup } from "@/components/leave-group";
 import { MemberActions } from "@/components/member-actions";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -256,6 +257,12 @@ export default async function GroupDetailPage({
                   New event for this group
                 </Link>
               </Button>
+            )}
+
+            {isMember && !isOwner && (
+              <div className="border-t pt-4">
+                <LeaveGroup slug={group.slug} name={group.name} />
+              </div>
             )}
 
             <Button asChild variant="outline" className="w-full">

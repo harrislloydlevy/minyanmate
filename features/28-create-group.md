@@ -79,4 +79,5 @@ Groups are the organisational home. A shul, a workplace, a neighbourhood minyan.
 3. Back on `/my`, the group appears under "Your groups" (name only) and opens its detail page by slug.
 4. As the organiser, click "New event for this group" — fill the title/date/time and create it. Back on `/my`, the card reads `<Event Title> - <Group Name>`, and the location is pre-filled.
 5. Join the group as a regular member via an invite link: the group appears under that member's "Your groups", but the "New event for this group" button is hidden and `/events/new?group=<slug>` redirects back to the group page.
-6. Tests: `pnpm test` — 45 passing (core 18, db 20, whatsapp 7); `pnpm typecheck` and `pnpm lint` clean.
+6. As that member, click "Leave group" and confirm: you return to `/my` and the group is removed from "Your groups". The owner has no leave button.
+7. Tests: `pnpm test` — 45 passing (core 18, db 20, whatsapp 7); `pnpm typecheck` and `pnpm lint` clean.

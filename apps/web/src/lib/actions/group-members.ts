@@ -36,8 +36,7 @@ async function findGroupById(groupId: string) {
 export async function joinGroup(
   slug: string,
   token: string,
-): Promise<GroupMemberActionResult> {
-  const session = await auth.api.getSession({ headers: await headers() });
+): Promise<GroupMemberActionResult> {  const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return { success: false, error: "You must be signed in." };
 
   const group = await findGroupBySlug(slug);
@@ -54,6 +53,40 @@ export async function joinGroup(
       .insert(groupMembers)
       .values({ groupId: group.id, userId: session.user.id, role: "member" })
       .onConflictDoNothing();
+    return { success: true };
+  } catch {
+    return { success: false, error: "An unexpected error occurred." };
+  }
+}
+
+export async function leaveGroup(
+  slug: string,
+): Promise<GroupMemberActionResult> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return { success: false, error: "You must be signed in." };
+
+  const group = await findGroupBySlug(slug);
+  if (!group) return { success: false, error: "Group not found." };
+  if (group.ownerId === session.user.id) {
+    return {
+      success: false,
+      error: "The group owner cannot leave the group.",
+    };
+  }
+
+  try {
+    const removed = await db
+      .delete(groupMembers)
+      .where(
+        and(
+          eq(groupMembers.groupId, group.id),
+          eq(groupMembers.userId, session.user.id),
+        ),
+      )
+      .returning({ id: groupMembers.id });
+    if (removed.length === 0) {
+      return { success: false, error: "You are not a member of this group." };
+    }
     return { success: true };
   } catch {
     return { success: false, error: "An unexpected error occurred." };
