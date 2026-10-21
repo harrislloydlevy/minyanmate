@@ -8,12 +8,13 @@ import {
   MapPin,
   Pencil,
   StickyNote,
-  Tag,
   Users,
 } from "lucide-react";
 import { events, rsvps, guests, users } from "@minyanmate/db/schema";
 import { relativeAge } from "@minyanmate/core";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { CopyLinkButton } from "@/components/copy-link-button";
+import { CancelEventButton } from "@/components/cancel-event-button";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -197,19 +198,28 @@ export default async function EventDetailPage({
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1.5">
                 <CardTitle className="text-xl">
-                  {event.typeTag === "pickup" ? "Pickup" : "Minyan"} on{" "}
-                  {formatDate(event.date)}
+                  {event.title ?? "Minyan"}
                 </CardTitle>
-                <CardDescription>Event details</CardDescription>
+                <div className="flex items-center gap-2">
+                  <CardDescription>Event details</CardDescription>
+                  {event.status === "cancelled" && (
+                    <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-xs font-medium">
+                      Cancelled
+                    </span>
+                  )}
+                </div>
               </div>
-              {isOwner && (
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/events/${event.id}/edit`}>
-                    <Pencil className="size-4" />
-                    Edit
-                  </Link>
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                <CopyLinkButton />
+                {isOwner && (
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/events/${event.id}/edit`}>
+                      <Pencil className="size-4" />
+                      Edit
+                    </Link>
+                  </Button>
+                )}
+              </div>
             </div>
           </CardHeader>
 
@@ -256,16 +266,6 @@ export default async function EventDetailPage({
                   </div>
                 </div>
               )}
-
-              {event.typeTag && (
-                <div className="flex items-start gap-3">
-                  <Tag className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-                  <div>
-                    <dt className="text-muted-foreground text-xs">Type</dt>
-                    <dd className="capitalize">{event.typeTag}</dd>
-                  </div>
-                </div>
-              )}
             </dl>
 
             <div className="border-t pt-4 flex flex-col gap-3">
@@ -274,7 +274,11 @@ export default async function EventDetailPage({
                 {confirmedCount} in · {maybeCount} maybe · {declinedCount} out
               </div>
 
-              {isAuthenticated ? (
+              {event.status === "cancelled" ? (
+                <p className="text-muted-foreground text-sm">
+                  This event has been cancelled — RSVPs are closed.
+                </p>
+              ) : isAuthenticated ? (
                 <RsvpButtons eventId={event.id} currentStatus={userRsvp as RsvpStatus | null} />
               ) : (
                 <GuestRsvpButtons eventId={event.id} />
@@ -298,12 +302,23 @@ export default async function EventDetailPage({
                       >
                         {r.name}
                       </span>
+                      {r.isGuest && (
+                        <span className="text-muted-foreground text-xs">
+                          (guest)
+                        </span>
+                      )}
                       <span className="text-xs">
                         ({r.status === "in" ? "coming" : r.status === "maybe" ? "maybe" : "not coming"})
                       </span>
                     </li>
                   ))}
                 </ul>
+              </div>
+            )}
+
+            {isOwner && event.status !== "cancelled" && (
+              <div className="border-t pt-4">
+                <CancelEventButton eventId={event.id} />
               </div>
             )}
 

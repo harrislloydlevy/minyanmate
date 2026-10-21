@@ -44,11 +44,11 @@ Organisers need the ability to edit event fields after creation — change the t
 
 4. **Update server action** (`apps/web/src/lib/actions/update-event.ts`):
    - `"use server"`, auth-gated, ownership-checked (only `ownerId` may edit).
-   - Accepts date/time/location/notes/typeTag. Sets `lastEditedAt` to `new Date()`.
+   - Accepts title/date/time/location/notes. Sets `lastEditedAt` to `new Date()`.
    - Enqueues a `jobs` row of type `event_edited` when `isWithinNotificationWindow` returns true (edit within the last hour).
 
 5. **Event detail page** (`apps/web/src/app/events/[id]/page.tsx`):
-   - Server component showing all event fields (date, time, location, notes, type tag).
+   - Server component showing all event fields (title, date, time, location, notes).
    - "Last edited" indicator with relative age ("Details updated just now" / "in the last hour" / "earlier today" / "recently").
    - RSVP count summary (in/out) derived from the `rsvps` table.
    - "Edit" button for the owner linking to `/events/[id]/edit`.
@@ -58,7 +58,7 @@ Organisers need the ability to edit event fields after creation — change the t
 6. **Edit form page** (`apps/web/src/app/events/[id]/edit/page.tsx` + `edit-event-form.tsx`):
    - Server-rendered page checks auth and ownership; redirects non-owners to the detail page.
    - Client form with `useActionState`, prefilled from existing DB values.
-   - Fields: date, time, location, notes, type tag.
+   - Fields: title, date, time, location, notes.
    - On success, redirects back to the event detail page.
 
 7. **Worker handler** (`apps/worker/src/index.ts`):
@@ -92,3 +92,8 @@ The notification job (`event_edited`) is enqueued with a durable `jobs` row but 
 5. Click "Edit" (owner only), change a field, save — the detail page should show "Details updated just now".
 6. Verify the `last_edited_at` column is set in the DB via `pnpm db:studio`.
 7. Verify a `jobs` row with type `event_edited` is created when editing within the first hour.
+
+### Follow-up (2026-10-21): event title + type removal
+
+- Added an "Event title" input to the edit form (first field) and `updateEvent` now writes `events.title`, so the original title can be corrected. Editing a legacy event with no stored title requires filling it in.
+- Removed the minyan/pickup "Type" field from the edit form and action. All events are minyans; `events.type_tag` is legacy and no longer edited.

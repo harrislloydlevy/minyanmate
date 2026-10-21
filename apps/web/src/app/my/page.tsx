@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CalendarPlus, UsersRound } from "lucide-react";
-import { events, rsvps, users } from "@minyanmate/db/schema";
+import { events, groups, rsvps, users } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { GuestMerge } from "@/components/guest-merge";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -55,11 +55,13 @@ export default async function MyPage() {
   const allEvents = await db
     .select({
       event: events,
+      groupName: groups.name,
       rsvpStatus: rsvps.status,
       rsvpUserId: rsvps.userId,
       rsvpUserName: users.name,
     })
     .from(events)
+    .leftJoin(groups, eq(events.groupId, groups.id))
     .leftJoin(rsvps, eq(rsvps.eventId, events.id))
     .leftJoin(users, eq(rsvps.userId, users.id))
     .orderBy(asc(events.date), asc(events.startsAt));
@@ -69,6 +71,7 @@ export default async function MyPage() {
     string,
     {
       event: (typeof allEvents)[0]["event"];
+      groupName: string | null;
       counts: { in: number; maybe: number; out: number };
       userRsvp: string | null;
     }
@@ -92,11 +95,26 @@ export default async function MyPage() {
       if (row.rsvpUserId === session.user.id && row.rsvpStatus) {
         userRsvp = row.rsvpStatus;
       }
-      eventMap.set(row.event.id, { event: row.event, counts, userRsvp });
+      eventMap.set(row.event.id, {
+        event: row.event,
+        groupName: row.groupName,
+        counts,
+        userRsvp,
+      });
     }
   }
 
   const eventsList = Array.from(eventMap.values());
+
+  const myGroups = await db
+    .select({
+      id: groups.id,
+      name: groups.name,
+      slug: groups.slug,
+    })
+    .from(groups)
+    .where(eq(groups.ownerId, session.user.id))
+    .orderBy(asc(groups.name));
 
   const upcoming = eventsList.filter((e) => e.event.date >= today);
   const past = eventsList.filter((e) => e.event.date < today);
@@ -140,13 +158,29 @@ export default async function MyPage() {
           </div>
         </div>
 
+        {myGroups.length > 0 && (
+          <section>
+            <h2 className="mb-3 text-lg font-semibold">Your groups</h2>
+            <div className="flex flex-col gap-2">
+              {myGroups.map((group) => (
+                <Link key={group.id} href={`/groups/${group.slug}`}>
+                  <Card className="transition-colors hover:bg-accent/50">
+                    <CardContent className="py-4 text-sm">
+                      <span className="font-medium">{group.name}</span>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
         {eventsList.length === 0 ? (
           <Card className="max-w-md">
             <CardHeader>
               <CardTitle>No events yet</CardTitle>
               <CardDescription>
-                Create your first event to get started. You can set up a one-off
-                minyan, a pickup game, or anything else.
+                Create your first event to get started.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -164,22 +198,28 @@ export default async function MyPage() {
               <section>
                 <h2 className="mb-3 text-lg font-semibold">Upcoming</h2>
                 <div className="flex flex-col gap-3">
-                  {upcoming.map(({ event, counts, userRsvp }) => (
+                  {upcoming.map(({ event, groupName, counts, userRsvp }) => (
                     <Link key={event.id} href={`/events/${event.id}`}>
                       <Card className="transition-colors hover:bg-accent/50">
                         <CardHeader className="pb-2">
                           <div className="flex items-start justify-between">
                             <CardTitle className="text-base">
-                              {event.typeTag === "pickup"
-                                ? "Pickup"
-                                : "Minyan"}{" "}
-                              — {formatDate(event.date)}
+                              {event.title ?? "Minyan"}
+                              {groupName ? ` - ${groupName}` : ""}
                             </CardTitle>
-                            <span className="text-muted-foreground text-xs">
-                              {formatTime(event.startsAt)}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground text-xs">
+                                {formatTime(event.startsAt)}
+                              </span>
+                              {event.status === "cancelled" && (
+                                <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[10px] font-medium">
+                                  Cancelled
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <CardDescription className="text-xs">
+                            {formatDate(event.date)} ·{" "}
                             {event.locationText ?? "No location set"}
                           </CardDescription>
                         </CardHeader>
@@ -195,7 +235,7 @@ export default async function MyPage() {
                           <span className="text-muted-foreground">
                             {counts.out} out
                           </span>
-                          {userRsvp && (
+                          {userRsvp && event.status !== "cancelled" && (
                             <span className="ml-auto rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize">
                               {userRsvp === "in"
                                 ? "Going"
@@ -218,22 +258,28 @@ export default async function MyPage() {
                   Past
                 </h2>
                 <div className="flex flex-col gap-3 opacity-70">
-                  {past.map(({ event, counts }) => (
+                  {past.map(({ event, groupName, counts }) => (
                     <Link key={event.id} href={`/events/${event.id}`}>
                       <Card>
                         <CardHeader className="pb-2">
                           <div className="flex items-start justify-between">
                             <CardTitle className="text-base">
-                              {event.typeTag === "pickup"
-                                ? "Pickup"
-                                : "Minyan"}{" "}
-                              — {formatDate(event.date)}
+                              {event.title ?? "Minyan"}
+                              {groupName ? ` - ${groupName}` : ""}
                             </CardTitle>
-                            <span className="text-muted-foreground text-xs">
-                              {formatTime(event.startsAt)}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground text-xs">
+                                {formatTime(event.startsAt)}
+                              </span>
+                              {event.status === "cancelled" && (
+                                <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[10px] font-medium">
+                                  Cancelled
+                                </span>
+                              )}
+                            </div>
                           </div>
                           <CardDescription className="text-xs">
+                            {formatDate(event.date)} ·{" "}
                             {event.locationText ?? "No location set"}
                           </CardDescription>
                         </CardHeader>

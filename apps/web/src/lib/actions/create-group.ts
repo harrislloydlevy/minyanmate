@@ -25,15 +25,10 @@ export async function createGroup(
   if (!session) return { success: false, error: "You must be signed in." };
 
   const name = form.get("name")?.toString().trim();
-  const typeTag = form.get("typeTag")?.toString().trim();
   const defaultLocation = form.get("defaultLocation")?.toString().trim() || null;
   const description = form.get("description")?.toString().trim() || null;
 
   if (!name) return { success: false, error: "Group name is required." };
-  if (!typeTag) return { success: false, error: "Group type is required." };
-  if (typeTag !== "minyan" && typeTag !== "pickup") {
-    return { success: false, error: "Type tag must be minyan or pickup." };
-  }
 
   try {
     let slug = makeSlug(name) || `group-${Date.now().toString(36)}`;
@@ -53,7 +48,8 @@ export async function createGroup(
       .values({
         name,
         slug,
-        typeTag: typeTag as "minyan" | "pickup",
+        // Legacy column: groups no longer have a type; every group is a minyan group.
+        typeTag: "minyan",
         defaultLocation,
         description,
         ownerId: session.user.id,

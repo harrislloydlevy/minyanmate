@@ -32,9 +32,29 @@ function handleEventEdited(payload: Record<string, unknown>): void {
   );
 }
 
+/**
+ * Job type: `event_cancelled`
+ *
+ * Enqueued by the web `cancelEvent` server action. Payload contract:
+ * `{ eventId: string; cancelledAt: string /* ISO-8601 *\/ }`.
+ *
+ * TODO(minyanmate#15): replace the log-only handler with a real fan-out that
+ *   loads the confirmed RSVPs for `eventId` and sends each attendee a
+ *   WhatsApp message. Requires Meta WhatsApp credentials, which are not
+ *   available in this environment; the durable job row records the intent.
+ */
+function handleEventCancelled(payload: Record<string, unknown>): void {
+  console.log(
+    "[worker] event_cancelled: %s cancelledAt=%s (notification fan-out not yet implemented)",
+    typeof payload.eventId === "string" ? payload.eventId : "<unknown>",
+    payload.cancelledAt ?? "<unknown>",
+  );
+}
+
 const handlers: Record<string, JobHandler> = {
   noop: () => {},
   event_edited: handleEventEdited,
+  event_cancelled: handleEventCancelled,
 };
 
 const POLL_INTERVAL_MS = 5_000;

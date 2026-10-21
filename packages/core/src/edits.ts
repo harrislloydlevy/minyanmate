@@ -10,12 +10,11 @@ export const EDIT_NOTIFICATION_WINDOW_MS = 60 * 60 * 1000;
 
 /** Fields an organiser may change after creation. */
 export type EditableEventField =
-  | "name"
+  | "title"
   | "date"
   | "time"
   | "location"
-  | "notes"
-  | "typeTag";
+  | "notes";
 
 /**
  * True when an edit happened recently enough to page the confirmed attendees.

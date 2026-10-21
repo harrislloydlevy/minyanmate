@@ -11,18 +11,18 @@ The most fundamental action in the app. A user (organiser) should be able to cre
 - Start time
 - Location (free text initially, map pin later)
 - Optional: notes
-- Optional: type tag (minyan vs pickup)
+
+All events are minyans. The temporary minyan/pickup "type tag" was removed during branch testing.
 
 The form should be fast and work well on mobile.
 
 ## Acceptance Criteria
 
-- [ ] Event title/name
-- [ ] Event date
-- [ ] Start time
-- [ ] Location (free text initially, map pin later)
-- [ ] Optional: notes
-- [ ] Optional: type tag (minyan vs pickup)
+- [x] Event title/name
+- [x] Event date
+- [x] Start time
+- [x] Location (free text initially, map pin later)
+- [x] Optional: notes
 
 ## Constraints & Conventions
 
@@ -43,13 +43,13 @@ The form should be fast and work well on mobile.
 
 ### What was built
 
-1. **DB schema changes** (`packages/db/src/schema.ts`): Made `minyan_id` nullable on the `events` table so events can be created without a recurring minyan reference. Added `location_text`, `notes`, `type_tag` (minyan/pickup), and `owner_id` columns to support one-off event fields. Added `events_owner_idx` index.
+1. **DB schema changes** (`packages/db/src/schema.ts`): Made `minyan_id` nullable on the `events` table so events can be created without a recurring minyan reference. Added `location_text`, `notes`, and `owner_id` columns to support one-off event fields, plus a `type_tag` column that has since been retired. Added `events_owner_idx` index.
 
 2. **Drizzle migration** (`packages/db/drizzle/0000_misty_silver_surfer.sql`): Full initial migration reflecting the updated schema.
 
-3. **Server action** (`apps/web/src/lib/actions/create-event.ts`): `createEvent` server action validates input (title, date, time required; location/notes/typeTag optional) and inserts a one-off event into the `events` table. Returns success/error result for use with `useActionState`.
+3. **Server action** (`apps/web/src/lib/actions/create-event.ts`): `createEvent` server action validates input (title, date, time required; location/notes optional) and inserts a one-off event into the `events` table. The title is stored in `events.title`. Returns success/error result for use with `useActionState`.
 
-4. **Event form page** (`apps/web/src/app/events/new/`): Client component `EventForm` with fields for title, date, time, location, notes, and type tag. Uses `useActionState` for form submission. Server-rendered wrapper page checks auth and redirects to `/login` if unauthenticated.
+4. **Event form page** (`apps/web/src/app/events/new/`): Client component `EventForm` with fields for title, date, time, location, and notes. Uses `useActionState` for form submission. Server-rendered wrapper page checks auth and redirects to `/login` if unauthenticated.
 
 5. **Updated `/my` page** (`apps/web/src/app/my/page.tsx`): Added a "New event" button linking to `/events/new`.
 
@@ -62,3 +62,9 @@ The form should be fast and work well on mobile.
 3. Run `pnpm typecheck` — web/db/core/whatsapp pass (worker pre-existing error unrelated).
 4. Start the dev server (`pnpm dev`), sign in via WhatsApp OTP, click "New event" on the `/my` page, fill in the form and submit. The event is created and you're redirected back to `/my`.
 5. Verify the event was inserted: `pnpm db:studio` and check the `events` table.
+
+### Follow-up (2026-10-21): title stored/displayed, type removed
+
+- The event title was collected by the form but never written to the database — there was no `events.title` column. Added it in migration `0004_known_firebird`, and `createEvent` now inserts the submitted title.
+- The event detail page header and the `/my` feed cards now show the event title. Legacy rows created before this change fall back to "Minyan" because their `title` is `NULL`.
+- The "Type" field (minyan/pickup) was removed from the create form and its labels from the event page; all events are minyans. `events.type_tag` remains only for legacy rows and is no longer written by the app.

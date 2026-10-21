@@ -14,6 +14,12 @@ Coordinate minyans, RSVP from WhatsApp, never miss quorum. Greenfield rewrite of
 - **Worker**: job queue poller (reminders, notifications) — `apps/worker`
 - **Auth**: Better Auth, phone-number OTP delivered via WhatsApp (dev: code in logs)
 
+## Running the app
+
+The dev server is **run externally by the human developer** (currently `pnpm dev` — web on `http://localhost:3100` plus the worker; see the Docker section below for the container workflow).
+
+**Agents / automation: never start the dev server yourself.** Assume it is already running and hot-reloading your edits. Verify changes with `pnpm test`, `pnpm typecheck`, and `pnpm lint` instead. Do not run `pnpm build` against the same working copy while the dev server is up — a production build reuses `apps/web/.next` and leaves the running dev server returning 500s.
+
 ## Development (Docker)
 
 Everything runs inside the container defined by the `Dockerfile` / `docker-compose.yml`:
@@ -40,6 +46,24 @@ docker compose run --rm ci pnpm typecheck  # strict TS across the monorepo
 docker compose run --rm ci pnpm lint       # eslint
 docker compose run --rm ci pnpm build      # production build
 ```
+
+## Branch workflow
+
+**All work happens on a feature branch — never directly on `main`.**
+
+Each feature branch is the feature *view*: before it is tested or merged back, bring `main` into it so it already contains every previously merged feature. Resolve conflicts and fix wiring on the branch, not on `main`.
+
+1. Branch from `main` when starting a feature.
+2. Merge `main` **into** the branch before testing/merging: `git merge main` — this is where integration conflicts get resolved.
+3. Get the branch to 100%: implementation complete and wired, feature file updated, `pnpm test` / `pnpm typecheck` / `pnpm lint` clean, and a manual pass on the running app.
+4. Only then merge the branch into `main` and delete it (local and remote).
+5. Never merge a partial branch into `main` — "present but unwired" counts as partial.
+
+## Feature docs
+
+Each feature lives in `features/` as a Markdown file (`<issue>-<slug>.md`) with its goal, acceptance criteria, implementation notes, and verification steps.
+
+**When a feature's behaviour changes — a fix, follow-up request, or review wiring — update its feature file in the same commit as the code.** Keep the acceptance criteria checkboxes and Implementation Notes accurate: what was built, any deviations or known gaps, and how to verify. Don't leave the file describing the branch's original implementation once `main` behaves differently.
 
 ## Layout
 

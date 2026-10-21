@@ -77,6 +77,7 @@ describe("schema", () => {
       .insert(events)
       .values({
         minyanId: null,
+        title: "Shacharis at the shul",
         date: "2026-10-01",
         startsAt: "2026-10-01T18:30",
         locationText: "123 Main St",
@@ -87,6 +88,7 @@ describe("schema", () => {
       .returning();
     expect(event).toBeDefined();
     expect(event.minyanId).toBeNull();
+    expect(event.title).toBe("Shacharis at the shul");
     expect(event.locationText).toBe("123 Main St");
     expect(event.notes).toBe("Bring a siddur");
     expect(event.typeTag).toBe("minyan");
@@ -236,6 +238,32 @@ describe("schema", () => {
       expect(group.typeTag).toBe("minyan");
     });
 
+    it("links a one-off event to a group", async () => {
+      const db = migratedDb();
+      const user = await seedUser(db, "Mordy");
+      const [group] = await db
+        .insert(groups)
+        .values({
+          name: "Shul on Main",
+          slug: "shul-on-main",
+          typeTag: "minyan",
+          ownerId: user.id,
+        })
+        .returning();
+      const [event] = await db
+        .insert(events)
+        .values({
+          title: "Shacharis",
+          groupId: group!.id,
+          date: "2026-10-22",
+          startsAt: "2026-10-22T07:00",
+          ownerId: user.id,
+        })
+        .returning();
+      expect(event.groupId).toBe(group!.id);
+      expect(event.minyanId).toBeNull();
+    });
+
     it("rejects duplicate slug", async () => {
       const db = migratedDb();
       const user = await seedUser(db, "Mordy");
@@ -281,8 +309,7 @@ describe("schema", () => {
           ownerId: user.id,
         })
         .returning();
-      expect(group.description).toBeNull();
-      expect(group.defaultLocation).toBeNull();
+      expectGroupHasNullableFields(group);
     });
   });
 

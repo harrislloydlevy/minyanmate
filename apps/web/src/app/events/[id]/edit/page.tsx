@@ -89,11 +89,11 @@ export default async function EditEventPage({
       <main className="flex flex-1 items-start justify-center py-10">
         <EditEventForm
           eventId={event.id}
+          defaultTitle={event.title}
           defaultDate={date}
           defaultTime={time}
           defaultLocation={event.locationText}
           defaultNotes={event.notes}
-          defaultTypeTag={event.typeTag}
         />
       </main>
     </div>

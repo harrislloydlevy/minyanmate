@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { MapPin, StickyNote, UsersRound } from "lucide-react";
+import {
+  CalendarPlus,
+  MapPin,
+  StickyNote,
+  UsersRound,
+} from "lucide-react";
 import { groupMembers, groups, users } from "@minyanmate/db/schema";
 import { JoinGroup } from "@/components/join-group";
 import { JoinLink } from "@/components/join-link";
@@ -50,7 +55,6 @@ export default async function GroupDetailPage({
       id: groups.id,
       name: groups.name,
       slug: groups.slug,
-      typeTag: groups.typeTag,
       defaultLocation: groups.defaultLocation,
       description: groups.description,
       ownerId: groups.ownerId,
@@ -128,7 +132,6 @@ export default async function GroupDetailPage({
     (a, b) => Number(b.isOwner) - Number(a.isOwner),
   );
 
-  const typeLabel = group.typeTag === "pickup" ? "Pickup" : "Minyan";
   const isOwner = isAuthenticated && group.ownerId === session.user.id;
   const viewerMember = isAuthenticated
     ? memberById.get(session.user.id)
@@ -158,7 +161,6 @@ export default async function GroupDetailPage({
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1.5">
                 <CardTitle className="text-xl">{group.name}</CardTitle>
-                <CardDescription>{typeLabel} group</CardDescription>
               </div>
               {isOwner && (
                 <span className="text-muted-foreground text-xs">You own this group</span>
@@ -240,6 +242,15 @@ export default async function GroupDetailPage({
                 ))}
               </ul>
             </div>
+
+            {isAuthenticated && (
+              <Button asChild className="w-full">
+                <Link href={`/events/new?group=${group.slug}`}>
+                  <CalendarPlus className="size-4" />
+                  New event for this group
+                </Link>
+              </Button>
+            )}
 
             <Button asChild variant="outline" className="w-full">
               <Link href="/my">Back to my minyans</Link>

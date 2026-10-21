@@ -33,8 +33,22 @@
     {
       "idx": 4,
       "version": "6",
-      "when": 1791728866973,
-      "tag": "0004_ancient_mojo",
+      "when": 1792503684867,
+      "tag": "0004_known_firebird",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1792504144038,
+      "tag": "0005_unknown_quentin_quire",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792555208086,
+      "tag": "0006_organic_scarlet_spider",
       "breakpoints": true
     }
   ]

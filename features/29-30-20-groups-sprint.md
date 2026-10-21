@@ -41,7 +41,7 @@ Groups need members and role management, and regular guests should be able to co
 **Engine:** opencode/mimo-v2.6-flash-free (complete run) — inline verification only.
 
 **#29 Invite members**
-- `group_members` table (groupId, userId, role organiser/member, unique per group+user) + `join_token` column on groups — migration 0004
+- `group_members` table (groupId, userId, role organiser/member, unique per group+user) + `join_token` column on groups — migration 0006 (renumbered from 0004 when merged with main; main owns 0004/0005)
 - `generateJoinToken` / `revokeJoinToken` / `joinGroup` server actions (owner/organiser-only token management)
 - `join-link.tsx` (generate + copy link + revoke), `join-group.tsx` (auto-join on ?join=<token> then refresh)
 
@@ -55,4 +55,14 @@ Groups need members and role management, and regular guests should be able to co
 - Called after OTP verify in login-form.tsx; idempotent guest-merge.tsx safety net on /my
 - guest-banner.tsx on event page when guest has ≥3 RSVPs; "Not now" sets guest_banner_dismissed cookie
 
-**Verification:** 41 tests passing (core 18, db 19, whatsapp 7); typecheck 5/5; next build green.
+**Verification:** 45 tests passing (core 18, db 20, whatsapp 7); typecheck 5/5; lint clean.
+
+## Merge with main (2026-10-21)
+
+Merged `main` (`09b683d`) into this branch. The branch was cut from the old group branch (`12d150c`), so main's guest-marker, cancel-event, title/type removal, and group→event link work all arrived at once.
+
+- **Group page:** kept the membership UI (member list, invite link, role actions) and main's "New event for this group" button; removed the type label because main no longer selects `group.typeTag`.
+- **RSVP actions:** unioned imports. Main's cancel-freeze guard and guest name-matching now sit alongside `mergeGuestRsvps`.
+- **Migrations:** main owns `0004_known_firebird` (event title) and `0005_unknown_quentin_quire` (event group link), both already applied. The membership migration was regenerated as `0006_organic_scarlet_spider` from the merged schema; the old `0004_ancient_mojo` and its snapshot were dropped. Snapshot chain is `0004 → 0005 → 0006`.
+- **Dev DB:** migrated through 0006 (`group_members` table + `groups.join_token`).
+- Branch is now current with `main`; still pending the user test before merging back.
