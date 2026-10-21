@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { and, eq } from "drizzle-orm";
+import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import {
   CalendarPlus,
@@ -8,7 +8,14 @@ import {
   StickyNote,
   UsersRound,
 } from "lucide-react";
-import { groupMembers, groups, users } from "@minyanmate/db/schema";
+import {
+  events,
+  groupMembers,
+  groups,
+  guests,
+  rsvps,
+  users,
+} from "@minyanmate/db/schema";
 import { EventCard } from "@/components/event-card";
 import { JoinGroup } from "@/components/join-group";
 import { JoinLink } from "@/components/join-link";
@@ -142,6 +149,40 @@ export default async function GroupDetailPage({
   const isMember = isOwner || !!viewerMember;
   const canManage = isOwner || viewerMember?.role === "organiser";
 
+  // Guests who RSVP'd to one of this group's events (or signed-in users with
+  // an RSVP but no membership row) can join without an invite link.
+  let hasGroupEventRsvp = false;
+  if (!isMember && session) {
+    const [rsvp] = await db
+      .select({ id: rsvps.id })
+      .from(rsvps)
+      .innerJoin(events, eq(rsvps.eventId, events.id))
+      .where(
+        and(
+          eq(rsvps.userId, session.user.id),
+          eq(events.groupId, group.id),
+        ),
+      )
+      .limit(1);
+    hasGroupEventRsvp = !!rsvp;
+  } else if (!isMember) {
+    const guestToken = (await cookies()).get("guest_token")?.value;
+    if (guestToken) {
+      const [guestRsvp] = await db
+        .select({ id: guests.id })
+        .from(guests)
+        .innerJoin(events, eq(guests.eventId, events.id))
+        .where(
+          and(
+            eq(guests.token, guestToken),
+            eq(events.groupId, group.id),
+          ),
+        )
+        .limit(1);
+      hasGroupEventRsvp = !!guestRsvp;
+    }
+  }
+
   const today = new Date().toISOString().slice(0, 10);
   const upcomingEvents = await getUpcomingEventSummaries(
     session?.user.id ?? null,
@@ -149,10 +190,19 @@ export default async function GroupDetailPage({
     { kind: "group", groupId: group.id },
   );
 
+  const joinDismissed = joinTokenParam === "dismiss";
   const inviteAccepted =
     !!joinTokenParam && !!group.joinToken && joinTokenParam === group.joinToken;
-  const showJoin = !isMember && !!joinTokenParam && inviteAccepted;
-  const invalidInvite = !isMember && !!joinTokenParam && !inviteAccepted;
+  const showJoin =
+    !isMember &&
+    !joinDismissed &&
+    (inviteAccepted || hasGroupEventRsvp);
+  const invalidInvite =
+    !isMember &&
+    !joinDismissed &&
+    !!joinTokenParam &&
+    !inviteAccepted &&
+    !hasGroupEventRsvp;
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -213,6 +263,7 @@ export default async function GroupDetailPage({
                 name={group.name}
                 token={joinTokenParam}
                 signedIn={isAuthenticated}
+                fromRsvp={hasGroupEventRsvp}
               />
             )}
             {invalidInvite && (

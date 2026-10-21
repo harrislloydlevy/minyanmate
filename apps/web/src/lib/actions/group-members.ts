@@ -1,7 +1,7 @@
 "use server";
 
 import { and, eq, sql } from "drizzle-orm";
-import { groupMembers, groups } from "@minyanmate/db/schema";
+import { events, groupMembers, groups, rsvps } from "@minyanmate/db/schema";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -35,18 +35,57 @@ async function findGroupById(groupId: string) {
 
 export async function joinGroup(
   slug: string,
-  token: string,
-): Promise<GroupMemberActionResult> {  const session = await auth.api.getSession({ headers: await headers() });
+  token?: string,
+): Promise<GroupMemberActionResult> {
+  const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return { success: false, error: "You must be signed in." };
 
   const group = await findGroupBySlug(slug);
   if (!group) return { success: false, error: "Group not found." };
-  if (!token || !group.joinToken || group.joinToken !== token) {
-    return { success: false, error: "This invite link is not valid." };
-  }
 
   // The owner is already part of the group — no membership row needed.
   if (group.ownerId === session.user.id) return { success: true };
+
+  const [membership] = await db
+    .select({ id: groupMembers.id })
+    .from(groupMembers)
+    .where(
+      and(
+        eq(groupMembers.groupId, group.id),
+        eq(groupMembers.userId, session.user.id),
+      ),
+    )
+    .limit(1);
+  if (membership) return { success: true };
+
+  const inviteAccepted =
+    !!token && !!group.joinToken && group.joinToken === token;
+
+  // A guest who RSVP'd to an event in this group can join without an invite
+  // link once they have an account. The guest RSVP is merged into `rsvps`
+  // before this action runs during the login flow.
+  let hasGroupEventRsvp = false;
+  if (!inviteAccepted) {
+    const [rsvp] = await db
+      .select({ id: rsvps.id })
+      .from(rsvps)
+      .innerJoin(events, eq(rsvps.eventId, events.id))
+      .where(
+        and(
+          eq(rsvps.userId, session.user.id),
+          eq(events.groupId, group.id),
+        ),
+      )
+      .limit(1);
+    hasGroupEventRsvp = !!rsvp;
+  }
+
+  if (!inviteAccepted && !hasGroupEventRsvp) {
+    return {
+      success: false,
+      error: "You need an invite link or an RSVP to join this group.",
+    };
+  }
 
   try {
     await db

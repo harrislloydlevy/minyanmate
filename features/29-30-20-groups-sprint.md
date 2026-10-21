@@ -13,6 +13,7 @@ Groups need members and role management, and regular guests should be able to co
 - [ ] Group page shows a shareable join link (e.g. /groups/[slug]?join=token or a join code)
 - [ ] Organiser can generate/revoke a join link
 - [ ] Opening the join link while signed in adds the user to the group as a member
+- [ ] A guest who has RSVP'd to an event in a group can join the group without an invite link
 - [ ] Member list visible on the group page
 
 ### #30 — Manage roles
@@ -42,14 +43,15 @@ Groups need members and role management, and regular guests should be able to co
 
 **#29 Invite members**
 - `group_members` table (groupId, userId, role organiser/member, unique per group+user) + `join_token` column on groups — migration 0006 (renumbered from 0004 when merged with main; main owns 0004/0005)
-- `generateJoinToken` / `joinGroup` server actions (owner/organiser-only token management). `generateJoinToken` replaces the group's single `join_token`, so regenerating implicitly revokes every previously shared link.
+- `generateJoinToken` / `joinGroup` server actions (owner/organiser-only token management). `generateJoinToken` replaces the group's single `join_token`, so regenerating implicitly revokes every previously shared link. `joinGroup` accepts either a valid invite token or an existing RSVP by the signed-in user to any event in the group.
 - The group page exposes one invite action: **Generate invite link** when there is no token, then **Regenerate and revoke** with a warning that old links stop working immediately. There is no separate revoke-only button.
 - `/my` is RSVP-driven: a group section appears only when the member has RSVP'd to an upcoming, non-cancelled event in that group, and it lists every such event with a **Details** link to the full group page. Joining a group alone does not add an empty section.
 - Members can leave a group from the group page; a confirmation is required and they are sent back to `/my`. The owner cannot leave (there is no ownership-transfer flow yet), so a group always keeps an organiser.
 - The group page shows all future events for the group, including cancelled ones with a badge; `/my` shows only the viewer's RSVP'd, non-cancelled upcoming events.
 - Creating a group event is organiser-only: the "New event for this group" button is hidden for regular members, `/events/new?group=<slug>` redirects them back to the group, and `createEvent` rejects a `groupId` the user cannot manage. Shared `canManageGroup` helper lives in `apps/web/src/lib/group-permissions.ts`.
-- `join-link.tsx` (generate + copy link + one regenerate-and-revoke action), `join-group.tsx` (shows a confirmation prompt on ?join=<token>; joins only after the user clicks "Join group", and "Not now" drops the token param without joining)
+- `join-link.tsx` (generate + copy link + one regenerate-and-revoke action), `join-group.tsx` (shows a confirmation prompt for a valid `?join=<token>` or when the viewer has RSVP'd to any event in the group; joins only after the user clicks "Join group", and "Not now" dismisses the prompt via `?join=dismiss`)
 - Signed-out invite visitors see the same explanation with a **Join group** button; it goes to `/login?joinGroup=<slug>&joinToken=<token>`, and after OTP verification the login form calls `joinGroup` and lands on the group page already joined.
+- A guest with a `guest_token` cookie who has RSVP'd to any event in the group sees the same join prompt without an invite link. **Join group** goes to `/login?joinGroup=<slug>`; after OTP, `mergeGuestRsvps` transfers the RSVP and the tokenless `joinGroup` call accepts the membership. A signed-in non-member with an RSVP can join directly from the prompt.
 - Copy uses shared `copy-to-clipboard.ts`: Clipboard API with a temporary-textarea fallback, so invite links can be copied over plain-HTTP LAN access where `navigator.clipboard` is unavailable. The event page's copy-link button uses the same helper.
 
 **#30 Manage roles**

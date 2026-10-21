@@ -10,13 +10,20 @@ import { joinGroup } from "@/lib/actions/group-members";
 interface JoinGroupProps {
   slug: string;
   name: string;
-  token: string;
+  token?: string;
   signedIn: boolean;
+  fromRsvp?: boolean;
 }
 
 type JoinState = "confirm" | "joining" | "joined";
 
-export function JoinGroup({ slug, name, token, signedIn }: JoinGroupProps) {
+export function JoinGroup({
+  slug,
+  name,
+  token,
+  signedIn,
+  fromRsvp = false,
+}: JoinGroupProps) {
   const router = useRouter();
   const [state, setState] = useState<JoinState>("confirm");
   const [error, setError] = useState<string | null>(null);
@@ -35,14 +42,20 @@ export function JoinGroup({ slug, name, token, signedIn }: JoinGroupProps) {
   }
 
   function handleCancel() {
-    router.replace(`/groups/${slug}`);
+    router.replace(fromRsvp ? `/groups/${slug}?join=dismiss` : `/groups/${slug}`);
   }
 
+  const dismissHref = fromRsvp
+    ? `/groups/${slug}?join=dismiss`
+    : `/groups/${slug}`;
+  const explanation = fromRsvp
+    ? `You've already RSVP'd to an event in the group ${name}. Join the group to see its other minyans and get updates.`
+    : `You are about to join the group ${name}. This means you will be notified of new events and be prompted to RSVP as they occur.`;
+
   if (!signedIn) {
-    const loginHref = `/login?${new URLSearchParams({
-      joinGroup: slug,
-      joinToken: token,
-    }).toString()}`;
+    const loginParams = new URLSearchParams({ joinGroup: slug });
+    if (token) loginParams.set("joinToken", token);
+    const loginHref = `/login?${loginParams.toString()}`;
 
     return (
       <div className="rounded-lg border bg-muted/40 p-4">
@@ -50,10 +63,7 @@ export function JoinGroup({ slug, name, token, signedIn }: JoinGroupProps) {
           <UserPlus className="size-4" />
           Before you join
         </h3>
-        <p className="text-muted-foreground mt-2 text-sm">
-          You are about to join the Group {name}. This means you will be
-          notified of new events and be prompted to RSVP as they occur.
-        </p>
+        <p className="text-muted-foreground mt-2 text-sm">{explanation}</p>
         <div className="mt-3 flex gap-2">
           <Button asChild size="sm">
             <Link href={loginHref}>
@@ -62,7 +72,7 @@ export function JoinGroup({ slug, name, token, signedIn }: JoinGroupProps) {
             </Link>
           </Button>
           <Button asChild size="sm" variant="outline">
-            <Link href={`/groups/${slug}`}>Not now</Link>
+            <Link href={dismissHref}>Not now</Link>
           </Button>
         </div>
         <p className="text-muted-foreground mt-2 text-xs">
@@ -90,10 +100,7 @@ export function JoinGroup({ slug, name, token, signedIn }: JoinGroupProps) {
         <UserPlus className="size-4" />
         Before you join
       </h3>
-      <p className="text-muted-foreground mt-2 text-sm">
-        You are about to join the Group {name}. This means you will be notified
-        of new events and be prompted to RSVP as they occur.
-      </p>
+      <p className="text-muted-foreground mt-2 text-sm">{explanation}</p>
       {error && (
         <p className="text-destructive mt-2 text-sm" role="alert">
           {error}

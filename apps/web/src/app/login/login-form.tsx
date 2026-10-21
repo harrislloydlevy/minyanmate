@@ -57,12 +57,13 @@ export function LoginForm({ joinGroupSlug, joinToken }: LoginFormProps) {
     await mergeGuestRsvps();
 
     let destination = "/my";
-    if (joinGroupSlug && joinToken) {
+    if (joinGroupSlug) {
       const joined = await joinGroup(joinGroupSlug, joinToken);
       const groupPath = `/groups/${encodeURIComponent(joinGroupSlug)}`;
-      destination = joined.success
-        ? groupPath
-        : `${groupPath}?join=${encodeURIComponent(joinToken)}`;
+      destination =
+        joined.success || !joinToken
+          ? groupPath
+          : `${groupPath}?join=${encodeURIComponent(joinToken)}`;
     }
 
     setLoading(false);
