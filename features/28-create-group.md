@@ -63,6 +63,11 @@ Groups are the organisational home. A shul, a workplace, a neighbourhood minyan.
 - `/my` joins `groups` and renders the card title as `<Event Title> - <Group Name>` when the event is linked; unlinked or legacy events keep the plain title.
 - The group reference is set only at creation time. There is still no group event feed on the group page, and changing a group's defaults does not update existing events.
 
+**Follow-up (2026-10-21): organiser-only group events + member groups**
+- "New event for this group" is now shown only to the owner and co-organisers. A regular member opening `/events/new?group=<slug>` is redirected back to the group page, and `createEvent` rejects a `groupId` the user cannot manage — direct form posts included.
+- `/my` → "Your groups" now lists every group the user owns or belongs to, not just owned groups.
+- The permission check is shared via `canManageGroup` in `apps/web/src/lib/group-permissions.ts`, used by the group actions, the new-event page, and `createEvent`.
+
 **Known gaps:**
 - There is no group event feed on `/groups/[slug]` yet, and no `events.group_id` editing. The link is create-only for now.
 - `events.group_id` was added with `ALTER TABLE ... ADD COLUMN`, so SQLite does not record the schema's `ON DELETE SET NULL` (it lands as NO ACTION). Group deletion is not implemented; if it is added, null out `events.group_id` explicitly or rebuild the table.
@@ -72,5 +77,6 @@ Groups are the organisational home. A shul, a workplace, a neighbourhood minyan.
 1. Sign in → `/my` → "New group". Create one with a name, default location, and description — there is no Type field.
 2. A second group with the same name gets a unique slug suffix.
 3. Back on `/my`, the group appears under "Your groups" (name only) and opens its detail page by slug.
-4. On the group page, click "New event for this group" — fill the title/date/time and create it. Back on `/my`, the card reads `<Event Title> - <Group Name>`, and the location is pre-filled.
-5. Tests: `pnpm test` — 41 passing (core 18, db 16, whatsapp 7); `pnpm typecheck` and `pnpm lint` clean.
+4. As the organiser, click "New event for this group" — fill the title/date/time and create it. Back on `/my`, the card reads `<Event Title> - <Group Name>`, and the location is pre-filled.
+5. Join the group as a regular member via an invite link: the group appears under that member's "Your groups", but the "New event for this group" button is hidden and `/events/new?group=<slug>` redirects back to the group page.
+6. Tests: `pnpm test` — 45 passing (core 18, db 20, whatsapp 7); `pnpm typecheck` and `pnpm lint` clean.

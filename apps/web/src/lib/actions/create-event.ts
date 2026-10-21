@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canManageGroup } from "@/lib/group-permissions";
 
 export type CreateEventResult =
   | { success: true; eventId: string }
@@ -31,11 +32,17 @@ export async function createEvent(
 
   if (groupId) {
     const [group] = await db
-      .select({ id: groups.id })
+      .select({ id: groups.id, ownerId: groups.ownerId })
       .from(groups)
       .where(eq(groups.id, groupId))
       .limit(1);
     if (!group) return { success: false, error: "Group not found." };
+    if (!(await canManageGroup(group, session.user.id))) {
+      return {
+        success: false,
+        error: "Only group organisers can create events for this group.",
+      };
+    }
   }
 
   const startsAt = `${date}T${time}`;

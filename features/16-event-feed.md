@@ -55,5 +55,5 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 
 - Cards now use the stored event title as the heading, with the date moved into the subtitle next to the location. Legacy events without a stored title fall back to "Minyan".
 - The minyan/pickup prefix was removed from card headings — all events are minyans.
-- The "Your groups" section on `/my` no longer shows a group type label; it lists the group name only.
+- The "Your groups" section on `/my` no longer shows a group type label; it lists the group name only, and includes groups the user owns or is a member of.
 - If an event was created from a group, its card title is rendered as `<Event Title> - <Group Name>`. Unlinked events keep the plain title.

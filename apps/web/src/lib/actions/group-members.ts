@@ -5,6 +5,7 @@ import { groupMembers, groups } from "@minyanmate/db/schema";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canManageGroup } from "@/lib/group-permissions";
 
 export type GroupMemberActionResult =
   { success: true } | { success: false; error: string };
@@ -30,26 +31,6 @@ async function findGroupById(groupId: string) {
     .where(eq(groups.id, groupId))
     .limit(1);
   return group;
-}
-
-/** The owner, or any member with the organiser role, can manage the group. */
-async function canManage(
-  group: { id: string; ownerId: string },
-  userId: string,
-): Promise<boolean> {
-  if (group.ownerId === userId) return true;
-  const [row] = await db
-    .select({ id: groupMembers.id })
-    .from(groupMembers)
-    .where(
-      and(
-        eq(groupMembers.groupId, group.id),
-        eq(groupMembers.userId, userId),
-        eq(groupMembers.role, "organiser"),
-      ),
-    )
-    .limit(1);
-  return !!row;
 }
 
 export async function joinGroup(
@@ -87,7 +68,7 @@ export async function generateJoinToken(
 
   const group = await findGroupBySlug(slug);
   if (!group) return { success: false, error: "Group not found." };
-  if (!(await canManage(group, session.user.id))) {
+  if (!(await canManageGroup(group, session.user.id))) {
     return {
       success: false,
       error: "Only the group organiser can manage invites.",
@@ -114,7 +95,7 @@ export async function revokeJoinToken(
 
   const group = await findGroupBySlug(slug);
   if (!group) return { success: false, error: "Group not found." };
-  if (!(await canManage(group, session.user.id))) {
+  if (!(await canManageGroup(group, session.user.id))) {
     return {
       success: false,
       error: "Only the group organiser can manage invites.",
@@ -146,7 +127,7 @@ export async function setMemberRole(
 
   const group = await findGroupById(groupId);
   if (!group) return { success: false, error: "Group not found." };
-  if (!(await canManage(group, session.user.id))) {
+  if (!(await canManageGroup(group, session.user.id))) {
     return {
       success: false,
       error: "Only the group organiser can manage members.",
@@ -185,7 +166,7 @@ export async function removeMember(
 
   const group = await findGroupById(groupId);
   if (!group) return { success: false, error: "Group not found." };
-  if (!(await canManage(group, session.user.id))) {
+  if (!(await canManageGroup(group, session.user.id))) {
     return {
       success: false,
       error: "Only the group organiser can manage members.",

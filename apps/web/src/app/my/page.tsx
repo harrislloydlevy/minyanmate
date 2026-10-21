@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, or } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CalendarPlus, UsersRound } from "lucide-react";
-import { events, groups, rsvps, users } from "@minyanmate/db/schema";
+import { events, groupMembers, groups, rsvps, users } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { GuestMerge } from "@/components/guest-merge";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -107,13 +107,19 @@ export default async function MyPage() {
   const eventsList = Array.from(eventMap.values());
 
   const myGroups = await db
-    .select({
+    .selectDistinct({
       id: groups.id,
       name: groups.name,
       slug: groups.slug,
     })
     .from(groups)
-    .where(eq(groups.ownerId, session.user.id))
+    .leftJoin(groupMembers, eq(groupMembers.groupId, groups.id))
+    .where(
+      or(
+        eq(groups.ownerId, session.user.id),
+        eq(groupMembers.userId, session.user.id),
+      ),
+    )
     .orderBy(asc(groups.name));
 
   const upcoming = eventsList.filter((e) => e.event.date >= today);

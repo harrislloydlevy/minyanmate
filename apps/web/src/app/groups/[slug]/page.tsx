@@ -249,7 +249,7 @@ export default async function GroupDetailPage({
               </ul>
             </div>
 
-            {isAuthenticated && (
+            {canManage && (
               <Button asChild className="w-full">
                 <Link href={`/events/new?group=${group.slug}`}>
                   <CalendarPlus className="size-4" />

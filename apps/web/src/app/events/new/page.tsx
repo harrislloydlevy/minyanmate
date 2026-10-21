@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { EventForm } from "./event-form";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canManageGroup } from "@/lib/group-permissions";
 
 export const metadata: Metadata = {
   title: "New event",
@@ -25,22 +26,28 @@ export default async function NewEventPage({
 
   const { group: groupSlug } = await searchParams;
 
-  // When linked from a group, pre-fill that group's defaults. The event is
-  // still standalone — persisting a group↔event link is deferred (see
-  // features/28-create-group.md).
+  // When linked from a group, pre-fill that group's defaults. Only the owner
+  // or a co-organiser may create events for the group; the group id is
+  // submitted with the form and stored on the event.
   const group = groupSlug
     ? (
         await db
           .select({
             id: groups.id,
+            slug: groups.slug,
             name: groups.name,
             defaultLocation: groups.defaultLocation,
+            ownerId: groups.ownerId,
           })
           .from(groups)
           .where(eq(groups.slug, groupSlug))
           .limit(1)
       )[0]
     : undefined;
+
+  if (group && !(await canManageGroup(group, session.user.id))) {
+    redirect(`/groups/${group.slug}`);
+  }
 
   return (
     <div className="flex min-h-svh flex-col">
