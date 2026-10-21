@@ -53,6 +53,7 @@ export async function generateInstances(
     .values(
       missing.map((date) => ({
         minyanId: minyan.id,
+        title: minyan.name,
         date,
         startsAt: `${date}T${schedule.time}`,
         locationText: minyan.locationText,

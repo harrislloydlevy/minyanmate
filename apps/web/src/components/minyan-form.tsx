@@ -46,7 +46,8 @@ export function MinyanForm() {
         </div>
         <CardTitle className="text-xl">New minyan</CardTitle>
         <CardDescription>
-          Set a weekly schedule and future events are generated automatically.
+          Set a weekly or daily schedule and future events are generated
+          automatically.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -77,6 +78,9 @@ export function MinyanForm() {
                 </label>
               ))}
             </div>
+            <p className="text-muted-foreground text-xs">
+              Select every weekday for a daily minyan.
+            </p>
           </fieldset>
 
           <div className="flex flex-col gap-2">

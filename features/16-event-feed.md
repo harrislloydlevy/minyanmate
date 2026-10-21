@@ -10,7 +10,7 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 ## Acceptance Criteria
 
 - [ ] `/my` page shows all events in the database, ordered by date (upcoming first, then past)
-- [ ] Each event card shows: date, time, location, RSVP counts, and the user's own RSVP status
+- [ ] Each event card shows: the stored title (`<Event Title> - <Group Name>` when the event belongs to a group), date, time, location, RSVP counts, and the user's own RSVP status
 - [ ] Events are split into two sections: "Upcoming" and "Past"
 - [ ] A quick "New event" button is still accessible
 - [ ] Empty state: if no events exist yet, show a friendly message
@@ -36,7 +36,7 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 **What was built:**
 - Replaced the empty welcome card on `/my` with a full chronological event feed
 - Events split into "Upcoming" and "Past" sections based on today's date
-- Each event card shows: date, time, location, RSVP counts (in/maybe/out), and the user's own RSVP badge
+- Each event card shows: event title (with ` - <Group Name>` appended when the event was created from a group), date, time, location, RSVP counts (in/maybe/out), and the user's own RSVP badge
 - Clicking any event card navigates to its detail page
 - "New event" button is still accessible at the top right
 - Empty state shows a friendly message with a CTA to create the first event
@@ -49,3 +49,33 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 1. Run the seed: `pnpm --filter @minyanmate/db tsx src/seed.ts`
 2. Start the app and log in with any of the seeded phone numbers
 3. See upcoming events listed, past events faded, RSVP badges on events you've responded to
+4. Create an event from a group page (`/groups/<slug>` → "New event for this group") and confirm `/my` shows `<Event Title> - <Group Name>`
+
+### Follow-up (2026-10-21): event titles in the feed
+
+- Cards now use the stored event title as the heading, with the date moved into the subtitle next to the location. Legacy events without a stored title fall back to "Minyan".
+- The minyan/pickup prefix was removed from card headings — all events are minyans.
+- The "Your groups" section on `/my` no longer shows a group type label; it lists the group name only, and includes groups the user owns or is a member of.
+- If an event was created from a group, its card title is rendered as `<Event Title> - <Group Name>`. Unlinked events keep the plain title.
+
+### Follow-up (2026-10-21): grouped by group, RSVP-only
+
+- `/my` is now upcoming-only. The old flat **Upcoming** / **Past** lists and the separate **Your groups** list were replaced by grouped sections.
+- Only events the signed-in user has RSVP'd to (in / maybe / out) appear on `/my`; un-RSVP'd events do not.
+- Upcoming, non-cancelled one-off events (no `groups.group_id`) appear first in a **Once-Off** section. The section is hidden when there are none.
+- Each group with at least one RSVP'd upcoming, non-cancelled event gets its own section, with a **Details** button at the top linking to `/groups/<slug>`.
+- A group section lists **every** RSVP'd event for that group — there is no longer a 3-event preview. Un-RSVP'd events remain visible on the group page.
+- RSVP'd group events appear even if the user is not currently a member of the group; **Details** still opens the group's full schedule.
+- Cancelled and past events are excluded from `/my`; the group page still shows future cancelled events with a badge.
+- Event cards are shared between `/my` and the group page via `apps/web/src/components/event-card.tsx`; the upcoming-event query and RSVP aggregation live in `apps/web/src/lib/event-summaries.ts`.
+- Card titles on `/my` no longer append ` - <Group Name>`; the group section heading provides that context.
+- The header's **New minyan** button became **My series**, linking to `/minyans`. Recurring-series creation now lives on the series list; `/my` remains strictly RSVP-driven.
+
+**Updated verification:**
+1. Seed the DB and sign in.
+2. RSVP to a one-off event: it appears under **Once-Off**.
+3. RSVP to a group event: the event appears under that group's section, with a **Details** button.
+4. Confirm un-RSVP'd group events do not appear on `/my`, even though they remain on the group page.
+5. If more than one event in a group is RSVP'd, all of them appear.
+6. Cancelled and past events do not appear on `/my`.
+7. Open **Details** and confirm the group page lists every future event for the group.

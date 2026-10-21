@@ -18,20 +18,20 @@ import { Label } from "@/components/ui/label";
 
 interface EditEventFormProps {
   eventId: string;
+  defaultTitle: string | null;
   defaultDate: string;
   defaultTime: string;
   defaultLocation: string | null;
   defaultNotes: string | null;
-  defaultTypeTag: string | null;
 }
 
 export function EditEventForm({
   eventId,
+  defaultTitle,
   defaultDate,
   defaultTime,
   defaultLocation,
   defaultNotes,
-  defaultTypeTag,
 }: EditEventFormProps) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState<
@@ -56,6 +56,18 @@ export function EditEventForm({
       <CardContent>
         <form action={formAction} className="flex flex-col gap-4">
           <input type="hidden" name="eventId" value={eventId} />
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="title">Event title</Label>
+            <Input
+              id="title"
+              name="title"
+              type="text"
+              defaultValue={defaultTitle ?? ""}
+              placeholder="Shacharis at the shul"
+              required
+            />
+          </div>
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="date">Date</Label>
@@ -103,23 +115,6 @@ export function EditEventForm({
               defaultValue={defaultNotes ?? ""}
               placeholder="Bring a siddur"
             />
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="typeTag">
-              Type <span className="text-muted-foreground">(optional)</span>
-            </Label>
-            <select
-              id="typeTag"
-              name="typeTag"
-              data-slot="input"
-              className="border-input flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none focus-visible:border-ring focus-visible:ring-ring/40 focus-visible:ring-[3px]"
-              defaultValue={defaultTypeTag ?? ""}
-            >
-              <option value="">No type</option>
-              <option value="minyan">Minyan</option>
-              <option value="pickup">Pickup</option>
-            </select>
           </div>
 
           {state && !state.success && (

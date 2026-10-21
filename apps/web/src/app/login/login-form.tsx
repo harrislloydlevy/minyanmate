@@ -1,10 +1,10 @@
 "use client";
 
 import { MessageCircle, Smartphone } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { mergeGuestRsvps } from "@/lib/actions/rsvp";
+import { joinGroup } from "@/lib/actions/group-members";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,8 +18,12 @@ import { Label } from "@/components/ui/label";
 
 type Step = "phone" | "code";
 
-export function LoginForm() {
-  const router = useRouter();
+interface LoginFormProps {
+  joinGroupSlug?: string;
+  joinToken?: string;
+}
+
+export function LoginForm({ joinGroupSlug, joinToken }: LoginFormProps) {
   const [step, setStep] = useState<Step>("phone");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [code, setCode] = useState("");
@@ -51,8 +55,19 @@ export function LoginForm() {
     }
     // Carry over any RSVPs the visitor made before signing up.
     await mergeGuestRsvps();
+
+    let destination = "/my";
+    if (joinGroupSlug) {
+      const joined = await joinGroup(joinGroupSlug, joinToken);
+      const groupPath = `/groups/${encodeURIComponent(joinGroupSlug)}`;
+      destination =
+        joined.success || !joinToken
+          ? groupPath
+          : `${groupPath}?join=${encodeURIComponent(joinToken)}`;
+    }
+
     setLoading(false);
-    router.push("/my");
+    window.location.assign(destination);
   }
 
   return (

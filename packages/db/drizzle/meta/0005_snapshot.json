@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "03eabd7b-211d-4988-aad9-c61a803349ac",
-  "prevId": "6d719bfb-d39d-4dea-8915-1e89f9561fb7",
+  "id": "2be4e081-ee3d-4022-964e-3b02a81c6f43",
+  "prevId": "ded8ea67-f220-460f-a9ee-3fb068e319fc",
   "tables": {
     "accounts": {
       "name": "accounts",
@@ -138,6 +138,20 @@
           "notNull": false,
           "autoincrement": false
         },
+        "group_id": {
+          "name": "group_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
         "date": {
           "name": "date",
           "type": "text",
@@ -168,13 +182,6 @@
         },
         "type_tag": {
           "name": "type_tag",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "service_tag": {
-          "name": "service_tag",
           "type": "text",
           "primaryKey": false,
           "notNull": false,
@@ -242,6 +249,13 @@
             "owner_id"
           ],
           "isUnique": false
+        },
+        "events_group_idx": {
+          "name": "events_group_idx",
+          "columns": [
+            "group_id"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -258,87 +272,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "events_owner_id_users_id_fk": {
-          "name": "events_owner_id_users_id_fk",
+        "events_group_id_groups_id_fk": {
+          "name": "events_group_id_groups_id_fk",
           "tableFrom": "events",
-          "tableTo": "users",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "group_members": {
-      "name": "group_members",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "group_id": {
-          "name": "group_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "role": {
-          "name": "role",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "'member'"
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        }
-      },
-      "indexes": {
-        "group_members_group_user_uq": {
-          "name": "group_members_group_user_uq",
-          "columns": [
-            "group_id",
-            "user_id"
-          ],
-          "isUnique": true
-        }
-      },
-      "foreignKeys": {
-        "group_members_group_id_groups_id_fk": {
-          "name": "group_members_group_id_groups_id_fk",
-          "tableFrom": "group_members",
           "tableTo": "groups",
           "columnsFrom": [
             "group_id"
@@ -346,15 +282,15 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "set null",
           "onUpdate": "no action"
         },
-        "group_members_user_id_users_id_fk": {
-          "name": "group_members_user_id_users_id_fk",
-          "tableFrom": "group_members",
+        "events_owner_id_users_id_fk": {
+          "name": "events_owner_id_users_id_fk",
+          "tableFrom": "events",
           "tableTo": "users",
           "columnsFrom": [
-            "user_id"
+            "owner_id"
           ],
           "columnsTo": [
             "id"
@@ -417,13 +353,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "join_token": {
-          "name": "join_token",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "created_at": {
@@ -902,13 +831,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "service_tag": {
-          "name": "service_tag",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         },
         "quorum_target": {

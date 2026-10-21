@@ -7,14 +7,12 @@ import {
   Link2,
   LoaderCircle,
   RotateCcw,
-  Trash2,
+  TriangleAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  generateJoinToken,
-  revokeJoinToken,
-} from "@/lib/actions/group-members";
+import { generateJoinToken } from "@/lib/actions/group-members";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 
 interface JoinLinkProps {
   slug: string;
@@ -40,18 +38,6 @@ export function JoinLink({ slug, initialToken }: JoinLinkProps) {
     const result = await generateJoinToken(slug);
     if (result.success) {
       setToken(result.token);
-    } else {
-      setError(result.error);
-    }
-    setBusy(false);
-  }
-
-  async function handleRevoke() {
-    setBusy(true);
-    setError(null);
-    const result = await revokeJoinToken(slug);
-    if (result.success) {
-      setToken(null);
       setCopied(false);
     } else {
       setError(result.error);
@@ -61,10 +47,12 @@ export function JoinLink({ slug, initialToken }: JoinLinkProps) {
 
   async function handleCopy() {
     if (!url) return;
-    try {
-      await navigator.clipboard.writeText(url);
+    setError(null);
+    const copied = await copyToClipboard(url);
+    if (copied) {
       setCopied(true);
-    } catch {
+      window.setTimeout(() => setCopied(false), 2000);
+    } else {
       setError("Could not copy the link. Select it and copy manually.");
     }
   }
@@ -90,7 +78,7 @@ export function JoinLink({ slug, initialToken }: JoinLinkProps) {
               {copied ? "Copied" : "Copy"}
             </Button>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-col items-start gap-1.5">
             <Button
               type="button"
               variant="outline"
@@ -103,18 +91,12 @@ export function JoinLink({ slug, initialToken }: JoinLinkProps) {
               ) : (
                 <RotateCcw className="size-4" />
               )}
-              Regenerate
+              Regenerate and revoke
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleRevoke}
-              disabled={busy}
-            >
-              <Trash2 className="size-4" />
-              Revoke
-            </Button>
+            <p className="flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+              <TriangleAlert className="mt-0.5 size-3.5 shrink-0" />
+              Old invite links will stop working as soon as you regenerate.
+            </p>
           </div>
         </>
       ) : (

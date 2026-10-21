@@ -36,20 +36,17 @@ export async function updateEvent(
     };
   }
 
+  const title = form.get("title")?.toString().trim();
   const date = form.get("date")?.toString().trim();
   const time = form.get("time")?.toString().trim();
   const location = form.get("location")?.toString().trim();
   const notes = form.get("notes")?.toString().trim();
-  const typeTag = form.get("typeTag")?.toString().trim();
 
+  if (!title) return { success: false, error: "Event title is required." };
   if (!date) return { success: false, error: "Event date is required." };
   if (!time) return { success: false, error: "Start time is required." };
 
   const startsAt = `${date}T${time}`;
-
-  if (typeTag && typeTag !== "minyan" && typeTag !== "pickup") {
-    return { success: false, error: "Type tag must be minyan or pickup." };
-  }
 
   const now = new Date();
 
@@ -57,11 +54,11 @@ export async function updateEvent(
     await db
       .update(events)
       .set({
+        title,
         date,
         startsAt,
         locationText: location || null,
         notes: notes || null,
-        typeTag: (typeTag as "minyan" | "pickup" | null) || null,
         lastEditedAt: now,
       })
       .where(eq(events.id, eventId));

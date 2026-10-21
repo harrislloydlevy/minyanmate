@@ -1,11 +1,25 @@
 import type { Metadata } from "next";
-import { eq } from "drizzle-orm";
-import { headers } from "next/headers";
+import { and, eq } from "drizzle-orm";
+import { cookies, headers } from "next/headers";
 import Link from "next/link";
-import { MapPin, StickyNote, UsersRound } from "lucide-react";
-import { groupMembers, groups, users } from "@minyanmate/db/schema";
+import {
+  CalendarPlus,
+  MapPin,
+  StickyNote,
+  UsersRound,
+} from "lucide-react";
+import {
+  events,
+  groupMembers,
+  groups,
+  guests,
+  rsvps,
+  users,
+} from "@minyanmate/db/schema";
+import { EventCard } from "@/components/event-card";
 import { JoinGroup } from "@/components/join-group";
 import { JoinLink } from "@/components/join-link";
+import { LeaveGroup } from "@/components/leave-group";
 import { MemberActions } from "@/components/member-actions";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -18,6 +32,7 @@ import {
 } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getUpcomingEventSummaries } from "@/lib/event-summaries";
 
 export const metadata: Metadata = {
   title: "Group details",
@@ -50,7 +65,6 @@ export default async function GroupDetailPage({
       id: groups.id,
       name: groups.name,
       slug: groups.slug,
-      typeTag: groups.typeTag,
       defaultLocation: groups.defaultLocation,
       description: groups.description,
       ownerId: groups.ownerId,
@@ -128,7 +142,6 @@ export default async function GroupDetailPage({
     (a, b) => Number(b.isOwner) - Number(a.isOwner),
   );
 
-  const typeLabel = group.typeTag === "pickup" ? "Pickup" : "Minyan";
   const isOwner = isAuthenticated && group.ownerId === session.user.id;
   const viewerMember = isAuthenticated
     ? memberById.get(session.user.id)
@@ -136,12 +149,60 @@ export default async function GroupDetailPage({
   const isMember = isOwner || !!viewerMember;
   const canManage = isOwner || viewerMember?.role === "organiser";
 
+  // Guests who RSVP'd to one of this group's events (or signed-in users with
+  // an RSVP but no membership row) can join without an invite link.
+  let hasGroupEventRsvp = false;
+  if (!isMember && session) {
+    const [rsvp] = await db
+      .select({ id: rsvps.id })
+      .from(rsvps)
+      .innerJoin(events, eq(rsvps.eventId, events.id))
+      .where(
+        and(
+          eq(rsvps.userId, session.user.id),
+          eq(events.groupId, group.id),
+        ),
+      )
+      .limit(1);
+    hasGroupEventRsvp = !!rsvp;
+  } else if (!isMember) {
+    const guestToken = (await cookies()).get("guest_token")?.value;
+    if (guestToken) {
+      const [guestRsvp] = await db
+        .select({ id: guests.id })
+        .from(guests)
+        .innerJoin(events, eq(guests.eventId, events.id))
+        .where(
+          and(
+            eq(guests.token, guestToken),
+            eq(events.groupId, group.id),
+          ),
+        )
+        .limit(1);
+      hasGroupEventRsvp = !!guestRsvp;
+    }
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const upcomingEvents = await getUpcomingEventSummaries(
+    session?.user.id ?? null,
+    today,
+    { kind: "group", groupId: group.id },
+  );
+
+  const joinDismissed = joinTokenParam === "dismiss";
   const inviteAccepted =
     !!joinTokenParam && !!group.joinToken && joinTokenParam === group.joinToken;
   const showJoin =
-    isAuthenticated && !isMember && !!joinTokenParam && inviteAccepted;
+    !isMember &&
+    !joinDismissed &&
+    (inviteAccepted || hasGroupEventRsvp);
   const invalidInvite =
-    isAuthenticated && !isMember && !!joinTokenParam && !inviteAccepted;
+    !isMember &&
+    !joinDismissed &&
+    !!joinTokenParam &&
+    !inviteAccepted &&
+    !hasGroupEventRsvp;
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -158,7 +219,6 @@ export default async function GroupDetailPage({
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1.5">
                 <CardTitle className="text-xl">{group.name}</CardTitle>
-                <CardDescription>{typeLabel} group</CardDescription>
               </div>
               {isOwner && (
                 <span className="text-muted-foreground text-xs">You own this group</span>
@@ -197,10 +257,33 @@ export default async function GroupDetailPage({
               )}
             </dl>
 
-            {showJoin && <JoinGroup slug={group.slug} token={joinTokenParam} />}
+            {showJoin && (
+              <JoinGroup
+                slug={group.slug}
+                name={group.name}
+                token={joinTokenParam}
+                signedIn={isAuthenticated}
+                fromRsvp={hasGroupEventRsvp}
+              />
+            )}
             {invalidInvite && (
               <p className="text-destructive text-sm">This invite link is not valid.</p>
             )}
+
+            <div className="border-t pt-4 flex flex-col gap-3">
+              <h3 className="text-sm font-semibold">Upcoming minyans</h3>
+              {upcomingEvents.length > 0 ? (
+                <div className="flex flex-col gap-3">
+                  {upcomingEvents.map((summary) => (
+                    <EventCard key={summary.event.id} summary={summary} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  No upcoming minyans.
+                </p>
+              )}
+            </div>
 
             {canManage && (
               <div className="border-t pt-4 flex flex-col gap-2">
@@ -240,6 +323,21 @@ export default async function GroupDetailPage({
                 ))}
               </ul>
             </div>
+
+            {canManage && (
+              <Button asChild className="w-full">
+                <Link href={`/events/new?group=${group.slug}`}>
+                  <CalendarPlus className="size-4" />
+                  New event for this group
+                </Link>
+              </Button>
+            )}
+
+            {isMember && !isOwner && (
+              <div className="border-t pt-4">
+                <LeaveGroup slug={group.slug} name={group.name} />
+              </div>
+            )}
 
             <Button asChild variant="outline" className="w-full">
               <Link href="/my">Back to my minyans</Link>

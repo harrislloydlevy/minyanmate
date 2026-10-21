@@ -33,15 +33,29 @@
     {
       "idx": 4,
       "version": "6",
-      "when": 1791728866973,
-      "tag": "0004_ancient_mojo",
+      "when": 1792503684867,
+      "tag": "0004_known_firebird",
       "breakpoints": true
     },
     {
       "idx": 5,
       "version": "6",
-      "when": 1791730487088,
-      "tag": "0005_bumpy_dracula",
+      "when": 1792504144038,
+      "tag": "0005_unknown_quentin_quire",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792555208086,
+      "tag": "0006_organic_scarlet_spider",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1792568324932,
+      "tag": "0007_romantic_green_goblin",
       "breakpoints": true
     }
   ]

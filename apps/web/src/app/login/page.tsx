@@ -7,13 +7,19 @@ export const metadata: Metadata = {
   title: "Sign in",
 };
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ joinGroup?: string; joinToken?: string }>;
+}) {
+  const { joinGroup, joinToken } = await searchParams;
+
   return (
     <div className="flex min-h-svh flex-col items-center justify-center gap-6 p-4">
       <Link href="/" className="text-lg font-bold tracking-tight">
         Minyan<span className="text-primary">Mate</span>
       </Link>
-      <LoginForm />
+      <LoginForm joinGroupSlug={joinGroup} joinToken={joinToken} />
       <Button asChild variant="ghost" size="sm">
         <Link href="/">Back to home</Link>
       </Button>

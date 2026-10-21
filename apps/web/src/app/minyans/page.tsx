@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { count, eq } from "drizzle-orm";
+import { and, count, eq, gte } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Church } from "lucide-react";
 import { minyans, events } from "@minyanmate/db/schema";
-import { nextOccurrence, parseWeeklySchedule } from "@minyanmate/core";
+import { occurrencesBetween, parseWeeklySchedule } from "@minyanmate/core";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,8 +34,10 @@ function formatTime(time: string): string {
   return `${hour12}:${String(minutes).padStart(2, "0")} ${suffix}`;
 }
 
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("en-US", {
+function formatDate(date: string): string {
+  const parsed = new Date(`${date}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) return date;
+  return parsed.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -50,6 +52,8 @@ export default async function MinyansPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
 
+  const today = new Date().toISOString().slice(0, 10);
+
   const mine = await db
     .select()
     .from(minyans)
@@ -60,10 +64,14 @@ export default async function MinyansPage() {
       const [row] = await db
         .select({ value: count() })
         .from(events)
-        .where(eq(events.minyanId, minyan.id));
+        .where(
+          and(eq(events.minyanId, minyan.id), gte(events.date, today)),
+        );
       const instanceCount = row?.value ?? 0;
       const schedule = parseWeeklySchedule(minyan.schedule);
-      const next = schedule ? nextOccurrence(schedule, new Date()) : null;
+      const next = schedule
+        ? (occurrencesBetween(schedule, new Date(), 7)[0] ?? null)
+        : null;
       return { minyan, instanceCount, schedule, next };
     }),
   );
@@ -133,9 +141,15 @@ export default async function MinyansPage() {
                     {next ? ` · next: ${formatDate(next)}` : ""}
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="pt-0 text-xs text-muted-foreground">
-                  {instanceCount} upcoming {instanceCount === 1 ? "event" : "events"}
-                  {minyan.locationText ? ` · ${minyan.locationText}` : ""}
+                <CardContent className="flex items-center justify-between gap-3 pt-0 text-xs text-muted-foreground">
+                  <span>
+                    {instanceCount} upcoming{" "}
+                    {instanceCount === 1 ? "event" : "events"}
+                    {minyan.locationText ? ` · ${minyan.locationText}` : ""}
+                  </span>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/minyans/${minyan.id}`}>View events</Link>
+                  </Button>
                 </CardContent>
               </Card>
             ))}
