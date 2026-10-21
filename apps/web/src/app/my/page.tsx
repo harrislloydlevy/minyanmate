@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { eq, asc, or } from "drizzle-orm";
+import { asc, eq, or } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CalendarPlus, UsersRound } from "lucide-react";
-import { events, groupMembers, groups, rsvps, users } from "@minyanmate/db/schema";
+import { groupMembers, groups } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
+import { EventCard } from "@/components/event-card";
 import { GuestMerge } from "@/components/guest-merge";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import {
 } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getUpcomingEventSummaries } from "@/lib/event-summaries";
 
 export const metadata: Metadata = {
   title: "My minyans",
@@ -25,86 +27,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-function formatDate(date: string): string {
-  const parsed = new Date(`${date}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) return date;
-  return parsed.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-function formatTime(startsAt: string): string {
-  const time = startsAt.split("T")[1];
-  if (!time) return startsAt;
-  const [hours, minutes] = time.split(":").map(Number);
-  if (hours === undefined || minutes === undefined) return startsAt;
-  const suffix = hours >= 12 ? "PM" : "AM";
-  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
-  return `${hour12}:${String(minutes).padStart(2, "0")} ${suffix}`;
-}
-
 export default async function MyPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/login");
 
-  const today = new Date().toISOString().split("T")[0] ?? "";
-
-  // Fetch all events with RSVP counts and the current user's RSVP
-  const allEvents = await db
-    .select({
-      event: events,
-      groupName: groups.name,
-      rsvpStatus: rsvps.status,
-      rsvpUserId: rsvps.userId,
-      rsvpUserName: users.name,
-    })
-    .from(events)
-    .leftJoin(groups, eq(events.groupId, groups.id))
-    .leftJoin(rsvps, eq(rsvps.eventId, events.id))
-    .leftJoin(users, eq(rsvps.userId, users.id))
-    .orderBy(asc(events.date), asc(events.startsAt));
-
-  // Collapse joined rows into per-event summaries
-  const eventMap = new Map<
-    string,
-    {
-      event: (typeof allEvents)[0]["event"];
-      groupName: string | null;
-      counts: { in: number; maybe: number; out: number };
-      userRsvp: string | null;
-    }
-  >();
-
-  for (const row of allEvents) {
-    const existing = eventMap.get(row.event.id);
-    if (existing) {
-      if (row.rsvpStatus) {
-        existing.counts[row.rsvpStatus as keyof typeof existing.counts]++;
-      }
-      if (row.rsvpUserId === session.user.id && row.rsvpStatus) {
-        existing.userRsvp = row.rsvpStatus;
-      }
-    } else {
-      const counts = { in: 0, maybe: 0, out: 0 };
-      let userRsvp: string | null = null;
-      if (row.rsvpStatus) {
-        counts[row.rsvpStatus as keyof typeof counts]++;
-      }
-      if (row.rsvpUserId === session.user.id && row.rsvpStatus) {
-        userRsvp = row.rsvpStatus;
-      }
-      eventMap.set(row.event.id, {
-        event: row.event,
-        groupName: row.groupName,
-        counts,
-        userRsvp,
-      });
-    }
-  }
-
-  const eventsList = Array.from(eventMap.values());
+  const today = new Date().toISOString().slice(0, 10);
 
   const myGroups = await db
     .selectDistinct({
@@ -122,8 +49,24 @@ export default async function MyPage() {
     )
     .orderBy(asc(groups.name));
 
-  const upcoming = eventsList.filter((e) => e.event.date >= today);
-  const past = eventsList.filter((e) => e.event.date < today);
+  const upcomingEvents = await getUpcomingEventSummaries(
+    session.user.id,
+    today,
+    { kind: "my", groupIds: myGroups.map((group) => group.id) },
+  );
+
+  const oneOffEvents = upcomingEvents.filter((summary) => !summary.event.groupId);
+
+  const groupSections = myGroups.map((group) => ({
+    ...group,
+    events: upcomingEvents
+      .filter(
+        (summary) =>
+          summary.event.groupId === group.id &&
+          summary.event.status === "scheduled",
+      )
+      .slice(0, 3),
+  }));
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -138,7 +81,7 @@ export default async function MyPage() {
         </div>
       </header>
 
-      <main className="flex-1 space-y-6 py-10">
+      <main className="flex-1 space-y-8 py-10">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
@@ -164,151 +107,66 @@ export default async function MyPage() {
           </div>
         </div>
 
-        {myGroups.length > 0 && (
+        {oneOffEvents.length > 0 && (
           <section>
-            <h2 className="mb-3 text-lg font-semibold">Your groups</h2>
-            <div className="flex flex-col gap-2">
-              {myGroups.map((group) => (
-                <Link key={group.id} href={`/groups/${group.slug}`}>
-                  <Card className="transition-colors hover:bg-accent/50">
-                    <CardContent className="py-4 text-sm">
-                      <span className="font-medium">{group.name}</span>
-                    </CardContent>
-                  </Card>
-                </Link>
+            <h2 className="mb-3 text-lg font-semibold">Once-Off</h2>
+            <div className="flex flex-col gap-3">
+              {oneOffEvents.map((summary) => (
+                <EventCard key={summary.event.id} summary={summary} />
               ))}
             </div>
           </section>
         )}
 
-        {eventsList.length === 0 ? (
+        {groupSections.length > 0 && (
+          <div className="space-y-8">
+            {groupSections.map((group) => (
+              <section key={group.id}>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <h2 className="text-lg font-semibold">{group.name}</h2>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/groups/${group.slug}`}>Details</Link>
+                  </Button>
+                </div>
+                {group.events.length > 0 ? (
+                  <div className="flex flex-col gap-3">
+                    {group.events.map((summary) => (
+                      <EventCard key={summary.event.id} summary={summary} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    No upcoming scheduled minyans.
+                  </p>
+                )}
+              </section>
+            ))}
+          </div>
+        )}
+
+        {oneOffEvents.length === 0 && groupSections.length === 0 && (
           <Card className="max-w-md">
             <CardHeader>
-              <CardTitle>No events yet</CardTitle>
+              <CardTitle>No upcoming minyans</CardTitle>
               <CardDescription>
-                Create your first event to get started.
+                Create an event or join a group to get started.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full">
+            <CardContent className="flex gap-2">
+              <Button asChild>
                 <Link href="/events/new">
                   <CalendarPlus className="size-4" />
-                  Create your first event
+                  New event
+                </Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/groups/new">
+                  <UsersRound className="size-4" />
+                  New group
                 </Link>
               </Button>
             </CardContent>
           </Card>
-        ) : (
-          <>
-            {upcoming.length > 0 && (
-              <section>
-                <h2 className="mb-3 text-lg font-semibold">Upcoming</h2>
-                <div className="flex flex-col gap-3">
-                  {upcoming.map(({ event, groupName, counts, userRsvp }) => (
-                    <Link key={event.id} href={`/events/${event.id}`}>
-                      <Card className="transition-colors hover:bg-accent/50">
-                        <CardHeader className="pb-2">
-                          <div className="flex items-start justify-between">
-                            <CardTitle className="text-base">
-                              {event.title ?? "Minyan"}
-                              {groupName ? ` - ${groupName}` : ""}
-                            </CardTitle>
-                            <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground text-xs">
-                                {formatTime(event.startsAt)}
-                              </span>
-                              {event.status === "cancelled" && (
-                                <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[10px] font-medium">
-                                  Cancelled
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <CardDescription className="text-xs">
-                            {formatDate(event.date)} ·{" "}
-                            {event.locationText ?? "No location set"}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex items-center gap-3 pt-0 text-xs">
-                          <span className="text-green-600 dark:text-green-400">
-                            {counts.in} in
-                          </span>
-                          {counts.maybe > 0 && (
-                            <span className="text-amber-600 dark:text-amber-400">
-                              {counts.maybe} maybe
-                            </span>
-                          )}
-                          <span className="text-muted-foreground">
-                            {counts.out} out
-                          </span>
-                          {userRsvp && event.status !== "cancelled" && (
-                            <span className="ml-auto rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize">
-                              {userRsvp === "in"
-                                ? "Going"
-                                : userRsvp === "out"
-                                  ? "Not going"
-                                  : "Maybe"}
-                            </span>
-                          )}
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {past.length > 0 && (
-              <section>
-                <h2 className="mb-3 text-lg font-semibold text-muted-foreground">
-                  Past
-                </h2>
-                <div className="flex flex-col gap-3 opacity-70">
-                  {past.map(({ event, groupName, counts }) => (
-                    <Link key={event.id} href={`/events/${event.id}`}>
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <div className="flex items-start justify-between">
-                            <CardTitle className="text-base">
-                              {event.title ?? "Minyan"}
-                              {groupName ? ` - ${groupName}` : ""}
-                            </CardTitle>
-                            <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground text-xs">
-                                {formatTime(event.startsAt)}
-                              </span>
-                              {event.status === "cancelled" && (
-                                <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[10px] font-medium">
-                                  Cancelled
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <CardDescription className="text-xs">
-                            {formatDate(event.date)} ·{" "}
-                            {event.locationText ?? "No location set"}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex items-center gap-3 pt-0 text-xs">
-                          <span className="text-green-600 dark:text-green-400">
-                            {counts.in} in
-                          </span>
-                          {counts.maybe > 0 && (
-                            <span className="text-amber-600 dark:text-amber-400">
-                              {counts.maybe} maybe
-                            </span>
-                          )}
-                          <span className="text-muted-foreground">
-                            {counts.out} out
-                          </span>
-                        </CardContent>
-                      </Card>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
-          </>
         )}
       </main>
     </div>

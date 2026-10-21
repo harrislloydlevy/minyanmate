@@ -9,6 +9,7 @@ import {
   UsersRound,
 } from "lucide-react";
 import { groupMembers, groups, users } from "@minyanmate/db/schema";
+import { EventCard } from "@/components/event-card";
 import { JoinGroup } from "@/components/join-group";
 import { JoinLink } from "@/components/join-link";
 import { LeaveGroup } from "@/components/leave-group";
@@ -24,6 +25,7 @@ import {
 } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { getUpcomingEventSummaries } from "@/lib/event-summaries";
 
 export const metadata: Metadata = {
   title: "Group details",
@@ -140,6 +142,13 @@ export default async function GroupDetailPage({
   const isMember = isOwner || !!viewerMember;
   const canManage = isOwner || viewerMember?.role === "organiser";
 
+  const today = new Date().toISOString().slice(0, 10);
+  const upcomingEvents = await getUpcomingEventSummaries(
+    session?.user.id ?? null,
+    today,
+    { kind: "group", groupId: group.id },
+  );
+
   const inviteAccepted =
     !!joinTokenParam && !!group.joinToken && joinTokenParam === group.joinToken;
   const showJoin =
@@ -210,6 +219,21 @@ export default async function GroupDetailPage({
             {invalidInvite && (
               <p className="text-destructive text-sm">This invite link is not valid.</p>
             )}
+
+            <div className="border-t pt-4 flex flex-col gap-3">
+              <h3 className="text-sm font-semibold">Upcoming minyans</h3>
+              {upcomingEvents.length > 0 ? (
+                <div className="flex flex-col gap-3">
+                  {upcomingEvents.map((summary) => (
+                    <EventCard key={summary.event.id} summary={summary} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  No upcoming minyans.
+                </p>
+              )}
+            </div>
 
             {canManage && (
               <div className="border-t pt-4 flex flex-col gap-2">

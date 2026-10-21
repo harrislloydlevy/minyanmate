@@ -45,6 +45,7 @@ Groups need members and role management, and regular guests should be able to co
 - `generateJoinToken` / `revokeJoinToken` / `joinGroup` server actions (owner/organiser-only token management)
 - `/my` → "Your groups" lists groups the user owns **or** belongs to; joining a group adds it to the member's `/my` page.
 - Members can leave a group from the group page; a confirmation is required and they are sent back to `/my`. The owner cannot leave (there is no ownership-transfer flow yet), so a group always keeps an organiser.
+- The group page shows all future events for the group; `/my` shows each group's next 3 upcoming scheduled events with a **Details** link to the full group page.
 - Creating a group event is organiser-only: the "New event for this group" button is hidden for regular members, `/events/new?group=<slug>` redirects them back to the group, and `createEvent` rejects a `groupId` the user cannot manage. Shared `canManageGroup` helper lives in `apps/web/src/lib/group-permissions.ts`.
 - `join-link.tsx` (generate + copy link + revoke), `join-group.tsx` (shows a confirmation prompt on ?join=<token>; joins only after the user clicks "Join group", and "Not now" drops the token param without joining)
 - Copy uses shared `copy-to-clipboard.ts`: Clipboard API with a temporary-textarea fallback, so invite links can be copied over plain-HTTP LAN access where `navigator.clipboard` is unavailable. The event page's copy-link button uses the same helper.

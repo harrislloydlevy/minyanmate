@@ -57,3 +57,20 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - The minyan/pickup prefix was removed from card headings — all events are minyans.
 - The "Your groups" section on `/my` no longer shows a group type label; it lists the group name only, and includes groups the user owns or is a member of.
 - If an event was created from a group, its card title is rendered as `<Event Title> - <Group Name>`. Unlinked events keep the plain title.
+
+### Follow-up (2026-10-21): grouped by group, with Once-Off previews
+
+- `/my` is now upcoming-only. The old flat **Upcoming** / **Past** lists and the separate **Your groups** list were replaced by grouped sections.
+- Upcoming one-off events (no `groups.group_id`) appear first in a **Once-Off** section.
+- Each group the user owns or belongs to gets its own section, with a **Details** button at the top linking to `/groups/<slug>`.
+- A group section previews the next 3 upcoming **scheduled** events; cancelled events are excluded from the preview, and a group with none shows "No upcoming scheduled minyans."
+- The group page is now the full schedule: it shows **all** future events for that group, including cancelled ones with a cancelled badge.
+- Event cards are shared between `/my` and the group page via `apps/web/src/components/event-card.tsx`; the upcoming-event query and RSVP aggregation live in `apps/web/src/lib/event-summaries.ts`.
+- Card titles on `/my` no longer append ` - <Group Name>`; the group section heading provides that context.
+
+**Updated verification:**
+1. Seed the DB and sign in.
+2. `/my` shows the **Once-Off** section first (if any upcoming one-offs), then a section per owned/joined group.
+3. A group with more than 3 future scheduled events shows only the next 3, with a **Details** button.
+4. Open **Details** and confirm the group page lists every future event for the group.
+5. Past events are no longer shown on `/my`; they remain accessible from the group/event pages.

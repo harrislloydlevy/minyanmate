@@ -68,16 +68,20 @@ Groups are the organisational home. A shul, a workplace, a neighbourhood minyan.
 - `/my` → "Your groups" now lists every group the user owns or belongs to, not just owned groups.
 - The permission check is shared via `canManageGroup` in `apps/web/src/lib/group-permissions.ts`, used by the group actions, the new-event page, and `createEvent`.
 
+**Follow-up (2026-10-21): group schedule and `/my` previews**
+- The group page now has an "Upcoming minyans" feed showing **all** future events for that group, including cancelled ones with a badge. It is the full group schedule.
+- `/my` shows up to 3 upcoming scheduled events per owned/joined group, with a **Details** button linking to the full group page.
+
 **Known gaps:**
-- There is no group event feed on `/groups/[slug]` yet, and no `events.group_id` editing. The link is create-only for now.
+- There is no `events.group_id` editing yet. The link is create-only for now.
 - `events.group_id` was added with `ALTER TABLE ... ADD COLUMN`, so SQLite does not record the schema's `ON DELETE SET NULL` (it lands as NO ACTION). Group deletion is not implemented; if it is added, null out `events.group_id` explicitly or rebuild the table.
-- Migration head is `0005`; branches 5/6 must renumber their migrations before landing (planned: branch 5 `0004` → `0006`, branch 6 `0005` → `0007`).
+- Migration head is `0006`; branch 6 must renumber its migration before landing (planned: `0005` → `0007`).
 
 **How to verify:**
 1. Sign in → `/my` → "New group". Create one with a name, default location, and description — there is no Type field.
 2. A second group with the same name gets a unique slug suffix.
-3. Back on `/my`, the group appears under "Your groups" (name only) and opens its detail page by slug.
-4. As the organiser, click "New event for this group" — fill the title/date/time and create it. Back on `/my`, the card reads `<Event Title> - <Group Name>`, and the location is pre-filled.
-5. Join the group as a regular member via an invite link: the group appears under that member's "Your groups", but the "New event for this group" button is hidden and `/events/new?group=<slug>` redirects back to the group page.
-6. As that member, click "Leave group" and confirm: you return to `/my` and the group is removed from "Your groups". The owner has no leave button.
+3. Back on `/my`, the group has its own section with a **Details** button and up to 3 upcoming scheduled events.
+4. As the organiser, click "New event for this group" — fill the title/date/time and create it. The event appears on the group page under "Upcoming minyans" and in the group's `/my` preview.
+5. Join the group as a regular member via an invite link: the group appears under that member's `/my` sections, but the "New event for this group" button is hidden and `/events/new?group=<slug>` redirects back to the group page.
+6. As that member, click "Leave group" and confirm: you return to `/my` and the group section is gone. The owner has no leave button.
 7. Tests: `pnpm test` — 45 passing (core 18, db 20, whatsapp 7); `pnpm typecheck` and `pnpm lint` clean.
