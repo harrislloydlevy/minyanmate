@@ -131,28 +131,35 @@ export default async function EventDetailPage({
 
   // Group members (including the owner) who have not responded yet.
   let notRsvpdCount: number | null = null;
+  let notRsvpdMembers: { userId: string; name: string }[] = [];
   const groupId = event.groupId;
   if (groupId) {
     const [[group], memberRows] = await Promise.all([
       db
-        .select({ ownerId: groups.ownerId })
+        .select({ ownerId: groups.ownerId, ownerName: users.name })
         .from(groups)
+        .leftJoin(users, eq(groups.ownerId, users.id))
         .where(eq(groups.id, groupId))
         .limit(1),
       db
-        .select({ userId: groupMembers.userId })
+        .select({ userId: groupMembers.userId, name: users.name })
         .from(groupMembers)
+        .innerJoin(users, eq(groupMembers.userId, users.id))
         .where(eq(groupMembers.groupId, groupId)),
     ]);
 
-    const memberIds = new Set(memberRows.map((member) => member.userId));
-    if (group) memberIds.add(group.ownerId);
+    const memberNames = new Map<string, string>();
+    for (const member of memberRows) {
+      memberNames.set(member.userId, member.name);
+    }
+    if (group) memberNames.set(group.ownerId, group.ownerName ?? "Unknown");
 
     const respondedUserIds = new Set(rsvpRows.map((row) => row.userId));
-    notRsvpdCount = 0;
-    for (const memberId of memberIds) {
-      if (!respondedUserIds.has(memberId)) notRsvpdCount++;
-    }
+    notRsvpdMembers = Array.from(memberNames.entries())
+      .filter(([memberId]) => !respondedUserIds.has(memberId))
+      .map(([userId, name]) => ({ userId, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    notRsvpdCount = notRsvpdMembers.length;
   }
 
   // Guest RSVPs
@@ -352,6 +359,19 @@ export default async function EventDetailPage({
                         ({r.status === "in" ? "coming" : r.status === "maybe" ? "maybe" : "not coming"})
                       </span>
                     </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {notRsvpdMembers.length > 0 && (
+              <div className="border-t pt-4 flex flex-col gap-3">
+                <h3 className="text-sm font-semibold">
+                  Not RSVP&apos;d ({notRsvpdMembers.length})
+                </h3>
+                <ul className="list-inside list-disc text-sm text-muted-foreground">
+                  {notRsvpdMembers.map((member) => (
+                    <li key={member.userId}>{member.name || "Unknown"}</li>
                   ))}
                 </ul>
               </div>

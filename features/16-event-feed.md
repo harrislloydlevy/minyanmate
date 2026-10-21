@@ -89,5 +89,5 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 
 - Group event cards now show `N not RSVP'd` alongside in/maybe/out. One-off event cards omit it.
 - `N` is the group's owner plus `group_members`, minus users with any RSVP row for that event. It is computed per event, so two events in the same group can show different counts.
-- The event detail page shows the same figure in its summary line.
+- The event detail page shows the same figure in its summary line and lists the members' names in a **Not RSVP'd** section.
 - `/my` remains RSVP-only; the new count describes the other group members, not additional events.
