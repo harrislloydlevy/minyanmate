@@ -58,19 +58,23 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - The "Your groups" section on `/my` no longer shows a group type label; it lists the group name only, and includes groups the user owns or is a member of.
 - If an event was created from a group, its card title is rendered as `<Event Title> - <Group Name>`. Unlinked events keep the plain title.
 
-### Follow-up (2026-10-21): grouped by group, with Once-Off previews
+### Follow-up (2026-10-21): grouped by group, RSVP-only
 
 - `/my` is now upcoming-only. The old flat **Upcoming** / **Past** lists and the separate **Your groups** list were replaced by grouped sections.
-- Upcoming one-off events (no `groups.group_id`) that the user has RSVP'd to (in / maybe / out) appear first in a **Once-Off** section. Cancelled one-offs are excluded, and the section is hidden entirely when there are none.
-- Each group the user owns or belongs to gets its own section, with a **Details** button at the top linking to `/groups/<slug>`.
-- A group section previews the next 3 upcoming **scheduled** events; cancelled events are excluded from the preview, and a group with none shows "No upcoming scheduled minyans."
-- The group page is now the full schedule: it shows **all** future events for that group, including cancelled ones with a cancelled badge.
+- Only events the signed-in user has RSVP'd to (in / maybe / out) appear on `/my`; un-RSVP'd events do not.
+- Upcoming, non-cancelled one-off events (no `groups.group_id`) appear first in a **Once-Off** section. The section is hidden when there are none.
+- Each group with at least one RSVP'd upcoming, non-cancelled event gets its own section, with a **Details** button at the top linking to `/groups/<slug>`.
+- A group section lists **every** RSVP'd event for that group — there is no longer a 3-event preview. Un-RSVP'd events remain visible on the group page.
+- RSVP'd group events appear even if the user is not currently a member of the group; **Details** still opens the group's full schedule.
+- Cancelled and past events are excluded from `/my`; the group page still shows future cancelled events with a badge.
 - Event cards are shared between `/my` and the group page via `apps/web/src/components/event-card.tsx`; the upcoming-event query and RSVP aggregation live in `apps/web/src/lib/event-summaries.ts`.
 - Card titles on `/my` no longer append ` - <Group Name>`; the group section heading provides that context.
 
 **Updated verification:**
 1. Seed the DB and sign in.
-2. `/my` shows the **Once-Off** section first only when the user has RSVP'd to an upcoming, non-cancelled one-off event; then a section per owned/joined group.
-3. A group with more than 3 future scheduled events shows only the next 3, with a **Details** button.
-4. Open **Details** and confirm the group page lists every future event for the group.
-5. Past events are no longer shown on `/my`; they remain accessible from the group/event pages.
+2. RSVP to a one-off event: it appears under **Once-Off**.
+3. RSVP to a group event: the event appears under that group's section, with a **Details** button.
+4. Confirm un-RSVP'd group events do not appear on `/my`, even though they remain on the group page.
+5. If more than one event in a group is RSVP'd, all of them appear.
+6. Cancelled and past events do not appear on `/my`.
+7. Open **Details** and confirm the group page lists every future event for the group.

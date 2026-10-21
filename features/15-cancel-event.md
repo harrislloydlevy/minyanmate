@@ -38,7 +38,7 @@ Events sometimes need to be cancelled — weather, venue issues, not enough peop
   - renders the button for the owner at the bottom of the event card; it disappears once the event is cancelled
   - shows a "Cancelled" pill next to "Event details"
   - replaces the RSVP controls with "This event has been cancelled — RSVPs are closed", while keeping the RSVP list visible
-- My Minyans (`apps/web/src/app/my/page.tsx`) — "Cancelled" pill on both Upcoming and Past cards; the user's stale Going / Maybe / Not going pill is hidden for cancelled events.
+- My Minyans (`apps/web/src/app/my/page.tsx`) — cancelled events are excluded from the RSVP-only feed; they remain visible on the event page and group schedule with a "Cancelled" pill. The user's stale Going / Maybe / Not going pill is hidden for cancelled events.
 - RSVP freeze (`apps/web/src/lib/actions/rsvp.ts`) — `setRsvp` and `setGuestRsvp` reject writes to cancelled events server-side; hiding the UI alone would not stop an already-open client.
 - Worker (`apps/worker/src/index.ts`) — `event_cancelled` handler logs intent (`TODO(minyanmate#15)`) until Meta WhatsApp credentials are available; same durable-job pattern as `event_edited`.
 - No migration needed — `events.status` already has the `"cancelled"` enum value.
@@ -54,7 +54,7 @@ Events sometimes need to be cancelled — weather, venue issues, not enough peop
 **How to verify:**
 1. Sign in as the event owner and navigate to an event detail page
 2. Click "Cancel Event" — a confirmation dialog appears
-3. Confirm — the page refreshes showing the cancelled badge and no RSVP buttons; `/my` shows a Cancelled pill
+3. Confirm — the page refreshes showing the cancelled badge and no RSVP buttons; `/my` no longer lists the cancelled event, while the group page still shows it with a Cancelled badge
 4. Sign in as a different user or open the guest view — no cancel button appears, and guest RSVPs are rejected
 5. Cancel an event, then try to RSVP from an already-open client — the server rejects it with "This event has been cancelled."
 

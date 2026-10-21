@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, inArray, isNull, or } from "drizzle-orm";
+import { and, asc, eq, gte, inArray } from "drizzle-orm";
 import { events, rsvps } from "@minyanmate/db/schema";
 import { db } from "@/lib/db";
 
@@ -10,7 +10,7 @@ export type EventSummary = {
 
 type EventScope =
   | { kind: "group"; groupId: string }
-  | { kind: "my"; groupIds: string[] };
+  | { kind: "rsvp"; userId: string };
 
 /**
  * Loads upcoming events (date >= fromDate) in one query and collapses the
@@ -24,9 +24,13 @@ export async function getUpcomingEventSummaries(
   const scopeFilter =
     scope.kind === "group"
       ? eq(events.groupId, scope.groupId)
-      : scope.groupIds.length > 0
-        ? or(isNull(events.groupId), inArray(events.groupId, scope.groupIds))
-        : isNull(events.groupId);
+      : inArray(
+          events.id,
+          db
+            .select({ eventId: rsvps.eventId })
+            .from(rsvps)
+            .where(eq(rsvps.userId, scope.userId)),
+        );
 
   const rows = await db
     .select({

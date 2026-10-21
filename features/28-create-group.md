@@ -68,9 +68,9 @@ Groups are the organisational home. A shul, a workplace, a neighbourhood minyan.
 - `/my` → "Your groups" now lists every group the user owns or belongs to, not just owned groups.
 - The permission check is shared via `canManageGroup` in `apps/web/src/lib/group-permissions.ts`, used by the group actions, the new-event page, and `createEvent`.
 
-**Follow-up (2026-10-21): group schedule and `/my` previews**
+**Follow-up (2026-10-21): group schedule and RSVP-only `/my`**
 - The group page now has an "Upcoming minyans" feed showing **all** future events for that group, including cancelled ones with a badge. It is the full group schedule.
-- `/my` shows up to 3 upcoming scheduled events per owned/joined group, with a **Details** button linking to the full group page.
+- `/my` is RSVP-only. A group section appears only when the user has RSVP'd to an upcoming, non-cancelled event in that group, and it lists every such RSVP'd event with a **Details** button linking to the full group page. Un-RSVP'd group events are not shown on `/my`.
 
 **Known gaps:**
 - There is no `events.group_id` editing yet. The link is create-only for now.
@@ -80,8 +80,8 @@ Groups are the organisational home. A shul, a workplace, a neighbourhood minyan.
 **How to verify:**
 1. Sign in → `/my` → "New group". Create one with a name, default location, and description — there is no Type field.
 2. A second group with the same name gets a unique slug suffix.
-3. Back on `/my`, the group has its own section with a **Details** button and up to 3 upcoming scheduled events.
-4. As the organiser, click "New event for this group" — fill the title/date/time and create it. The event appears on the group page under "Upcoming minyans" and in the group's `/my` preview.
-5. Join the group as a regular member via an invite link: the group appears under that member's `/my` sections, but the "New event for this group" button is hidden and `/events/new?group=<slug>` redirects back to the group page.
-6. As that member, click "Leave group" and confirm: you return to `/my` and the group section is gone. The owner has no leave button.
+3. Back on `/my`, a group section appears only after you RSVP to one of its events; it lists that RSVP'd event with a **Details** button linking to the full group page.
+4. As the organiser, click "New event for this group" — fill the title/date/time and create it. The event appears on the group page under "Upcoming minyans"; it appears on `/my` only after you RSVP.
+5. Join the group as a regular member via an invite link: the "New event for this group" button is hidden and `/events/new?group=<slug>` redirects back to the group page. Their `/my` page shows the group only after they RSVP to an event in it.
+6. As that member, click "Leave group" and confirm: you return to `/my` and the group section is gone unless you still have an RSVP'd upcoming event in that group. The owner has no leave button.
 7. Tests: `pnpm test` — 45 passing (core 18, db 20, whatsapp 7); `pnpm typecheck` and `pnpm lint` clean.

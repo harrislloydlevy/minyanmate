@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { asc, eq, or } from "drizzle-orm";
+import { asc, inArray } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CalendarPlus, UsersRound } from "lucide-react";
-import { groupMembers, groups } from "@minyanmate/db/schema";
+import { groups } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { EventCard } from "@/components/event-card";
 import { GuestMerge } from "@/components/guest-merge";
@@ -33,44 +33,47 @@ export default async function MyPage() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const myGroups = await db
-    .selectDistinct({
-      id: groups.id,
-      name: groups.name,
-      slug: groups.slug,
-    })
-    .from(groups)
-    .leftJoin(groupMembers, eq(groupMembers.groupId, groups.id))
-    .where(
-      or(
-        eq(groups.ownerId, session.user.id),
-        eq(groupMembers.userId, session.user.id),
-      ),
-    )
-    .orderBy(asc(groups.name));
-
-  const upcomingEvents = await getUpcomingEventSummaries(
+  const rsvpEvents = await getUpcomingEventSummaries(
     session.user.id,
     today,
-    { kind: "my", groupIds: myGroups.map((group) => group.id) },
+    { kind: "rsvp", userId: session.user.id },
   );
 
-  const oneOffEvents = upcomingEvents.filter(
-    (summary) =>
-      !summary.event.groupId &&
-      summary.event.status !== "cancelled" &&
-      summary.userRsvp !== null,
+  // Cancelled events stay off My Minyans; they remain visible on the group page.
+  const visibleEvents = rsvpEvents.filter(
+    (summary) => summary.event.status !== "cancelled",
   );
 
-  const groupSections = myGroups.map((group) => ({
+  const oneOffEvents = visibleEvents.filter(
+    (summary) => !summary.event.groupId,
+  );
+
+  const groupIds = [
+    ...new Set(
+      visibleEvents.flatMap((summary) =>
+        summary.event.groupId ? [summary.event.groupId] : [],
+      ),
+    ),
+  ];
+
+  const rsvpGroups =
+    groupIds.length > 0
+      ? await db
+          .select({
+            id: groups.id,
+            name: groups.name,
+            slug: groups.slug,
+          })
+          .from(groups)
+          .where(inArray(groups.id, groupIds))
+          .orderBy(asc(groups.name))
+      : [];
+
+  const groupSections = rsvpGroups.map((group) => ({
     ...group,
-    events: upcomingEvents
-      .filter(
-        (summary) =>
-          summary.event.groupId === group.id &&
-          summary.event.status === "scheduled",
-      )
-      .slice(0, 3),
+    events: visibleEvents.filter(
+      (summary) => summary.event.groupId === group.id,
+    ),
   }));
 
   return (
@@ -133,17 +136,11 @@ export default async function MyPage() {
                     <Link href={`/groups/${group.slug}`}>Details</Link>
                   </Button>
                 </div>
-                {group.events.length > 0 ? (
-                  <div className="flex flex-col gap-3">
-                    {group.events.map((summary) => (
-                      <EventCard key={summary.event.id} summary={summary} />
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-sm">
-                    No upcoming scheduled minyans.
-                  </p>
-                )}
+                <div className="flex flex-col gap-3">
+                  {group.events.map((summary) => (
+                    <EventCard key={summary.event.id} summary={summary} />
+                  ))}
+                </div>
               </section>
             ))}
           </div>
@@ -152,9 +149,9 @@ export default async function MyPage() {
         {oneOffEvents.length === 0 && groupSections.length === 0 && (
           <Card className="max-w-md">
             <CardHeader>
-              <CardTitle>No upcoming minyans</CardTitle>
+              <CardTitle>No RSVP&apos;d minyans yet</CardTitle>
               <CardDescription>
-                Create an event or join a group to get started.
+                RSVP to a minyan and it will show up here.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex gap-2">
