@@ -15,6 +15,7 @@ import {
   generateJoinToken,
   revokeJoinToken,
 } from "@/lib/actions/group-members";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 
 interface JoinLinkProps {
   slug: string;
@@ -61,10 +62,12 @@ export function JoinLink({ slug, initialToken }: JoinLinkProps) {
 
   async function handleCopy() {
     if (!url) return;
-    try {
-      await navigator.clipboard.writeText(url);
+    setError(null);
+    const copied = await copyToClipboard(url);
+    if (copied) {
       setCopied(true);
-    } catch {
+      window.setTimeout(() => setCopied(false), 2000);
+    } else {
       setError("Could not copy the link. Select it and copy manually.");
     }
   }

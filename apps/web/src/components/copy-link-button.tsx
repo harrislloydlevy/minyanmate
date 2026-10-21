@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { copyToClipboard } from "@/lib/copy-to-clipboard";
 
 /**
  * Copies the current page URL to the clipboard. Rendered for everyone
@@ -13,22 +14,8 @@ export function CopyLinkButton() {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
-    const link = window.location.href;
-    try {
-      await navigator.clipboard.writeText(link);
-    } catch {
-      // Clipboard API needs a secure context (https or localhost); fall back
-      // to a temporary textarea so plain-HTTP LAN access still works.
-      const textarea = document.createElement("textarea");
-      textarea.value = link;
-      textarea.setAttribute("readonly", "");
-      textarea.style.position = "fixed";
-      textarea.style.opacity = "0";
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-    }
+    const copied = await copyToClipboard(window.location.href);
+    if (!copied) return;
     setCopied(true);
     window.setTimeout(() => setCopied(false), 2000);
   }
