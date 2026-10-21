@@ -30,16 +30,16 @@ export const users = sqliteTable("users", {
   id: id(),
   name: text("name").notNull().default(""),
   email: text("email").unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" })
-    .notNull()
-    .default(false),
+  emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
   image: text("image"),
   // Phone-first identity: users sign in with a WhatsApp OTP
   phoneNumber: text("phone_number").unique(),
   phoneNumberVerified: integer("phone_number_verified", { mode: "boolean" })
     .notNull()
     .default(false),
-  role: text("role", { enum: ["user", "admin"] }).notNull().default("user"),
+  role: text("role", { enum: ["user", "admin"] })
+    .notNull()
+    .default("user"),
   ...timestamps,
 });
 
@@ -88,27 +88,6 @@ export const verifications = sqliteTable("verifications", {
 // Domain tables
 // ---------------------------------------------------------------------------
 
-/** A recurring prayer group, e.g. "Shacharis at the shul on Main". */
-export const minyans = sqliteTable("minyans", {
-  id: id(),
-  name: text("name").notNull(),
-  description: text("description"),
-  locationText: text("location_text"),
-  /** JSON WeeklySchedule: { weekdays: number[], time: "HH:MM" } */
-  schedule: text("schedule").notNull(),
-  /** Prayer service label, copied onto generated instances. */
-  serviceTag: text("service_tag", { enum: ["shacharit", "mincha", "maariv"] }),
-  /** How many attendees make a quorum (default 10). */
-  quorumTarget: integer("quorum_target").notNull().default(10),
-  status: text("status", { enum: ["active", "archived"] })
-    .notNull()
-    .default("active"),
-  ownerId: text("owner_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  ...timestamps,
-});
-
 /** A group (shul, workplace crew, football team, etc.) that owns events. */
 export const groups = sqliteTable("groups", {
   id: id(),
@@ -128,6 +107,37 @@ export const groups = sqliteTable("groups", {
   joinToken: text("join_token"),
   ...timestamps,
 });
+
+/**
+ * A group's recurring minyan schedule. One group has at most one active series;
+ * the series is an implementation detail of the group, not a separate screen.
+ */
+export const minyans = sqliteTable(
+  "minyans",
+  {
+    id: id(),
+    groupId: text("group_id").references(() => groups.id, {
+      onDelete: "cascade",
+    }),
+    name: text("name").notNull(),
+    description: text("description"),
+    locationText: text("location_text"),
+    /** JSON WeeklySchedule: { weekdays: number[], time: "HH:MM" } */
+    schedule: text("schedule").notNull(),
+    /** Prayer service label, copied onto generated instances. */
+    serviceTag: text("service_tag", { enum: ["shacharit", "mincha", "maariv"] }),
+    /** How many attendees make a quorum (default 10). */
+    quorumTarget: integer("quorum_target").notNull().default(10),
+    status: text("status", { enum: ["active", "archived"] })
+      .notNull()
+      .default("active"),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("minyans_group_uq").on(t.groupId)],
+);
 
 /** Membership of a user in a group, with a role. */
 export const groupMembers = sqliteTable(
@@ -158,12 +168,8 @@ export const minyanFollowers = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    notifyQuorum: integer("notify_quorum", { mode: "boolean" })
-      .notNull()
-      .default(true),
-    notifyReminders: integer("notify_reminders", { mode: "boolean" })
-      .notNull()
-      .default(true),
+    notifyQuorum: integer("notify_quorum", { mode: "boolean" }).notNull().default(true),
+    notifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
@@ -269,14 +275,7 @@ export const messages = sqliteTable(
       onDelete: "cascade",
     }),
     kind: text("kind", {
-      enum: [
-        "otp",
-        "reminder",
-        "quorum_reached",
-        "quorum_lost",
-        "rsvp_confirm",
-        "custom",
-      ],
+      enum: ["otp", "reminder", "quorum_reached", "quorum_lost", "rsvp_confirm", "custom"],
     }).notNull(),
     /** e.g. `quorum_reached:<eventId>` — at most one message per key. */
     dedupeKey: text("dedupe_key"),

@@ -385,9 +385,21 @@ describe("generateInstances", () => {
     ownerId: string,
     overrides: Partial<typeof minyans.$inferInsert> = {},
   ) {
+    const [group] = await db
+      .insert(groups)
+      .values({
+        name: "Shacharis Group",
+        slug: `shacharis-${Math.random().toString(36).slice(2, 8)}`,
+        typeTag: "minyan",
+        ownerId,
+      })
+      .returning();
+    if (!group) throw new Error("group insert failed");
+
     const [minyan] = await db
       .insert(minyans)
       .values({
+        groupId: group.id,
         name: "Shacharis",
         schedule: '{"weekdays":[3],"time":"07:00"}',
         serviceTag: "shacharit",
@@ -424,6 +436,7 @@ describe("generateInstances", () => {
     expect(rows).toHaveLength(4);
     for (const row of rows) {
       expect(row.minyanId).toBe(minyan.id);
+      expect(row.groupId).toBe(minyan.groupId);
       expect(row.title).toBe("Shacharis");
       expect(row.serviceTag).toBe("shacharit");
       expect(row.locationText).toBe("Shul on Main");

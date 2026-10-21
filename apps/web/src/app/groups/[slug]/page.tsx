@@ -2,34 +2,18 @@ import type { Metadata } from "next";
 import { and, eq } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import Link from "next/link";
-import {
-  CalendarPlus,
-  MapPin,
-  StickyNote,
-  UsersRound,
-} from "lucide-react";
-import {
-  events,
-  groupMembers,
-  groups,
-  guests,
-  rsvps,
-  users,
-} from "@minyanmate/db/schema";
+import { CalendarPlus, Clock, MapPin, StickyNote, UsersRound } from "lucide-react";
+import { events, groupMembers, groups, guests, minyans, rsvps, users } from "@minyanmate/db/schema";
+import { parseWeeklySchedule } from "@minyanmate/core";
 import { EventCard } from "@/components/event-card";
+import { GroupRecurrenceForm } from "@/components/group-recurrence-form";
 import { JoinGroup } from "@/components/join-group";
 import { JoinLink } from "@/components/join-link";
 import { LeaveGroup } from "@/components/leave-group";
 import { MemberActions } from "@/components/member-actions";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getUpcomingEventSummaries } from "@/lib/event-summaries";
@@ -46,6 +30,24 @@ type MemberRow = {
   name: string;
   isOwner: boolean;
 };
+
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function formatTime(time: string): string {
+  const [hours, minutes] = time.split(":").map(Number);
+  if (hours === undefined || minutes === undefined) return time;
+  const suffix = hours >= 12 ? "PM" : "AM";
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+  return `${hour12}:${String(minutes).padStart(2, "0")} ${suffix}`;
+}
+
+function formatSchedule(schedule: { weekdays: number[]; time: string }): string {
+  const days =
+    schedule.weekdays.length === 7
+      ? "Daily"
+      : schedule.weekdays.map((day) => WEEKDAY_LABELS[day] ?? day).join(", ");
+  return `${days} at ${formatTime(schedule.time)}`;
+}
 
 export default async function GroupDetailPage({
   params,
@@ -87,9 +89,7 @@ export default async function GroupDetailPage({
           <Card className="w-full max-w-lg">
             <CardHeader>
               <CardTitle>Group not found</CardTitle>
-              <CardDescription>
-                This group may have been deleted or never existed.
-              </CardDescription>
+              <CardDescription>This group may have been deleted or never existed.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild variant="outline">
@@ -143,11 +143,20 @@ export default async function GroupDetailPage({
   );
 
   const isOwner = isAuthenticated && group.ownerId === session.user.id;
-  const viewerMember = isAuthenticated
-    ? memberById.get(session.user.id)
-    : undefined;
+  const viewerMember = isAuthenticated ? memberById.get(session.user.id) : undefined;
   const isMember = isOwner || !!viewerMember;
   const canManage = isOwner || viewerMember?.role === "organiser";
+
+  const [minyan] = await db
+    .select({
+      id: minyans.id,
+      schedule: minyans.schedule,
+      locationText: minyans.locationText,
+    })
+    .from(minyans)
+    .where(eq(minyans.groupId, group.id))
+    .limit(1);
+  const schedule = minyan ? parseWeeklySchedule(minyan.schedule) : null;
 
   // Guests who RSVP'd to one of this group's events (or signed-in users with
   // an RSVP but no membership row) can join without an invite link.
@@ -157,12 +166,7 @@ export default async function GroupDetailPage({
       .select({ id: rsvps.id })
       .from(rsvps)
       .innerJoin(events, eq(rsvps.eventId, events.id))
-      .where(
-        and(
-          eq(rsvps.userId, session.user.id),
-          eq(events.groupId, group.id),
-        ),
-      )
+      .where(and(eq(rsvps.userId, session.user.id), eq(events.groupId, group.id)))
       .limit(1);
     hasGroupEventRsvp = !!rsvp;
   } else if (!isMember) {
@@ -172,37 +176,24 @@ export default async function GroupDetailPage({
         .select({ id: guests.id })
         .from(guests)
         .innerJoin(events, eq(guests.eventId, events.id))
-        .where(
-          and(
-            eq(guests.token, guestToken),
-            eq(events.groupId, group.id),
-          ),
-        )
+        .where(and(eq(guests.token, guestToken), eq(events.groupId, group.id)))
         .limit(1);
       hasGroupEventRsvp = !!guestRsvp;
     }
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  const upcomingEvents = await getUpcomingEventSummaries(
-    session?.user.id ?? null,
-    today,
-    { kind: "group", groupId: group.id },
-  );
+  const upcomingEvents = await getUpcomingEventSummaries(session?.user.id ?? null, today, {
+    kind: "group",
+    groupId: group.id,
+  });
 
   const joinDismissed = joinTokenParam === "dismiss";
   const inviteAccepted =
     !!joinTokenParam && !!group.joinToken && joinTokenParam === group.joinToken;
-  const showJoin =
-    !isMember &&
-    !joinDismissed &&
-    (inviteAccepted || hasGroupEventRsvp);
+  const showJoin = !isMember && !joinDismissed && (inviteAccepted || hasGroupEventRsvp);
   const invalidInvite =
-    !isMember &&
-    !joinDismissed &&
-    !!joinTokenParam &&
-    !inviteAccepted &&
-    !hasGroupEventRsvp;
+    !isMember && !joinDismissed && !!joinTokenParam && !inviteAccepted && !hasGroupEventRsvp;
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -220,9 +211,7 @@ export default async function GroupDetailPage({
               <div className="flex flex-col gap-1.5">
                 <CardTitle className="text-xl">{group.name}</CardTitle>
               </div>
-              {isOwner && (
-                <span className="text-muted-foreground text-xs">You own this group</span>
-              )}
+              {isOwner && <span className="text-muted-foreground text-xs">You own this group</span>}
             </div>
           </CardHeader>
 
@@ -255,7 +244,33 @@ export default async function GroupDetailPage({
                   </div>
                 </div>
               )}
+
+              {schedule && (
+                <div className="flex items-start gap-3">
+                  <Clock className="text-muted-foreground mt-0.5 size-4 shrink-0" />
+                  <div>
+                    <dt className="text-muted-foreground text-xs">Recurring schedule</dt>
+                    <dd>{formatSchedule(schedule)}</dd>
+                    {minyan?.locationText && (
+                      <dd className="text-muted-foreground text-xs">{minyan.locationText}</dd>
+                    )}
+                  </div>
+                </div>
+              )}
             </dl>
+
+            {canManage && !minyan && (
+              <div className="border-t pt-4 flex flex-col gap-3">
+                <div>
+                  <h3 className="text-sm font-semibold">Recurring schedule</h3>
+                  <p className="text-muted-foreground text-xs">
+                    This group was created before schedules were part of groups. Set one to generate
+                    future minyans automatically.
+                  </p>
+                </div>
+                <GroupRecurrenceForm slug={group.slug} />
+              </div>
+            )}
 
             {showJoin && (
               <JoinGroup
@@ -279,9 +294,7 @@ export default async function GroupDetailPage({
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-sm">
-                  No upcoming minyans.
-                </p>
+                <p className="text-muted-foreground text-sm">No upcoming minyans.</p>
               )}
             </div>
 
@@ -312,11 +325,7 @@ export default async function GroupDetailPage({
                         {m.role === "organiser" ? "Organiser" : "Member"}
                       </span>
                       {canManage && !m.isOwner && (
-                        <MemberActions
-                          groupId={group.id}
-                          userId={m.userId}
-                          role={m.role}
-                        />
+                        <MemberActions groupId={group.id} userId={m.userId} role={m.role} />
                       )}
                     </div>
                   </li>

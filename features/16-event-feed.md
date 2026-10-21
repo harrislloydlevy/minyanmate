@@ -34,6 +34,7 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 ## Implementation Notes
 
 **What was built:**
+
 - Replaced the empty welcome card on `/my` with a full chronological event feed
 - Events split into "Upcoming" and "Past" sections based on today's date
 - Each event card shows: event title (with ` - <Group Name>` appended when the event was created from a group), date, time, location, RSVP counts (in/maybe/out), and the user's own RSVP badge
@@ -42,10 +43,12 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - Empty state shows a friendly message with a CTA to create the first event
 
 **Demo seed data:**
+
 - Created `packages/db/src/seed.ts` — run it to populate the dev DB with 4 demo users, 1 recurring minyan, 4 events (today, tomorrow, next week, yesterday), and 13 RSVPs
 - Users: Mordi, Rivka, Yossi, Golda (phone numbers +61400000001-4)
 
 **How to verify:**
+
 1. Run the seed: `pnpm --filter @minyanmate/db tsx src/seed.ts`
 2. Start the app and log in with any of the seeded phone numbers
 3. See upcoming events listed, past events faded, RSVP badges on events you've responded to
@@ -69,13 +72,15 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - Cancelled and past events are excluded from `/my`; the group page still shows future cancelled events with a badge.
 - Event cards are shared between `/my` and the group page via `apps/web/src/components/event-card.tsx`; the upcoming-event query and RSVP aggregation live in `apps/web/src/lib/event-summaries.ts`.
 - Card titles on `/my` no longer append ` - <Group Name>`; the group section heading provides that context.
-- The header's **New minyan** button became **My series**, linking to `/minyans`. Recurring-series creation now lives on the series list; `/my` remains strictly RSVP-driven.
+- The header's **New minyan** button was initially replaced by **My series**, linking to `/minyans`. Series were later merged into groups: the **My series** button and `/minyans` screens are gone, and recurrence is set when creating a group. `/my` remains strictly RSVP-driven.
 
 **Updated verification:**
+
 1. Seed the DB and sign in.
 2. RSVP to a one-off event: it appears under **Once-Off**.
-3. RSVP to a group event: the event appears under that group's section, with a **Details** button.
-4. Confirm un-RSVP'd group events do not appear on `/my`, even though they remain on the group page.
-5. If more than one event in a group is RSVP'd, all of them appear.
-6. Cancelled and past events do not appear on `/my`.
-7. Open **Details** and confirm the group page lists every future event for the group.
+3. Create or open a group with a recurring schedule. Its generated minyans appear in the group page's **Upcoming minyans** feed without any RSVP.
+4. RSVP to a group event: the event appears under that group's section, with a **Details** button.
+5. Confirm un-RSVP'd group events do not appear on `/my`, even though they remain on the group page.
+6. If more than one event in a group is RSVP'd, all of them appear.
+7. Cancelled and past events do not appear on `/my`.
+8. Open **Details** and confirm the group page lists every future event for the group.

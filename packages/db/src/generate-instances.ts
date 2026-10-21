@@ -1,10 +1,6 @@
 import { and, eq, gte } from "drizzle-orm";
 import type { drizzle } from "drizzle-orm/better-sqlite3";
-import {
-  DEFAULT_HORIZON_DAYS,
-  occurrencesBetween,
-  parseWeeklySchedule,
-} from "@minyanmate/core";
+import { DEFAULT_HORIZON_DAYS, occurrencesBetween, parseWeeklySchedule } from "@minyanmate/core";
 import * as schema from "./schema";
 import { events, minyans } from "./schema";
 
@@ -53,6 +49,7 @@ export async function generateInstances(
     .values(
       missing.map((date) => ({
         minyanId: minyan.id,
+        groupId: minyan.groupId,
         title: minyan.name,
         date,
         startsAt: `${date}T${schedule.time}`,

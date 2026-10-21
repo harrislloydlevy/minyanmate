@@ -8,10 +8,7 @@ export type EventSummary = {
   userRsvp: "in" | "out" | "maybe" | null;
 };
 
-type EventScope =
-  | { kind: "group"; groupId: string }
-  | { kind: "minyan"; minyanId: string }
-  | { kind: "rsvp"; userId: string };
+type EventScope = { kind: "group"; groupId: string } | { kind: "rsvp"; userId: string };
 
 /**
  * Loads upcoming events (date >= fromDate) in one query and collapses the
@@ -25,15 +22,10 @@ export async function getUpcomingEventSummaries(
   const scopeFilter =
     scope.kind === "group"
       ? eq(events.groupId, scope.groupId)
-      : scope.kind === "minyan"
-        ? eq(events.minyanId, scope.minyanId)
-        : inArray(
-            events.id,
-            db
-              .select({ eventId: rsvps.eventId })
-              .from(rsvps)
-              .where(eq(rsvps.userId, scope.userId)),
-          );
+      : inArray(
+          events.id,
+          db.select({ eventId: rsvps.eventId }).from(rsvps).where(eq(rsvps.userId, scope.userId)),
+        );
 
   const rows = await db
     .select({

@@ -57,6 +57,13 @@
       "when": 1792568324932,
       "tag": "0007_romantic_green_goblin",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1792571269514,
+      "tag": "0008_dizzy_siren",
+      "breakpoints": true
     }
   ]
 }

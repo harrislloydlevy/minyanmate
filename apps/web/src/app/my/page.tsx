@@ -3,7 +3,7 @@ import { asc, inArray } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { CalendarPlus, Church, UsersRound } from "lucide-react";
+import { CalendarPlus, UsersRound } from "lucide-react";
 import { groups } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { EventCard } from "@/components/event-card";
@@ -100,12 +100,6 @@ export default async function MyPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline">
-              <Link href="/minyans">
-                <Church className="size-4" />
-                My series
-              </Link>
-            </Button>
             <Button asChild variant="outline">
               <Link href="/groups/new">
                 <UsersRound className="size-4" />

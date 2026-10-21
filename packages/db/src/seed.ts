@@ -6,9 +6,12 @@
  */
 
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { eq } from "drizzle-orm";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createDb } from "./index";
+import { generateInstances } from "./generate-instances";
+import { minyans } from "./schema";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsFolder = path.join(here, "..", "drizzle");
@@ -31,57 +34,79 @@ async function main() {
     .prepare(
       "INSERT INTO users (id, name, email, email_verified, phone_number, phone_number_verified) VALUES (?, ?, ?, ?, ?, ?)",
     )
-    .run(
-      crypto.randomUUID(), "Mordi", "mordi@example.com", 1, "+61400000001", 1,
-    );
+    .run(crypto.randomUUID(), "Mordi", "mordi@example.com", 1, "+61400000001", 1);
   const mordiId = (
-    sqlite.prepare("SELECT id FROM users WHERE phone_number = ?").get("+61400000001") as { id: string }
+    sqlite.prepare("SELECT id FROM users WHERE phone_number = ?").get("+61400000001") as {
+      id: string;
+    }
   ).id;
 
   sqlite
     .prepare(
       "INSERT INTO users (id, name, email, email_verified, phone_number, phone_number_verified) VALUES (?, ?, ?, ?, ?, ?)",
     )
-    .run(
-      crypto.randomUUID(), "Rivka", "rivka@example.com", 1, "+61400000002", 1,
-    );
+    .run(crypto.randomUUID(), "Rivka", "rivka@example.com", 1, "+61400000002", 1);
   const rivkaId = (
-    sqlite.prepare("SELECT id FROM users WHERE phone_number = ?").get("+61400000002") as { id: string }
+    sqlite.prepare("SELECT id FROM users WHERE phone_number = ?").get("+61400000002") as {
+      id: string;
+    }
   ).id;
 
   sqlite
     .prepare(
       "INSERT INTO users (id, name, email, email_verified, phone_number, phone_number_verified) VALUES (?, ?, ?, ?, ?, ?)",
     )
-    .run(
-      crypto.randomUUID(), "Yossi", "yossi@example.com", 1, "+61400000003", 1,
-    );
+    .run(crypto.randomUUID(), "Yossi", "yossi@example.com", 1, "+61400000003", 1);
   const yossiId = (
-    sqlite.prepare("SELECT id FROM users WHERE phone_number = ?").get("+61400000003") as { id: string }
+    sqlite.prepare("SELECT id FROM users WHERE phone_number = ?").get("+61400000003") as {
+      id: string;
+    }
   ).id;
 
   sqlite
     .prepare(
       "INSERT INTO users (id, name, email, email_verified, phone_number, phone_number_verified) VALUES (?, ?, ?, ?, ?, ?)",
     )
-    .run(
-      crypto.randomUUID(), "Golda", "golda@example.com", 1, "+61400000004", 1,
-    );
+    .run(crypto.randomUUID(), "Golda", "golda@example.com", 1, "+61400000004", 1);
   const goldaId = (
-    sqlite.prepare("SELECT id FROM users WHERE phone_number = ?").get("+61400000004") as { id: string }
+    sqlite.prepare("SELECT id FROM users WHERE phone_number = ?").get("+61400000004") as {
+      id: string;
+    }
   ).id;
 
   console.log("[seed] users created: Mordi, Rivka, Yossi, Golda");
 
-  // Seed a minyan
+  // Seed a group. A group and its recurring minyan are the same thing.
+  const groupId = crypto.randomUUID();
+  sqlite
+    .prepare(
+      "INSERT INTO groups (id, name, slug, type_tag, default_location, description, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    )
+    .run(
+      groupId,
+      "Main Shul",
+      "main-shul",
+      "minyan",
+      "Central Shul, 42 Main St",
+      "The main shul on Main street",
+      mordiId,
+    );
+  sqlite
+    .prepare("INSERT INTO group_members (id, group_id, user_id, role) VALUES (?, ?, ?, ?)")
+    .run(crypto.randomUUID(), groupId, mordiId, "organiser");
+
+  console.log("[seed] group created: Main Shul");
+
+  // Seed the group's recurring minyan schedule.
   const minyanId = crypto.randomUUID();
   sqlite
     .prepare(
-      "INSERT INTO minyans (id, name, description, location_text, schedule, quorum_target, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO minyans (id, group_id, name, description, location_text, schedule, quorum_target, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .run(
       minyanId,
-      "Shacharis at the shul",
+      groupId,
+      "Main Shul",
       "Weekday morning minyan at Central Shul",
       "Central Shul, 42 Main St",
       JSON.stringify({ weekdays: [0, 1, 2, 3, 4, 5, 6], time: "06:30" }),
@@ -89,7 +114,10 @@ async function main() {
       mordiId,
     );
 
-  console.log("[seed] minyan created: Shacharis at the shul");
+  const [seedMinyan] = await db.select().from(minyans).where(eq(minyans.id, minyanId));
+  if (seedMinyan) await generateInstances(db, seedMinyan);
+
+  console.log("[seed] minyan created: Main Shul (daily 06:30)");
 
   // Seed events
   const now = new Date();
@@ -110,37 +138,76 @@ async function main() {
 
   sqlite
     .prepare(
-      "INSERT INTO events (id, minyan_id, date, starts_at, location_text, status, quorum_target, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO events (id, minyan_id, group_id, title, date, starts_at, location_text, status, quorum_target, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .run(
-      eventTodayId, minyanId, today, `${today}T06:30`, "Central Shul, 42 Main St", "scheduled", 10, mordiId,
+      eventTodayId,
+      minyanId,
+      groupId,
+      "Main Shul",
+      today,
+      `${today}T06:30`,
+      "Central Shul, 42 Main St",
+      "scheduled",
+      10,
+      mordiId,
     );
 
   sqlite
     .prepare(
-      "INSERT INTO events (id, date, starts_at, location_text, notes, type_tag, status, quorum_target, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO events (id, group_id, title, date, starts_at, location_text, notes, type_tag, status, quorum_target, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .run(
-      eventTomorrowId, fmt(tomorrow), `${fmt(tomorrow)}T18:00`, "123 Oak Ave", "Bring a siddur", "minyan", "scheduled", 10, mordiId,
+      eventTomorrowId,
+      groupId,
+      "Community Minyan",
+      fmt(tomorrow),
+      `${fmt(tomorrow)}T18:00`,
+      "123 Oak Ave",
+      "Bring a siddur",
+      "minyan",
+      "scheduled",
+      10,
+      mordiId,
     );
 
   sqlite
     .prepare(
-      "INSERT INTO events (id, date, starts_at, location_text, notes, type_tag, status, quorum_target, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO events (id, group_id, title, date, starts_at, location_text, notes, type_tag, status, quorum_target, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .run(
-      eventNextWeekId, fmt(nextWeek), `${fmt(nextWeek)}T19:30`, "Community Centre", "Pickup basketball — bring sneakers", "pickup", "scheduled", 8, rivkaId,
+      eventNextWeekId,
+      groupId,
+      "Evening Minyan",
+      fmt(nextWeek),
+      `${fmt(nextWeek)}T19:30`,
+      "Community Centre",
+      "Bring a siddur",
+      "minyan",
+      "scheduled",
+      10,
+      mordiId,
     );
 
   sqlite
     .prepare(
-      "INSERT INTO events (id, date, starts_at, location_text, type_tag, status, quorum_target, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO events (id, minyan_id, group_id, title, date, starts_at, location_text, type_tag, status, quorum_target, owner_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .run(
-      eventYesterdayId, fmt(yesterday), `${fmt(yesterday)}T07:00`, "Central Shul, 42 Main St", "minyan", "confirmed", 10, mordiId,
+      eventYesterdayId,
+      minyanId,
+      groupId,
+      "Main Shul",
+      fmt(yesterday),
+      `${fmt(yesterday)}T07:00`,
+      "Central Shul, 42 Main St",
+      "minyan",
+      "confirmed",
+      10,
+      mordiId,
     );
 
-  console.log("[seed] events created: today, tomorrow, next week pickup, yesterday");
+  console.log("[seed] events created: generated schedule + today, tomorrow, next week, yesterday");
 
   // Seed RSVPs
   const rsvpInsert = sqlite.prepare(

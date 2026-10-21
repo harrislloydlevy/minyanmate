@@ -4,14 +4,9 @@ import { UsersRound, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect } from "react";
 import { createGroup, type CreateGroupResult } from "@/lib/actions/create-group";
+import { RecurrenceFields } from "@/components/recurrence-fields";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -19,7 +14,7 @@ export function GroupForm() {
   const router = useRouter();
   const [state, formAction, pending] = useActionState<CreateGroupResult | null, FormData>(
     createGroup,
-    null
+    null,
   );
 
   useEffect(() => {
@@ -35,21 +30,13 @@ export function GroupForm() {
           <UsersRound className="size-6" />
         </div>
         <CardTitle className="text-xl">New group</CardTitle>
-        <CardDescription>
-          Create a group to organise your minyans.
-        </CardDescription>
+        <CardDescription>Create a group and the recurring minyan it meets for.</CardDescription>
       </CardHeader>
       <CardContent>
         <form action={formAction} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="Shul on Main"
-              required
-            />
+            <Input id="name" name="name" type="text" placeholder="Shul on Main" required />
           </div>
 
           <div className="flex flex-col gap-2">
@@ -76,9 +63,14 @@ export function GroupForm() {
             />
           </div>
 
-          {state && !state.success && (
-            <p className="text-destructive text-sm">{state.error}</p>
-          )}
+          <div className="border-t pt-4">
+            <h2 className="mb-3 text-sm font-semibold">Recurring schedule</h2>
+            <div className="flex flex-col gap-4">
+              <RecurrenceFields />
+            </div>
+          </div>
+
+          {state && !state.success && <p className="text-destructive text-sm">{state.error}</p>}
 
           <Button type="submit" disabled={pending} className="w-full">
             {pending ? (
