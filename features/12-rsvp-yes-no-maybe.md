@@ -46,3 +46,17 @@ _No description provided in Taiga._ (Based on context from previous stories: eve
 2. Click Yes, Maybe, or No — the button highlights and the page refreshes
 3. Click a different option — your previous RSVP is replaced
 4. The count at the top updates: "1 in · 0 maybe · 0 out" etc.
+
+### Follow-up (2026-10-21): group member non-response count
+
+- Event cards on `/my` and `/groups/<slug>`, and the event detail page, now also show `N not RSVP'd` next to the in/maybe/out counts.
+- `N` counts the event group's owner plus all `group_members` rows, minus anyone with a row in `rsvps` for that event. Any status (`in`, `maybe`, `out`) counts as a response.
+- One-off events without a `group_id` omit the count. Guest RSVPs stay separate and do not reduce `N` because guest rows are anonymous.
+- The shared count lives in `apps/web/src/lib/event-summaries.ts`; the detail page computes the same figure from the event's group.
+
+**Updated verification:**
+
+1. Open a group event with three members where only one has RSVP'd: the card and detail page show `2 not RSVP'd`.
+2. Have another member RSVP `out` or `maybe`: the count drops to `1` (any response counts).
+3. Open a one-off event: no `not RSVP'd` count is shown.
+4. Open `/my`: the same count appears on each group event card.

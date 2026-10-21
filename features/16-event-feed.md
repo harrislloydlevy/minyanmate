@@ -37,7 +37,7 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 
 - Replaced the empty welcome card on `/my` with a full chronological event feed
 - Events split into "Upcoming" and "Past" sections based on today's date
-- Each event card shows: event title (with ` - <Group Name>` appended when the event was created from a group), date, time, location, RSVP counts (in/maybe/out), and the user's own RSVP badge
+- Each event card shows: event title (with ` - <Group Name>` appended when the event was created from a group), date, time, location, RSVP counts (in/maybe/out, plus `N not RSVP'd` for group events), and the user's own RSVP badge
 - Clicking any event card navigates to its detail page
 - "New event" button is still accessible at the top right
 - Empty state shows a friendly message with a CTA to create the first event
@@ -84,3 +84,10 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 6. If more than one event in a group is RSVP'd, all of them appear.
 7. Cancelled and past events do not appear on `/my`.
 8. Open **Details** and confirm the group page lists every future event for the group.
+
+### Follow-up (2026-10-21): member non-response count
+
+- Group event cards now show `N not RSVP'd` alongside in/maybe/out. One-off event cards omit it.
+- `N` is the group's owner plus `group_members`, minus users with any RSVP row for that event. It is computed per event, so two events in the same group can show different counts.
+- The event detail page shows the same figure in its summary line.
+- `/my` remains RSVP-only; the new count describes the other group members, not additional events.

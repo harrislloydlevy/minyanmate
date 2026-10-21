@@ -11,7 +11,7 @@ import {
   Tag,
   Users,
 } from "lucide-react";
-import { events, rsvps, guests, users } from "@minyanmate/db/schema";
+import { events, groupMembers, groups, rsvps, guests, users } from "@minyanmate/db/schema";
 import { relativeAge } from "@minyanmate/core";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CopyLinkButton } from "@/components/copy-link-button";
@@ -128,6 +128,32 @@ export default async function EventDetailPage({
     .from(rsvps)
     .leftJoin(users, eq(rsvps.userId, users.id))
     .where(eq(rsvps.eventId, event.id));
+
+  // Group members (including the owner) who have not responded yet.
+  let notRsvpdCount: number | null = null;
+  const groupId = event.groupId;
+  if (groupId) {
+    const [[group], memberRows] = await Promise.all([
+      db
+        .select({ ownerId: groups.ownerId })
+        .from(groups)
+        .where(eq(groups.id, groupId))
+        .limit(1),
+      db
+        .select({ userId: groupMembers.userId })
+        .from(groupMembers)
+        .where(eq(groupMembers.groupId, groupId)),
+    ]);
+
+    const memberIds = new Set(memberRows.map((member) => member.userId));
+    if (group) memberIds.add(group.ownerId);
+
+    const respondedUserIds = new Set(rsvpRows.map((row) => row.userId));
+    notRsvpdCount = 0;
+    for (const memberId of memberIds) {
+      if (!respondedUserIds.has(memberId)) notRsvpdCount++;
+    }
+  }
 
   // Guest RSVPs
   const guestRows = await db
@@ -281,7 +307,12 @@ export default async function EventDetailPage({
             <div className="border-t pt-4 flex flex-col gap-3">
               <div className="text-muted-foreground flex items-center gap-2 text-xs">
                 <Users className="size-4" />
-                {confirmedCount} in · {maybeCount} maybe · {declinedCount} out
+                <span>
+                  {confirmedCount} in · {maybeCount} maybe · {declinedCount} out
+                  {notRsvpdCount !== null && (
+                    <> · {notRsvpdCount} not RSVP&apos;d</>
+                  )}
+                </span>
               </div>
 
               {event.status === "cancelled" ? (

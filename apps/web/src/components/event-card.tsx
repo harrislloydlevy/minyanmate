@@ -29,7 +29,7 @@ function formatTime(startsAt: string): string {
 }
 
 export function EventCard({ summary }: { summary: EventSummary }) {
-  const { event, counts, userRsvp } = summary;
+  const { event, counts, notRsvpdCount, userRsvp } = summary;
 
   return (
     <Link href={`/events/${event.id}`}>
@@ -54,7 +54,7 @@ export function EventCard({ summary }: { summary: EventSummary }) {
             {formatDate(event.date)} · {event.locationText ?? "No location set"}
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center gap-3 pt-0 text-xs">
+        <CardContent className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-0 text-xs">
           <span className="text-green-600 dark:text-green-400">
             {counts.in} in
           </span>
@@ -64,6 +64,11 @@ export function EventCard({ summary }: { summary: EventSummary }) {
             </span>
           )}
           <span className="text-muted-foreground">{counts.out} out</span>
+          {notRsvpdCount !== null && (
+            <span className="text-muted-foreground">
+              {notRsvpdCount} not RSVP&apos;d
+            </span>
+          )}
           {userRsvp && event.status !== "cancelled" && (
             <span className="ml-auto rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize">
               {userRsvp === "in"
