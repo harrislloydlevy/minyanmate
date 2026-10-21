@@ -120,32 +120,6 @@ export async function generateJoinToken(
   }
 }
 
-export async function revokeJoinToken(
-  slug: string,
-): Promise<GroupMemberActionResult> {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return { success: false, error: "You must be signed in." };
-
-  const group = await findGroupBySlug(slug);
-  if (!group) return { success: false, error: "Group not found." };
-  if (!(await canManageGroup(group, session.user.id))) {
-    return {
-      success: false,
-      error: "Only the group organiser can manage invites.",
-    };
-  }
-
-  try {
-    await db
-      .update(groups)
-      .set({ joinToken: null, updatedAt: sql`(unixepoch())` })
-      .where(eq(groups.id, group.id));
-    return { success: true };
-  } catch {
-    return { success: false, error: "An unexpected error occurred." };
-  }
-}
-
 export async function setMemberRole(
   groupId: string,
   userId: string,
