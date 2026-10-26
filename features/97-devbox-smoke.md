@@ -30,3 +30,8 @@ Prove the devbox pipeline can take a docs-only story from spec to draft PR.
 ## Implementation Notes
 
 (pending)
+
+### Follow-up (2026-10-26): smoke verification
+
+- Verified docs/devbox-smoke.md exists on feature/97-devbox-smoke.
+- Pushed branch to origin and opened a draft PR for smoke testing of the devbox pipeline.
