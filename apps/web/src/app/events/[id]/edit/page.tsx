@@ -94,6 +94,8 @@ export default async function EditEventPage({
           defaultTime={time}
           defaultLocation={event.locationText}
           defaultNotes={event.notes}
+          defaultMinPlayers={event.minPlayers}
+          defaultMaxPlayers={event.maxPlayers}
         />
       </main>
     </div>

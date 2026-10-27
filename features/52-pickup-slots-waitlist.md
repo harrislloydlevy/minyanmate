@@ -33,3 +33,9 @@ Add min/max player counts for pickup games with slot display, waitlist, and auto
 ## Implementation Notes
 - May need new DB fields for min/max players and waitlist
 - Order by waitlist join timestamp
+
+### Follow-up (2026-10-27): pickup slots and waitlist
+- Schema: `events`/`minyans` gained `min_players`/`max_players`; `rsvps`/`guests` gained `waitlisted_at` and a `waitlisted` (plus aliases) RSVP status.
+- Migration `0009_pretty_rhino.sql` adds the new columns.
+- Core: `packages/core/src/pickup.ts` provides slot status, counts, formatting, and FIFO waitlist helpers.
+- Web: event creation/edit supports min/max players; event page shows slot summary + waitlist with manual promote; RSVPs auto-waitlist when full and auto-promote on drop-out.

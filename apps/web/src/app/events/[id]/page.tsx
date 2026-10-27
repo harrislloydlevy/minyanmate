@@ -12,7 +12,7 @@ import {
   Users,
 } from "lucide-react";
 import { events, groupMembers, groups, rsvps, guests, users } from "@minyanmate/db/schema";
-import { relativeAge } from "@minyanmate/core";
+import { relativeAge, formatPickupSlots, pickupStatus } from "@minyanmate/core";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { CancelEventButton } from "@/components/cancel-event-button";
@@ -27,6 +27,7 @@ import {
 import { RsvpButtons } from "@/components/rsvp-buttons";
 import { GuestBanner } from "@/components/guest-banner";
 import { GuestRsvpButtons } from "@/components/guest-rsvp-buttons";
+import { PromoteWaitlistButton } from "@/components/promote-waitlist-button";
 import type { RsvpStatus } from "@/lib/actions/rsvp";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -322,6 +323,28 @@ export default async function EventDetailPage({
                 </span>
               </div>
 
+              {(event.minPlayers != null || event.maxPlayers != null) && (
+                <div
+                  className={
+                    "text-xs font-medium " +
+                    (pickupStatus(confirmedCount, event.minPlayers ?? null, event.maxPlayers ?? null) === "below_minimum"
+                      ? "text-amber-600 dark:text-amber-400"
+                      : pickupStatus(confirmedCount, event.minPlayers ?? null, event.maxPlayers ?? null) === "full"
+                        ? "text-muted-foreground"
+                        : "text-green-600 dark:text-green-400")
+                  }
+                  data-testid="slot-summary"
+                >
+                  {formatPickupSlots(confirmedCount, event.minPlayers ?? null, event.maxPlayers ?? null)}
+                  {" · "}
+                  {pickupStatus(confirmedCount, event.minPlayers ?? null, event.maxPlayers ?? null) === "below_minimum"
+                    ? "not playing"
+                    : pickupStatus(confirmedCount, event.minPlayers ?? null, event.maxPlayers ?? null) === "full"
+                      ? "full"
+                      : "game on"}
+                </div>
+              )}
+
               {event.status === "cancelled" ? (
                 <p className="text-muted-foreground text-sm">
                   This event has been cancelled — RSVPs are closed.
@@ -360,6 +383,40 @@ export default async function EventDetailPage({
                       </span>
                     </li>
                   ))}
+                </ul>
+              </div>
+            )}
+
+            {(rsvpRows.some((r) => ["waitlisted", "waitlist", "waiting"].includes(r.status)) ||
+              guestRows.some((r) => ["waitlisted", "waitlist", "waiting"].includes(r.status))) && (
+              <div className="border-t pt-4 flex flex-col gap-3">
+                <h3 className="text-sm font-semibold">
+                  Waitlist (
+                  {rsvpRows.filter((r) => ["waitlisted", "waitlist", "waiting"].includes(r.status)).length +
+                    guestRows.filter((r) => ["waitlisted", "waitlist", "waiting"].includes(r.status)).length}
+                  )
+                </h3>
+                <ul className="list-inside list-disc text-sm text-muted-foreground">
+                  {rsvpRows
+                    .filter((r) => ["waitlisted", "waitlist", "waiting"].includes(r.status))
+                    .map((r) => (
+                      <li key={r.userId} className="flex items-center gap-2">
+                        <span>{r.userName ?? "Unknown"}</span>
+                        {isOwner && (
+                          <PromoteWaitlistButton eventId={event.id} userId={r.userId} />
+                        )}
+                      </li>
+                    ))}
+                  {guestRows
+                    .filter((r) => ["waitlisted", "waitlist", "waiting"].includes(r.status))
+                    .map((r) => (
+                      <li key={r.id} className="flex items-center gap-2">
+                        <span>{r.name} (guest)</span>
+                        {isOwner && (
+                          <PromoteWaitlistButton eventId={event.id} guestId={r.id} />
+                        )}
+                      </li>
+                    ))}
                 </ul>
               </div>
             )}

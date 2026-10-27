@@ -7,7 +7,7 @@ export type EventSummary = {
   counts: { in: number; maybe: number; out: number };
   /** Group members (including the owner) with no RSVP row; null for one-off events. */
   notRsvpdCount: number | null;
-  userRsvp: "in" | "out" | "maybe" | null;
+  userRsvp: "in" | "out" | "maybe" | "waitlisted" | "waitlist" | "waiting" | null;
 };
 
 type EventScope = { kind: "group"; groupId: string } | { kind: "rsvp"; userId: string };
@@ -56,7 +56,9 @@ export async function getUpcomingEventSummaries(
     }
 
     if (row.rsvpStatus && row.rsvpUserId) {
-      summary.counts[row.rsvpStatus as keyof EventSummary["counts"]]++;
+      if (row.rsvpStatus in summary.counts) {
+        summary.counts[row.rsvpStatus as keyof EventSummary["counts"]]++;
+      }
 
       let responders = respondersByEventId.get(row.event.id);
       if (!responders) {
