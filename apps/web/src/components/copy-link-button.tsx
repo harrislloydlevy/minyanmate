@@ -27,10 +27,9 @@ export function CopyLinkButton() {
       size="sm"
       onClick={handleCopy}
       aria-label="Copy link to share"
-      title="Copy link to share"
     >
       {copied ? <Check className="size-4" /> : <Link2 className="size-4" />}
-      <span className="hidden sm:inline">
+      <span>
         {copied ? "Link copied" : "Copy link to share"}
       </span>
     </Button>

@@ -32,3 +32,9 @@ Ensure every interactive element has clear, descriptive text labels; icons may s
 ## Implementation Notes
 - Systematic audit across all screens
 - May need to refactor component library
+
+### Follow-up (2026-10-27): visible text labels for interactive elements
+- Converted the icon-only theme toggle to an icon+label button ("Theme").
+- Made the copy-link button's label always visible (was hidden on mobile).
+- Removed tooltip-only `title` attributes from copy-link and member role toggle buttons; visible text remains.
+- Verified `pnpm typecheck`, `pnpm test`, and `pnpm build` all pass.

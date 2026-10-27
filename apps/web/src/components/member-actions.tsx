@@ -49,9 +49,6 @@ export function MemberActions({ groupId, userId, role }: MemberActionsProps) {
           size="sm"
           onClick={handleToggleRole}
           disabled={submitting}
-          title={
-            role === "organiser" ? "Demote to member" : "Promote to organiser"
-          }
         >
           {submitting ? (
             <LoaderCircle className="size-3 animate-spin" />

@@ -14,7 +14,7 @@ export function ThemeToggle() {
   return (
     <Button
       variant="ghost"
-      size="icon"
+      size="sm"
       aria-label="Toggle theme"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
@@ -27,6 +27,7 @@ export function ThemeToggle() {
       ) : (
         <Moon className="size-4 opacity-0" />
       )}
+      <span>Theme</span>
     </Button>
   );
 }
