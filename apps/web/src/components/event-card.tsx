@@ -44,7 +44,7 @@ export function EventCard({ summary }: { summary: EventSummary }) {
                 {formatTime(event.startsAt)}
               </span>
               {event.status === "cancelled" && (
-                <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[10px] font-medium">
+                <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[0.625rem] font-medium">
                   Cancelled
                 </span>
               )}
@@ -70,7 +70,7 @@ export function EventCard({ summary }: { summary: EventSummary }) {
             </span>
           )}
           {userRsvp && event.status !== "cancelled" && (
-            <span className="ml-auto rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize">
+            <span className="ml-auto rounded-full border px-2 py-0.5 text-[0.625rem] font-medium capitalize">
               {userRsvp === "in"
                 ? "Going"
                 : userRsvp === "out"

@@ -79,7 +79,7 @@ export default async function GroupDetailPage({
   if (!group) {
     return (
       <div className="flex min-h-svh flex-col">
-        <header className="container flex h-16 items-center justify-between">
+        <header className="container flex min-h-16 items-center justify-between">
           <Link href="/" className="text-lg font-bold tracking-tight">
             Minyan<span className="text-primary">Mate</span>
           </Link>
@@ -197,7 +197,7 @@ export default async function GroupDetailPage({
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="container flex h-16 items-center justify-between">
+      <header className="container flex min-h-16 items-center justify-between">
         <Link href="/" className="text-lg font-bold tracking-tight">
           Minyan<span className="text-primary">Mate</span>
         </Link>

@@ -31,3 +31,11 @@ Make the app respect system font size settings and ensure core screens work at 2
 ## Implementation Notes
 - Global CSS/theme changes likely needed
 - Test critical user flows at large text sizes
+
+### Follow-up (2026-10-27): relative units and scalable containers
+
+- `globals.css`: root `font-size: 100%` with `text-size-adjust: 100%`, body `1rem`, `overflow-wrap: break-word`.
+- Converted fixed `px` font sizes (`text-[10px]`) to relative `rem` (`text-[0.625rem]`).
+- Buttons/inputs/headers use `min-h-*` instead of fixed `h-*` so they grow with scaled text.
+- Removed `whitespace-nowrap` from buttons to avoid horizontal overflow at large sizes.
+- Verified `pnpm typecheck`, `pnpm test`, `pnpm build` pass.

@@ -82,7 +82,7 @@ export default async function Home() {
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+      <header className="flex min-h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="text-lg font-bold tracking-tight">
           Minyan<span className="text-primary">Mate</span>
         </Link>
