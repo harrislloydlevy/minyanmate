@@ -45,7 +45,7 @@ export function GuestRsvpButtons({ eventId }: GuestRsvpButtonsProps) {
 
     const result = await setGuestRsvp(eventId, name.trim(), status, guestToken ?? undefined);
     if (result.success) {
-      setCurrentStatus(status);
+      setCurrentStatus(result.status);
       setGuestToken(result.guestToken);
       router.refresh();
     } else {

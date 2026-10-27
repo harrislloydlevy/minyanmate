@@ -128,6 +128,10 @@ export const minyans = sqliteTable(
     serviceTag: text("service_tag", { enum: ["shacharit", "mincha", "maariv"] }),
     /** How many attendees make a quorum (default 10). */
     quorumTarget: integer("quorum_target").notNull().default(10),
+    /** Minimum players for a pickup game to be "on". Null = no minimum. */
+    minPlayers: integer("min_players"),
+    /** Maximum players for a pickup game. Null = unlimited. */
+    maxPlayers: integer("max_players"),
     status: text("status", { enum: ["active", "archived"] })
       .notNull()
       .default("active"),
@@ -212,6 +216,10 @@ export const events = sqliteTable(
       .default("scheduled"),
     /** Snapshot of the minyan's quorum target at materialization time. */
     quorumTarget: integer("quorum_target").notNull().default(10),
+    /** Minimum players for a pickup game to be "on". Null = no minimum. */
+    minPlayers: integer("min_players"),
+    /** Maximum players for a pickup game. Null = unlimited. */
+    maxPlayers: integer("max_players"),
     ownerId: text("owner_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -236,7 +244,9 @@ export const rsvps = sqliteTable(
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    status: text("status", { enum: ["in", "out", "maybe"] }).notNull(),
+    status: text("status", { enum: ["in", "out", "maybe", "waitlisted", "waitlist", "waiting"] }).notNull(),
+    /** When this row entered the waitlist (FIFO ordering). */
+    waitlistedAt: integer("waitlisted_at", { mode: "timestamp" }),
     /** Where the RSVP came from: web UI, WhatsApp reply/button, or organizer. */
     source: text("source", { enum: ["web", "whatsapp", "organizer"] })
       .notNull()
@@ -255,7 +265,9 @@ export const guests = sqliteTable(
     eventId: text("event_id")
       .notNull()
       .references(() => events.id, { onDelete: "cascade" }),
-    status: text("status", { enum: ["in", "out", "maybe"] }).notNull(),
+    status: text("status", { enum: ["in", "out", "maybe", "waitlisted", "waitlist", "waiting"] }).notNull(),
+    /** When this guest entered the waitlist (FIFO ordering). */
+    waitlistedAt: integer("waitlisted_at", { mode: "timestamp" }),
     /** Cookie token for remembering the guest. */
     token: text("token").notNull(),
     ...timestamps,

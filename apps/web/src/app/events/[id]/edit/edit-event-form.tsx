@@ -23,6 +23,8 @@ interface EditEventFormProps {
   defaultTime: string;
   defaultLocation: string | null;
   defaultNotes: string | null;
+  defaultMinPlayers?: number | null;
+  defaultMaxPlayers?: number | null;
 }
 
 export function EditEventForm({
@@ -32,6 +34,8 @@ export function EditEventForm({
   defaultTime,
   defaultLocation,
   defaultNotes,
+  defaultMinPlayers,
+  defaultMaxPlayers,
 }: EditEventFormProps) {
   const router = useRouter();
   const [state, formAction, pending] = useActionState<
@@ -115,6 +119,35 @@ export function EditEventForm({
               defaultValue={defaultNotes ?? ""}
               placeholder="Bring a siddur"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="minPlayers">
+                Min players <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Input
+                id="minPlayers"
+                name="minPlayers"
+                type="number"
+                min={1}
+                defaultValue={defaultMinPlayers ?? ""}
+                placeholder="e.g. 8"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="maxPlayers">
+                Max players <span className="text-muted-foreground">(optional)</span>
+              </Label>
+              <Input
+                id="maxPlayers"
+                name="maxPlayers"
+                type="number"
+                min={1}
+                defaultValue={defaultMaxPlayers ?? ""}
+                placeholder="e.g. 12"
+              />
+            </div>
           </div>
 
           {state && !state.success && (

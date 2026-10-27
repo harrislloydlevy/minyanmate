@@ -42,6 +42,24 @@ export async function updateEvent(
   const location = form.get("location")?.toString().trim();
   const notes = form.get("notes")?.toString().trim();
 
+  const parsePlayerCount = (keys: string[]): number | null | undefined => {
+    for (const key of keys) {
+      const raw = form.get(key)?.toString().trim();
+      if (raw === "") return null;
+      if (raw) {
+        const n = Number(raw);
+        if (Number.isFinite(n) && n > 0) return Math.floor(n);
+        if (raw === "0" || raw.toLowerCase() === "none") return null;
+      }
+    }
+    // If no field present, keep existing values (undefined => not updated)
+    return undefined as unknown as number | null;
+  };
+  const hasMinField = ["minPlayers", "min_players", "min"].some((k) => form.has(k));
+  const hasMaxField = ["maxPlayers", "max_players", "max"].some((k) => form.has(k));
+  const minPlayers = hasMinField ? parsePlayerCount(["minPlayers", "min_players", "min"]) : undefined;
+  const maxPlayers = hasMaxField ? parsePlayerCount(["maxPlayers", "max_players", "max"]) : undefined;
+
   if (!title) return { success: false, error: "Event title is required." };
   if (!date) return { success: false, error: "Event date is required." };
   if (!time) return { success: false, error: "Start time is required." };
@@ -59,6 +77,8 @@ export async function updateEvent(
         startsAt,
         locationText: location || null,
         notes: notes || null,
+        ...(minPlayers !== undefined ? { minPlayers } : {}),
+        ...(maxPlayers !== undefined ? { maxPlayers } : {}),
         lastEditedAt: now,
       })
       .where(eq(events.id, eventId));

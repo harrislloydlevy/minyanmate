@@ -64,6 +64,13 @@
       "when": 1792571269514,
       "tag": "0008_dizzy_siren",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1793101380761,
+      "tag": "0009_pretty_rhino",
+      "breakpoints": true
     }
   ]
 }

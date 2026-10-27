@@ -56,6 +56,8 @@ export async function generateInstances(
         locationText: minyan.locationText,
         typeTag: "minyan" as const,
         quorumTarget: minyan.quorumTarget,
+        minPlayers: minyan.minPlayers,
+        maxPlayers: minyan.maxPlayers,
         ownerId: minyan.ownerId,
         serviceTag: minyan.serviceTag,
         status: "scheduled" as const,

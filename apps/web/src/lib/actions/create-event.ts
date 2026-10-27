@@ -26,6 +26,19 @@ export async function createEvent(
   const location = form.get("location")?.toString().trim() || null;
   const notes = form.get("notes")?.toString().trim() || null;
 
+  const parsePlayerCount = (keys: string[]): number | null => {
+    for (const key of keys) {
+      const raw = form.get(key)?.toString().trim();
+      if (raw) {
+        const n = Number(raw);
+        if (Number.isFinite(n) && n > 0) return Math.floor(n);
+      }
+    }
+    return null;
+  };
+  const minPlayers = parsePlayerCount(["minPlayers", "min_players", "minPlayerCount", "min"]);
+  const maxPlayers = parsePlayerCount(["maxPlayers", "max_players", "maxPlayerCount", "max"]);
+
   if (!name) return { success: false, error: "Event title is required." };
   if (!date) return { success: false, error: "Event date is required." };
   if (!time) return { success: false, error: "Start time is required." };
@@ -59,6 +72,8 @@ export async function createEvent(
         locationText: location,
         notes,
         status: "scheduled",
+        minPlayers,
+        maxPlayers,
         ownerId: session.user.id,
       })
       .returning({ id: events.id });

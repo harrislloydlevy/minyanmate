@@ -28,7 +28,11 @@ export function RsvpButtons({ eventId, currentStatus }: RsvpButtonsProps) {
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-col gap-2">
+      {currentStatus === "waitlisted" && (
+        <p className="text-muted-foreground text-xs">You are on the waitlist.</p>
+      )}
+      <div className="flex gap-2">
       {options.map((opt) => (
         <Button
           key={opt.status}
@@ -41,6 +45,7 @@ export function RsvpButtons({ eventId, currentStatus }: RsvpButtonsProps) {
           {opt.label}
         </Button>
       ))}
+      </div>
     </div>
   );
 }
