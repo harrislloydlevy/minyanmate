@@ -33,3 +33,9 @@ Allow group members to leave a group with proper cleanup of future RSVPs and saf
 ## Implementation Notes
 - Need to distinguish future vs past events by date/time
 - Update group member count and RSVP aggregates
+
+### Follow-up (2026-10-27): leave group implemented
+- `leaveGroup(slug, newOrganiserUserId?)` now removes membership, deletes only future (date >= today) RSVPs for the user across group events (via `groupId` or linked minyan), preserving past attendance.
+- Sole-organiser members are blocked unless a replacement member is promoted in the same call.
+- UI adds a confirmation dialog explaining future RSVP cancellation and a sole-organiser assignment dialog.
+- Verified: `pnpm typecheck && pnpm test && pnpm build`.

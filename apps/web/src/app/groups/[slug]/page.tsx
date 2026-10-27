@@ -344,7 +344,20 @@ export default async function GroupDetailPage({
 
             {isMember && !isOwner && (
               <div className="border-t pt-4">
-                <LeaveGroup slug={group.slug} name={group.name} />
+                <LeaveGroup
+                  slug={group.slug}
+                  name={group.name}
+                  isSoleOrganiser={
+                    !!viewerMember &&
+                    viewerMember.role === "organiser" &&
+                    memberRows.filter((m) => m.role === "organiser").length === 1
+                  }
+                  candidates={members
+                    .filter(
+                      (m) => m.userId !== session?.user.id && m.role === "member",
+                    )
+                    .map((m) => ({ userId: m.userId, name: m.name }))}
+                />
               </div>
             )}
 
