@@ -51,7 +51,7 @@ export default async function NewEventPage({
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="flex h-16 items-center justify-between">
+      <header className="flex min-h-16 items-center justify-between">
         <Link href="/" className="text-lg font-bold tracking-tight">
           Minyan<span className="text-primary">Mate</span>
         </Link>

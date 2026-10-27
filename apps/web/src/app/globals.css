@@ -73,8 +73,17 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+  html {
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     @apply bg-background text-foreground;
+    font-size: 1rem;
+    line-height: 1.5;
+    overflow-wrap: break-word;
   }
 }
