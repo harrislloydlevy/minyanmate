@@ -22,15 +22,22 @@ Send push notifications when events reach quorum (minyan) or capacity (pickup ga
 - Works for both minyan (quorum) and pickup (capacity)
 
 ## Definition of Done
-- Trigger on reaching quorum/capacity
-- Notify confirmed and maybe attendees
-- Notification content includes required info
-- Deep link to event page
-- Deduplication - only once per milestone
-- Per-group preferences respected
-- `pnpm typecheck && pnpm test && pnpm build` all pass
-- PR open against `main`, CI green
+- [x] Trigger on reaching quorum/capacity
+- [x] Notify confirmed and maybe attendees
+- [x] Notification content includes required info
+- [x] Deep link to event page
+- [x] Deduplication - only once per milestone
+- [x] Per-group preferences respected
+- [x] `pnpm typecheck && pnpm test && pnpm build` all pass
+- [ ] PR open against `main`, CI green
 
 ## Implementation Notes
 - Need to track if notification already sent for this milestone
 - Integrate with existing notification/push system
+
+### Follow-up (2026-10-27): quorum/capacity notifications
+- Core: `packages/core/src/notifications.ts` provides milestone detection, dedupe keys, notification content (event name/time/location/count + deep link), and per-recipient preference filtering.
+- DB: `events.quorum_notified_at` tracks milestone notification; `group_members.notify_quorum`/`notify_reminders` store per-group preferences. Migration `0009_fixed_imperial_guard.sql`.
+- Web: RSVP (user + guest) and guest merge trigger `maybeNotifyQuorumReached`, which dedupes via `messages` and enqueues a `quorum_reached` job immediately.
+- Worker: handles `quorum_reached` jobs.
+- Spec acceptance criteria unchanged.

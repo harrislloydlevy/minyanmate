@@ -51,10 +51,25 @@ function handleEventCancelled(payload: Record<string, unknown>): void {
   );
 }
 
+/**
+ * Job type: `quorum_reached`
+ *
+ * Enqueued by the web RSVP actions when an event's confirmed count first
+ * reaches its quorum/capacity target. Payload: `{ eventId: string }`.
+ */
+function handleQuorumReached(payload: Record<string, unknown>): void {
+  const eventId = typeof payload.eventId === "string" ? payload.eventId : null;
+  console.log(
+    "[worker] quorum_reached: event=%s (fan-out to confirmed+maybe attendees)",
+    eventId ?? "<unknown>",
+  );
+}
+
 const handlers: Record<string, JobHandler> = {
   noop: () => {},
   event_edited: handleEventEdited,
   event_cancelled: handleEventCancelled,
+  quorum_reached: handleQuorumReached,
 };
 
 const POLL_INTERVAL_MS = 5_000;

@@ -1,7 +1,7 @@
 "use server";
 
 import { and, asc, eq, sql } from "drizzle-orm";
-import { events, guests, rsvps } from "@minyanmate/db/schema";
+import { events, guests, jobs, messages, rsvps } from "@minyanmate/db/schema";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -48,6 +48,9 @@ export async function setRsvp(
         target: [rsvps.eventId, rsvps.userId],
         set: { status, updatedAt: sql`(unixepoch())` },
       });
+
+    // Trigger quorum/capacity notification if this RSVP pushed us over.
+    await maybeNotifyQuorumReached(eventId);
 
     return { success: true, status };
   } catch {
@@ -130,6 +133,9 @@ export async function setGuestRsvp(
       maxAge: 60 * 60 * 24 * 30,
     });
 
+    // Trigger quorum/capacity notification if this RSVP pushed us over.
+    await maybeNotifyQuorumReached(eventId);
+
     return { success: true, guestToken: token };
   } catch {
     return { success: false, error: "An unexpected error occurred." };
@@ -171,6 +177,7 @@ export async function mergeGuestRsvps(): Promise<MergeGuestRsvpsResult> {
           target: [rsvps.eventId, rsvps.userId],
           set: { status: row.status, updatedAt: sql`(unixepoch())` },
         });
+      await maybeNotifyQuorumReached(row.eventId);
     }
 
     if (guestRows.length > 0) {
@@ -180,5 +187,75 @@ export async function mergeGuestRsvps(): Promise<MergeGuestRsvpsResult> {
     return { success: true, merged: guestRows.length };
   } catch {
     return { success: false, error: "An unexpected error occurred." };
+  }
+}
+
+/**
+ * Sends (enqueues) a quorum/capacity-reached notification the first time an
+ * event's confirmed count reaches its target. Deduplicated via the `messages`
+ * table and `events.quorumNotifiedAt`.
+ */
+async function maybeNotifyQuorumReached(eventId: string): Promise<void> {
+  try {
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, eventId))
+      .limit(1);
+    if (!event) return;
+    if (event.quorumNotifiedAt) return;
+
+    const rsvpRows = await db
+      .select({ status: rsvps.status })
+      .from(rsvps)
+      .where(eq(rsvps.eventId, eventId));
+    const guestRows = await db
+      .select({ status: guests.status })
+      .from(guests)
+      .where(eq(guests.eventId, eventId));
+
+    const confirmedCount =
+      rsvpRows.filter((r) => r.status === "in").length +
+      guestRows.filter((r) => r.status === "in").length;
+
+    const target = event.quorumTarget ?? 0;
+    if (target > 0 && confirmedCount < target) return;
+
+    const dedupeKey = `quorum_reached:${eventId}`;
+    let inserted = false;
+    try {
+      await db.insert(messages).values({
+        userId: null,
+        eventId,
+        kind: "quorum_reached",
+        dedupeKey,
+        status: "queued",
+        payload: JSON.stringify({
+          eventId,
+          confirmedCount,
+          eventName: event.title,
+          eventTime: event.startsAt,
+          eventLocation: event.locationText,
+        }),
+      });
+      inserted = true;
+    } catch {
+      inserted = false;
+    }
+
+    await db
+      .update(events)
+      .set({ quorumNotifiedAt: new Date() })
+      .where(eq(events.id, eventId));
+
+    if (!inserted) return;
+
+    await db.insert(jobs).values({
+      type: "quorum_reached",
+      payload: JSON.stringify({ eventId }),
+      runAt: new Date(),
+    });
+  } catch {
+    // Never let notification triggering break an RSVP.
   }
 }

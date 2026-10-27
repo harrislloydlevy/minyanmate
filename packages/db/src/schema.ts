@@ -153,6 +153,14 @@ export const groupMembers = sqliteTable(
     role: text("role", { enum: ["organiser", "member"] })
       .notNull()
       .default("member"),
+    /** Per-group notification preference: quorum/capacity reached alerts. */
+    notifyQuorum: integer("notify_quorum", { mode: "boolean" })
+      .notNull()
+      .default(true),
+    /** Per-group notification preference: event reminders. */
+    notifyReminders: integer("notify_reminders", { mode: "boolean" })
+      .notNull()
+      .default(true),
     ...timestamps,
   },
   (t) => [uniqueIndex("group_members_group_user_uq").on(t.groupId, t.userId)],
@@ -218,6 +226,8 @@ export const events = sqliteTable(
     ...timestamps,
     /** Set by the update-event action to track when details last changed. */
     lastEditedAt: integer("last_edited_at", { mode: "timestamp" }),
+    /** Set when the quorum/capacity-reached notification has been sent. */
+    quorumNotifiedAt: integer("quorum_notified_at", { mode: "timestamp" }),
   },
   (t) => [
     uniqueIndex("events_minyan_date_uq").on(t.minyanId, t.date),
