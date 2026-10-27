@@ -38,3 +38,9 @@ Show a friendly empty state on the home screen for first-time users with no grou
 ## Implementation Notes
 - Persona considerations: Mr. Goldstein (low tech comfort)
 - Must be accessible at 2x font size
+
+### Follow-up (2026-10-27): Empty state implemented on /my
+- Added group-membership check so empty state shows only when the user has no groups and no upcoming RSVP'd events.
+- Empty state renders a one-sentence welcome message and exactly one primary CTA ("Create your first minyan" → /events/new); no lists/cards/placeholders.
+- Normal dashboard (existing sections) renders otherwise, including for users who belong to a group.
+- Verified: `pnpm typecheck && pnpm test && pnpm build` all pass.

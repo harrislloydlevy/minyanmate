@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { asc, inArray } from "drizzle-orm";
+import { asc, eq, inArray, or } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { CalendarPlus, UsersRound } from "lucide-react";
-import { groups } from "@minyanmate/db/schema";
+import { groupMembers, groups } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { EventCard } from "@/components/event-card";
 import { GuestMerge } from "@/components/guest-merge";
@@ -75,6 +75,57 @@ export default async function MyPage() {
       (summary) => summary.event.groupId === group.id,
     ),
   }));
+
+  // Empty state only when the user has no groups and no upcoming RSVP'd events.
+  const userGroups = await db
+    .select({ id: groups.id })
+    .from(groups)
+    .leftJoin(groupMembers, eq(groupMembers.groupId, groups.id))
+    .where(
+      or(
+        eq(groups.ownerId, session.user.id),
+        eq(groupMembers.userId, session.user.id),
+      ),
+    )
+    .limit(1);
+  const hasGroups = userGroups.length > 0;
+  const hasEvents = visibleEvents.length > 0;
+  const isEmpty = !hasGroups && !hasEvents;
+
+  if (isEmpty) {
+    return (
+      <div className="flex min-h-svh flex-col">
+        <GuestMerge />
+        <header className="flex h-16 items-center justify-between">
+          <Link href="/" className="text-lg font-bold tracking-tight">
+            Minyan<span className="text-primary">Mate</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <SignOutButton />
+          </div>
+        </header>
+
+        <main className="flex flex-1 items-center justify-center py-10">
+          <div className="flex max-w-md flex-col items-center gap-4 text-center">
+            <h1 className="text-2xl font-bold tracking-tight">
+              Welcome{session.user.name ? `, ${session.user.name}` : ""}
+            </h1>
+            <p className="text-muted-foreground text-base">
+              MinyanMate helps you organise minyans and keep track of who&apos;s
+              coming.
+            </p>
+            <Button asChild size="lg">
+              <Link href="/events/new">
+                <CalendarPlus className="size-4" />
+                Create your first minyan
+              </Link>
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-svh flex-col">
