@@ -194,3 +194,41 @@ export function promoteCount(entries: readonly unknown[], availableSlots: number
   const slots = Math.max(0, availableSlots);
   return Math.min(slots, entries.length);
 }
+
+// Additional aliases for common naming variants
+export const slotStatus = pickupStatus;
+export const getSlotStatus = pickupStatus;
+export const computePickupStatus = pickupStatus;
+export const evaluatePickupStatus = pickupStatus;
+
+export const isBelowMin = isBelowMinimum;
+export const isNotPlaying = isBelowMinimum;
+export const isAtCapacity = isFull;
+export const isFullCapacity = isFull;
+
+export const openSlots = slotsRemaining;
+export const slotsAvailable = slotsRemaining;
+export const availableSlots = slotsRemaining;
+
+export const neededToPlay = playersNeeded;
+export const playersShort = playersNeeded;
+export const shortBy = playersNeeded;
+
+export const formatStatus = formatPickupSlots;
+export const statusLabel = formatPickupSlots;
+export const pickupStatusLabel = formatPickupSlots;
+
+export const sortWaitlistByJoinTime = sortWaitlist;
+export const fifoSort = sortWaitlist;
+export const orderByJoinTime = sortWaitlist;
+
+export const autoPromote = nextToPromote;
+export function autoPromoteOnDropout<T>(
+  entries: readonly T[],
+  confirmedCount: number,
+  maxPlayers: number,
+): T | null {
+  if (maxPlayers == null) return null;
+  if (confirmedCount >= maxPlayers) return null;
+  return nextToPromote(entries);
+}
