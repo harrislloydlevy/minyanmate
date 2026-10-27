@@ -34,3 +34,13 @@ Provide a 'My Groups' dashboard showing all groups with upcoming event previews 
 ## Implementation Notes
 - May integrate with #31's leave group functionality
 - Consider responsive grid/list layout
+
+
+### Follow-up (2026-10-27): My Groups dashboard
+
+1. **Route** `apps/web/src/app/groups/page.tsx` (plus `/my/groups` redirect): server component lists every group the signed-in user owns or belongs to, with membership role lookup.
+2. **Card** shows a deterministic avatar (initial + hashed color), group name, next upcoming non-cancelled event preview with RSVP counts and the viewer's RSVP status, or a "No upcoming events" prompt with a "New event" button for managers.
+3. **Ordering** by soonest upcoming event (groups without one sort last, then by name).
+4. **Quick actions**: `RsvpButtons` for the next event and the existing `LeaveGroup` component (which calls `leaveGroup` from `group-members`); owners have no leave button.
+5. **Navigation**: header links between `/my` and `/groups`; `/my` gained a "My groups" button.
+6. Verified: `pnpm typecheck`, `pnpm test`, `pnpm build` all pass.
