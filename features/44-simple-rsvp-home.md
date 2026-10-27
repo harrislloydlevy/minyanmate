@@ -34,3 +34,8 @@ Provide a simplified home screen for assisted setup with two large buttons for R
 ## Implementation Notes
 - May need to detect assisted setup state
 - Help connection depends on setup metadata
+
+### Follow-up (2026-10-27): <topic>
+- weekly attendance grid (outstanding)
+- help-contact flow (outstanding)
+- any DB migration (outstanding)
