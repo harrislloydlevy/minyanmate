@@ -168,6 +168,14 @@ export default async function EventDetailPage({
     .from(guests)
     .where(eq(guests.eventId, event.id));
 
+  // Returning guest's current response (cookie-based), if any.
+  const cookieStoreForGuest = await cookies();
+  const guestTokenCookie = cookieStoreForGuest.get("guest_token")?.value;
+  const guestCurrentRow = guestTokenCookie
+    ? guestRows.find((r) => r.token === guestTokenCookie)
+    : null;
+  const guestCurrentStatus = (guestCurrentRow?.status ?? null) as RsvpStatus | null;
+
   const confirmedCount =
     rsvpRows.filter((r) => r.status === "in").length +
     guestRows.filter((r) => r.status === "in").length;
@@ -329,7 +337,7 @@ export default async function EventDetailPage({
               ) : isAuthenticated ? (
                 <RsvpButtons eventId={event.id} currentStatus={userRsvp as RsvpStatus | null} />
               ) : (
-                <GuestRsvpButtons eventId={event.id} />
+                <GuestRsvpButtons eventId={event.id} currentStatus={guestCurrentStatus} />
               )}
             </div>
 

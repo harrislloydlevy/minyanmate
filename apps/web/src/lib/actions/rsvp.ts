@@ -1,7 +1,8 @@
 "use server";
 
 import { and, asc, eq, sql } from "drizzle-orm";
-import { events, guests, rsvps } from "@minyanmate/db/schema";
+import { events, guests, rsvps, users } from "@minyanmate/db/schema";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -82,15 +83,29 @@ export async function setGuestRsvp(
       return { success: false, error: "This event has been cancelled." };
     }
 
-    // Guest rows are always anonymous, so an exact name match on this event
-    // means the same person coming back: update their RSVP in place instead
-    // of inserting a duplicate row.
-    const [existing] = await db
-      .select()
-      .from(guests)
-      .where(and(eq(guests.eventId, eventId), eq(guests.name, trimmedName)))
-      .orderBy(asc(guests.createdAt))
+    // D1: a guest may only "claim" an existing *guest* RSVP by name. If the
+    // name matches a registered user, re-identification is rejected and the
+    // visitor is treated as a brand-new guest (no claim of any existing row).
+    const registeredMatch = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.name, trimmedName))
       .limit(1);
+
+    const isRegisteredName = registeredMatch.length > 0;
+
+    // Claim an existing guest RSVP by name only when the name does not belong
+    // to a registered user.
+    let existing = null;
+    if (!isRegisteredName) {
+      const [row] = await db
+        .select()
+        .from(guests)
+        .where(and(eq(guests.eventId, eventId), eq(guests.name, trimmedName)))
+        .orderBy(asc(guests.createdAt))
+        .limit(1);
+      existing = row ?? null;
+    }
 
     let token: string;
     if (existing) {
@@ -129,6 +144,12 @@ export async function setGuestRsvp(
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 30,
     });
+
+    try {
+      revalidatePath(`/events/${eventId}`);
+    } catch {
+      // ignore revalidation errors in non-request contexts (e.g. tests)
+    }
 
     return { success: true, guestToken: token };
   } catch {

@@ -30,12 +30,19 @@ A guest who has already RSVP'd must be able to return to the event page and chan
 - A guest whose cookie was cleared can re-identify by name and change their earlier guest response
 - Re-identifying against a registered user's name is rejected and does not reveal that response
 - Attendee count updates in real-time for all viewers
-- `pnpm typecheck` passes
-- `pnpm test` passes, including coverage of the guest response-change and re-identification rules
-- `pnpm build` succeeds
+- [x] `pnpm typecheck` passes
+- [x] `pnpm test` passes, including coverage of the guest response-change and re-identification rules
+- [x] `pnpm build` succeeds
 - PR open against `main`, CI green
 
 ## Implementation Notes
 - Reuse the guest identity pattern from `features/18-guest-rsvp.md`; do not duplicate it.
+
+### Follow-up (2026-10-27): guest response change + re-identification
+- `setGuestRsvp()` now refuses to claim an existing guest RSVP when the submitted name matches a registered user (D1); instead it creates a brand-new guest row, so the registered user's response is never revealed or modified.
+- The event page computes the returning guest's current status from the `guest_token` cookie and passes it to `GuestRsvpButtons`, which highlights the active response.
+- `GuestRsvpButtons` shows a brief "Response updated" confirmation toast on a successful change (D2) and refreshes the page so counts update.
+- Added `revalidatePath` for the event route so attendee counts update for all viewers.
+- How to verify: typecheck/test/build pass; manual guest flow as in story #18.
 - Story #13 (RSVP list grouped by response status) consumes these responses — keep the response model compatible.
 - First story run through the devbox pipeline; spec is committed by `task_new` before implementation starts.

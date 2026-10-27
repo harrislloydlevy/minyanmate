@@ -10,6 +10,7 @@ import { getCookie } from "@/lib/cookies";
 
 interface GuestRsvpButtonsProps {
   eventId: string;
+  currentStatus?: RsvpStatus | null;
 }
 
 const options: { status: RsvpStatus; label: string; icon: React.ReactNode }[] =
@@ -19,13 +20,18 @@ const options: { status: RsvpStatus; label: string; icon: React.ReactNode }[] =
     { status: "out", label: "Not Coming", icon: <ThumbsDown className="size-4" /> },
   ];
 
-export function GuestRsvpButtons({ eventId }: GuestRsvpButtonsProps) {
+export function GuestRsvpButtons({ eventId, currentStatus: initialStatus }: GuestRsvpButtonsProps) {
   const router = useRouter();
   const [guestToken, setGuestToken] = useState<string | null>(null);
   const [name, setName] = useState("");
-  const [currentStatus, setCurrentStatus] = useState<RsvpStatus | null>(null);
+  const [currentStatus, setCurrentStatus] = useState<RsvpStatus | null>(initialStatus ?? null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCurrentStatus(initialStatus ?? null);
+  }, [initialStatus]);
 
   useEffect(() => {
     // Restore identity from cookies: the token finds this guest's RSVP row,
@@ -47,6 +53,8 @@ export function GuestRsvpButtons({ eventId }: GuestRsvpButtonsProps) {
     if (result.success) {
       setCurrentStatus(status);
       setGuestToken(result.guestToken);
+      setToast("Response updated");
+      setTimeout(() => setToast(null), 2000);
       router.refresh();
     } else {
       setError(result.error);
@@ -78,6 +86,12 @@ export function GuestRsvpButtons({ eventId }: GuestRsvpButtonsProps) {
           </Button>
         ))}
       </div>
+
+      {toast && (
+        <p role="status" className="text-xs text-muted-foreground">
+          {toast}
+        </p>
+      )}
 
       {error && <p className="text-destructive text-xs">{error}</p>}
     </div>
