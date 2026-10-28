@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { setRsvp } from "@/lib/actions/rsvp";
+import { WeeklyAttendanceGrid } from "@/components/weekly-attendance-grid";
+import { HelpButton } from "@/components/help-button";
 
 interface SimpleHomeProps {
   eventId: string;
@@ -84,6 +86,12 @@ export function SimpleHome({
         >
           I Can't Make It
         </Button>
+      </div>
+
+      <WeeklyAttendanceGrid />
+
+      <div className="w-full max-w-md flex justify-center">
+        <HelpButton />
       </div>
     </div>
   );

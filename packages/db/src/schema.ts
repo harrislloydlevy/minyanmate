@@ -40,6 +40,12 @@ export const users = sqliteTable("users", {
   role: text("role", { enum: ["user", "admin"] })
     .notNull()
     .default("user"),
+  /** User who set up/created/invited this account (for assisted setup). */
+  invitedById: text("invited_by_id"),
+  /** Preferred contact method for help/contacting the setup person. */
+  preferredContactMethod: text("preferred_contact_method", {
+    enum: ["phone", "email", "whatsapp"],
+  }),
   ...timestamps,
 });
 
@@ -244,6 +250,22 @@ export const rsvps = sqliteTable(
     ...timestamps,
   },
   (t) => [uniqueIndex("rsvps_event_user_uq").on(t.eventId, t.userId)],
+);
+
+/** Per-day attendance tracking for assisted/simple home weekly grid. */
+export const dailyAttendance = sqliteTable(
+  "daily_attendance",
+  {
+    id: id(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** Local calendar date, YYYY-MM-DD. */
+    date: text("date").notNull(),
+    attended: integer("attended", { mode: "boolean" }).notNull().default(false),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("daily_attendance_user_date_uq").on(t.userId, t.date)],
 );
 
 /** Guest RSVP — unauthenticated participants. */
