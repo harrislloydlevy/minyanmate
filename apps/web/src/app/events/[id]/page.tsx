@@ -16,6 +16,7 @@ import { relativeAge } from "@minyanmate/core";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CopyLinkButton } from "@/components/copy-link-button";
 import { CancelEventButton } from "@/components/cancel-event-button";
+import { SiteLogo } from "@/components/site-logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,6 +28,7 @@ import {
 import { RsvpButtons } from "@/components/rsvp-buttons";
 import { GuestBanner } from "@/components/guest-banner";
 import { GuestRsvpButtons } from "@/components/guest-rsvp-buttons";
+import { ThisIsMeButton } from "@/components/this-is-me-button";
 import type { RsvpStatus } from "@/lib/actions/rsvp";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -92,9 +94,7 @@ export default async function EventDetailPage({
     return (
       <div className="flex min-h-svh flex-col">
         <header className="flex h-16 items-center justify-between">
-          <Link href="/" className="text-lg font-bold tracking-tight">
-            Minyan<span className="text-primary">Mate</span>
-          </Link>
+          <SiteLogo />
           <ThemeToggle />
         </header>
         <main className="flex flex-1 items-start justify-center py-10">
@@ -168,6 +168,14 @@ export default async function EventDetailPage({
     .from(guests)
     .where(eq(guests.eventId, event.id));
 
+  // Returning guest's current response (cookie-based), if any.
+  const cookieStoreForGuest = await cookies();
+  const guestTokenCookie = cookieStoreForGuest.get("guest_token")?.value;
+  const guestCurrentRow = guestTokenCookie
+    ? guestRows.find((r) => r.token === guestTokenCookie)
+    : null;
+  const guestCurrentStatus = (guestCurrentRow?.status ?? null) as RsvpStatus | null;
+
   const confirmedCount =
     rsvpRows.filter((r) => r.status === "in").length +
     guestRows.filter((r) => r.status === "in").length;
@@ -183,7 +191,7 @@ export default async function EventDetailPage({
 
   type RsvpDisplay = {
     name: string;
-    status: string;
+    status: RsvpStatus;
     isGuest: boolean;
   };
 
@@ -218,9 +226,7 @@ export default async function EventDetailPage({
   return (
     <div className="flex min-h-svh flex-col">
       <header className="flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          Minyan<span className="text-primary">Mate</span>
-        </Link>
+        <SiteLogo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
         </div>
@@ -329,7 +335,7 @@ export default async function EventDetailPage({
               ) : isAuthenticated ? (
                 <RsvpButtons eventId={event.id} currentStatus={userRsvp as RsvpStatus | null} />
               ) : (
-                <GuestRsvpButtons eventId={event.id} />
+                <GuestRsvpButtons eventId={event.id} currentStatus={guestCurrentStatus} />
               )}
             </div>
 
@@ -354,6 +360,9 @@ export default async function EventDetailPage({
                         <span className="text-muted-foreground text-xs">
                           (guest)
                         </span>
+                      )}
+                      {!isAuthenticated && r.isGuest && event.status !== "cancelled" && (
+                        <ThisIsMeButton name={r.name} status={r.status} />
                       )}
                       <span className="text-xs">
                         ({r.status === "in" ? "coming" : r.status === "maybe" ? "maybe" : "not coming"})

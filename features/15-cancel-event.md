@@ -1,7 +1,7 @@
 # Feature 15: As an organiser, I can cancel an event and notify all confirmed attendees in one action
 
 > Sprint 5 — Pickup Depth & Polish
-> Source story: https://taiga.tiyrah.duckdns.org/project/minyanmate/us/15
+> Source story: Taiga #15
 
 ## Goal
 

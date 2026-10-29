@@ -1,22 +1,17 @@
 import type { Metadata } from "next";
 import { asc, inArray } from "drizzle-orm";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import { CalendarPlus, UsersRound } from "lucide-react";
 import { groups } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
+import { ProfileForm } from "./profile-form";
 import { EventCard } from "@/components/event-card";
 import { GuestMerge } from "@/components/guest-merge";
+import { SiteLogo } from "@/components/site-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getUpcomingEventSummaries } from "@/lib/event-summaries";
@@ -29,30 +24,32 @@ export const dynamic = "force-dynamic";
 
 export default async function MyPage() {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) redirect("/login");
+  const cookieStore = await cookies();
+  const guestToken = session ? null : (cookieStore.get("guest_token")?.value ?? null);
+  const guestName = session ? null : (cookieStore.get("guest_name")?.value ?? null);
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const rsvpEvents = await getUpcomingEventSummaries(
-    session.user.id,
-    today,
-    { kind: "rsvp", userId: session.user.id },
-  );
+  const rsvpEvents = session
+    ? await getUpcomingEventSummaries(session.user.id, today, {
+        kind: "rsvp",
+        userId: session.user.id,
+      })
+    : guestToken
+      ? await getUpcomingEventSummaries(null, today, {
+          kind: "guest",
+          guestToken,
+        })
+      : [];
 
   // Cancelled events stay off My Minyans; they remain visible on the group page.
-  const visibleEvents = rsvpEvents.filter(
-    (summary) => summary.event.status !== "cancelled",
-  );
+  const visibleEvents = rsvpEvents.filter((summary) => summary.event.status !== "cancelled");
 
-  const oneOffEvents = visibleEvents.filter(
-    (summary) => !summary.event.groupId,
-  );
+  const oneOffEvents = visibleEvents.filter((summary) => !summary.event.groupId);
 
   const groupIds = [
     ...new Set(
-      visibleEvents.flatMap((summary) =>
-        summary.event.groupId ? [summary.event.groupId] : [],
-      ),
+      visibleEvents.flatMap((summary) => (summary.event.groupId ? [summary.event.groupId] : [])),
     ),
   ];
 
@@ -71,21 +68,23 @@ export default async function MyPage() {
 
   const groupSections = rsvpGroups.map((group) => ({
     ...group,
-    events: visibleEvents.filter(
-      (summary) => summary.event.groupId === group.id,
-    ),
+    events: visibleEvents.filter((summary) => summary.event.groupId === group.id),
   }));
 
   return (
     <div className="flex min-h-svh flex-col">
-      <GuestMerge />
+      {session && <GuestMerge />}
       <header className="flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          Minyan<span className="text-primary">Mate</span>
-        </Link>
+        <SiteLogo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <SignOutButton />
+          {session ? (
+            <SignOutButton />
+          ) : (
+            <Button asChild>
+              <Link href="/login">Sign in</Link>
+            </Button>
+          )}
         </div>
       </header>
 
@@ -93,27 +92,41 @@ export default async function MyPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
-              Welcome{session.user.name ? `, ${session.user.name}` : ""}
+              Welcome
+              {session?.user.name ? `, ${session.user.name}` : guestName ? `, ${guestName}` : ""}
             </h1>
             <p className="text-muted-foreground text-sm">
-              Signed in as {session.user.phoneNumber ?? session.user.email}
+              {session
+                ? `Signed in as ${session.user.phoneNumber ?? session.user.email}`
+                : guestToken
+                  ? "Showing RSVPs saved on this device."
+                  : "No RSVPs saved on this device yet."}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="outline">
-              <Link href="/groups/new">
-                <UsersRound className="size-4" />
-                New group
-              </Link>
-            </Button>
-            <Button asChild>
-              <Link href="/events/new">
-                <CalendarPlus className="size-4" />
-                New event
-              </Link>
-            </Button>
-          </div>
+          {session && (
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline">
+                <Link href="/groups/new">
+                  <UsersRound className="size-4" />
+                  New group
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link href="/events/new">
+                  <CalendarPlus className="size-4" />
+                  New event
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
+
+        {session && (
+          <ProfileForm
+            initialName={session.user.name ?? ""}
+            phoneNumber={session.user.phoneNumber ?? null}
+          />
+        )}
 
         {oneOffEvents.length > 0 && (
           <section>
@@ -150,24 +163,24 @@ export default async function MyPage() {
           <Card className="max-w-md">
             <CardHeader>
               <CardTitle>No RSVP&apos;d minyans yet</CardTitle>
-              <CardDescription>
-                RSVP to a minyan and it will show up here.
-              </CardDescription>
+              <CardDescription>RSVP to a minyan and it will show up here.</CardDescription>
             </CardHeader>
-            <CardContent className="flex gap-2">
-              <Button asChild>
-                <Link href="/events/new">
-                  <CalendarPlus className="size-4" />
-                  New event
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/groups/new">
-                  <UsersRound className="size-4" />
-                  New group
-                </Link>
-              </Button>
-            </CardContent>
+            {session && (
+              <CardContent className="flex gap-2">
+                <Button asChild>
+                  <Link href="/events/new">
+                    <CalendarPlus className="size-4" />
+                    New event
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/groups/new">
+                    <UsersRound className="size-4" />
+                    New group
+                  </Link>
+                </Button>
+              </CardContent>
+            )}
           </Card>
         )}
       </main>

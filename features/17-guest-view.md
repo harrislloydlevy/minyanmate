@@ -1,7 +1,7 @@
 # Feature 17: As an unregistered user, I can open a shared event link and view full event details without creating an account
 
 > Sprint 4 — Minyan Depth
-> Source story: https://taiga.tiyrah.duckdns.org/project/minyanmate/us/17
+> Source story: Taiga #17
 
 ## Goal
 

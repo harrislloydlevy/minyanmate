@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { GroupForm } from "@/components/group-form";
+import { SiteLogo } from "@/components/site-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
@@ -19,9 +20,7 @@ export default async function NewGroupPage() {
   return (
     <div className="flex min-h-svh flex-col">
       <header className="container flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          Minyan<span className="text-primary">Mate</span>
-        </Link>
+        <SiteLogo />
         <ThemeToggle />
       </header>
 

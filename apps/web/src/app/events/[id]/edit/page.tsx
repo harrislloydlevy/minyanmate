@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { events } from "@minyanmate/db/schema";
+import { SiteLogo } from "@/components/site-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,9 +44,7 @@ export default async function EditEventPage({
     return (
       <div className="flex min-h-svh flex-col">
         <header className="flex h-16 items-center justify-between">
-          <Link href="/" className="text-lg font-bold tracking-tight">
-            Minyan<span className="text-primary">Mate</span>
-          </Link>
+          <SiteLogo />
           <ThemeToggle />
         </header>
         <main className="flex flex-1 items-start justify-center py-10">
@@ -78,9 +77,7 @@ export default async function EditEventPage({
   return (
     <div className="flex min-h-svh flex-col">
       <header className="flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          Minyan<span className="text-primary">Mate</span>
-        </Link>
+        <SiteLogo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
         </div>

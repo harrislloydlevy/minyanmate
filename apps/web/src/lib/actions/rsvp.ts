@@ -1,7 +1,8 @@
 "use server";
 
-import { and, asc, eq, sql } from "drizzle-orm";
-import { events, guests, rsvps } from "@minyanmate/db/schema";
+import { and, asc, eq, isNotNull, sql } from "drizzle-orm";
+import { events, guests, rsvps, users } from "@minyanmate/db/schema";
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -82,15 +83,53 @@ export async function setGuestRsvp(
       return { success: false, error: "This event has been cancelled." };
     }
 
-    // Guest rows are always anonymous, so an exact name match on this event
-    // means the same person coming back: update their RSVP in place instead
-    // of inserting a duplicate row.
-    const [existing] = await db
+    // Guests must never impersonate a registered user. Block the submission
+    // when the name matches any registered user's name (case/whitespace
+    // insensitive) or phone number, across the whole app — not just this event.
+    const normalizedName = trimmedName.replace(/\s+/g, " ").toLowerCase();
+    const [registeredNameMatch] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(sql`lower(trim(${users.name})) = ${normalizedName}`)
+      .limit(1);
+
+    let registeredPhoneMatch = false;
+    const digits = trimmedName.replace(/\D/g, "");
+    const looksLikePhoneNumber = digits.length >= 6 && !/[a-z]/i.test(trimmedName);
+    if (looksLikePhoneNumber) {
+      const phoneRows = await db
+        .select({ phoneNumber: users.phoneNumber })
+        .from(users)
+        .where(isNotNull(users.phoneNumber));
+      const targetLast9 = digits.slice(-9);
+      registeredPhoneMatch = phoneRows.some(({ phoneNumber }) => {
+        if (!phoneNumber) return false;
+        const registeredDigits = phoneNumber.replace(/\D/g, "");
+        if (!registeredDigits) return false;
+        return (
+          registeredDigits === digits ||
+          (registeredDigits.length >= 9 && registeredDigits.slice(-9) === targetLast9)
+        );
+      });
+    }
+
+    if (registeredNameMatch || registeredPhoneMatch) {
+      return {
+        success: false,
+        error:
+          "That name or phone number belongs to a registered user. Please sign in or choose a different name.",
+      };
+    }
+
+    // Claim an existing guest RSVP by name (the conflict check above ensures
+    // this can only ever match another guest, never a registered user).
+    const [existingRow] = await db
       .select()
       .from(guests)
       .where(and(eq(guests.eventId, eventId), eq(guests.name, trimmedName)))
       .orderBy(asc(guests.createdAt))
       .limit(1);
+    const existing = existingRow ?? null;
 
     let token: string;
     if (existing) {
@@ -130,6 +169,12 @@ export async function setGuestRsvp(
       maxAge: 60 * 60 * 24 * 30,
     });
 
+    try {
+      revalidatePath(`/events/${eventId}`);
+    } catch {
+      // ignore revalidation errors in non-request contexts (e.g. tests)
+    }
+
     return { success: true, guestToken: token };
   } catch {
     return { success: false, error: "An unexpected error occurred." };
@@ -141,7 +186,9 @@ export type MergeGuestRsvpsResult =
   | { success: false; error: string };
 
 /**
- * Transfers a guest's RSVP rows to their account after they sign in.
+ * Transfers a guest's RSVP rows to their account after they sign in, and
+ * replaces the phone-number placeholder name created by phone sign-up with
+ * the name they used as a guest.
  * Called from the login flow once a session exists.
  */
 export async function mergeGuestRsvps(): Promise<MergeGuestRsvpsResult> {
@@ -150,13 +197,30 @@ export async function mergeGuestRsvps(): Promise<MergeGuestRsvpsResult> {
 
   const cookieStore = await cookies();
   const token = cookieStore.get("guest_token")?.value;
-  if (!token) return { success: true, merged: 0 };
+  const guestNameCookie = cookieStore.get("guest_name")?.value?.trim();
 
   try {
-    const guestRows = await db
-      .select()
-      .from(guests)
-      .where(eq(guests.token, token));
+    const guestRows = token ? await db.select().from(guests).where(eq(guests.token, token)) : [];
+
+    // Phone sign-up sets the account name to the phone number. If this visitor
+    // previously RSVP'd as a guest, restore the name they used then.
+    const currentName = session.user.name?.trim() ?? "";
+    const phoneNumber = session.user.phoneNumber?.trim();
+    const isPlaceholderName =
+      !currentName || (phoneNumber !== undefined && currentName === phoneNumber);
+    const guestNameFromRows = guestRows
+      .map((row) => row.name.trim())
+      .find((name) => name.length > 0);
+
+    const preferredName = guestNameCookie || guestNameFromRows;
+    if (isPlaceholderName && preferredName && preferredName !== currentName) {
+      await db
+        .update(users)
+        .set({ name: preferredName, updatedAt: sql`(unixepoch())` })
+        .where(eq(users.id, session.user.id));
+    }
+
+    if (!token) return { success: true, merged: 0 };
 
     for (const row of guestRows) {
       await db
