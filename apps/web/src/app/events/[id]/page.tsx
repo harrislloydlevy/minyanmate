@@ -122,6 +122,7 @@ export default async function EventDetailPage({
   const canManage = session
     ? await canManageEvent(event, session.user.id)
     : false;
+  const isOwner = session?.user.id === event.ownerId;
 
   const [owner] = await db
     .select({ name: users.name })
@@ -252,7 +253,9 @@ export default async function EventDetailPage({
                   {event.title ?? "Minyan"}
                 </CardTitle>
                 <div className="flex items-center gap-2">
-                  <CardDescription>Event details</CardDescription>
+                  <CardDescription>
+                    {isOwner ? "My Event Details" : "Event details"}
+                  </CardDescription>
                   {event.status === "cancelled" && (
                     <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-xs font-medium">
                       Cancelled
@@ -312,7 +315,10 @@ export default async function EventDetailPage({
                 <UserRound className="text-muted-foreground mt-0.5 size-4 shrink-0" />
                 <div>
                   <dt className="text-muted-foreground text-xs">Owner</dt>
-                  <dd>{displayName(owner?.name)}</dd>
+                  <dd>
+                    {displayName(owner?.name)}
+                    {isOwner && " (Me)"}
+                  </dd>
                 </div>
               </div>
 

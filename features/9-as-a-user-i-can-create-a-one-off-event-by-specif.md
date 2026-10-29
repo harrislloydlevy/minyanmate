@@ -72,3 +72,4 @@ The form should be fast and work well on mobile.
 ### Follow-up (2026-10-29): owner shown on event details
 
 - `createEvent` already stored the signed-in creator in `events.owner_id`; the event detail page now displays that person as **Owner**.
+- When the viewer is the owner, the owner row says **Name (Me)** and the subtitle reads **My Event Details**.
