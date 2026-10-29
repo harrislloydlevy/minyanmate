@@ -5,12 +5,13 @@ import Link from "next/link";
 import { CalendarPlus, Clock, MapPin, StickyNote, UsersRound } from "lucide-react";
 import { events, groupMembers, groups, guests, minyans, rsvps, users } from "@minyanmate/db/schema";
 import { parseWeeklySchedule } from "@minyanmate/core";
-import { EventCard } from "@/components/event-card";
+import { EventRow } from "@/components/event-row";
 import { GroupRecurrenceForm } from "@/components/group-recurrence-form";
 import { JoinGroup } from "@/components/join-group";
 import { JoinLink } from "@/components/join-link";
 import { LeaveGroup } from "@/components/leave-group";
 import { MemberActions } from "@/components/member-actions";
+import { SiteLogo } from "@/components/site-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -79,13 +80,11 @@ export default async function GroupDetailPage({
   if (!group) {
     return (
       <div className="flex min-h-svh flex-col">
-        <header className="container flex h-16 items-center justify-between">
-          <Link href="/" className="text-lg font-bold tracking-tight">
-            Minyan<span className="text-primary">Mate</span>
-          </Link>
+        <header className="flex h-16 items-center justify-between">
+          <SiteLogo />
           <ThemeToggle />
         </header>
-        <main className="container flex flex-1 items-start justify-center py-10">
+        <main className="flex flex-1 items-start justify-center py-10">
           <Card className="w-full max-w-lg">
             <CardHeader>
               <CardTitle>Group not found</CardTitle>
@@ -197,19 +196,20 @@ export default async function GroupDetailPage({
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="container flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          Minyan<span className="text-primary">Mate</span>
-        </Link>
+      <header className="flex h-16 items-center justify-between">
+        <SiteLogo />
         <ThemeToggle />
       </header>
 
-      <main className="container flex flex-1 items-start justify-center py-10">
+      <main className="flex flex-1 items-start justify-center py-10">
         <Card className="w-full max-w-lg">
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
               <div className="flex flex-col gap-1.5">
-                <CardTitle className="text-xl">{group.name}</CardTitle>
+                <div className="flex flex-wrap items-center gap-2">
+                  <CardTitle className="text-xl">{group.name}</CardTitle>
+                  {isMember && <span className="text-muted-foreground text-xs">(Member)</span>}
+                </div>
               </div>
               {isOwner && <span className="text-muted-foreground text-xs">You own this group</span>}
             </div>
@@ -288,11 +288,16 @@ export default async function GroupDetailPage({
             <div className="border-t pt-4 flex flex-col gap-3">
               <h3 className="text-sm font-semibold">Upcoming minyans</h3>
               {upcomingEvents.length > 0 ? (
-                <div className="flex flex-col gap-3">
+                <ul className="divide-y">
                   {upcomingEvents.map((summary) => (
-                    <EventCard key={summary.event.id} summary={summary} />
+                    <EventRow
+                      key={summary.event.id}
+                      summary={summary}
+                      showQuickRsvp={isAuthenticated}
+                      compact={summary.event.minyanId !== null}
+                    />
                   ))}
-                </div>
+                </ul>
               ) : (
                 <p className="text-muted-foreground text-sm">No upcoming minyans.</p>
               )}
@@ -344,7 +349,18 @@ export default async function GroupDetailPage({
 
             {isMember && !isOwner && (
               <div className="border-t pt-4">
-                <LeaveGroup slug={group.slug} name={group.name} />
+                <LeaveGroup
+                  slug={group.slug}
+                  name={group.name}
+                  isSoleOrganiser={
+                    !!viewerMember &&
+                    viewerMember.role === "organiser" &&
+                    members.filter((m) => m.role === "organiser").length === 1
+                  }
+                  candidates={members
+                    .filter((m) => m.userId !== session?.user.id && m.role === "member")
+                    .map((m) => ({ userId: m.userId, name: m.name }))}
+                />
               </div>
             )}
 

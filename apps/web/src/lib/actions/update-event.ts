@@ -5,6 +5,7 @@ import { events, jobs } from "@minyanmate/db/schema";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canManageEvent } from "@/lib/group-permissions";
 import { isWithinNotificationWindow } from "@minyanmate/core";
 
 export type UpdateEventResult =
@@ -29,7 +30,7 @@ export async function updateEvent(
     .limit(1);
 
   if (!event) return { success: false, error: "Event not found." };
-  if (event.ownerId !== session.user.id) {
+  if (!(await canManageEvent(event, session.user.id))) {
     return {
       success: false,
       error: "Only the event organiser can edit this event.",

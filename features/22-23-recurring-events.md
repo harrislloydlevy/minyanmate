@@ -1,7 +1,7 @@
 # Sprint 13: Recurring minyans — #22 weekly recurring, #23 daily recurring
 
 > Sprint 13
-> Stories: https://taiga.tiyrah.duckdns.org/project/minyanmate/us/22, /us/23
+> Stories: Taiga #22, #23
 
 ## Goal
 

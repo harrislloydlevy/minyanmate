@@ -6,13 +6,42 @@ import { db } from "./db";
 
 const isProduction = process.env.APP_ENV === "production";
 
+const authURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+const authOrigin = (() => {
+  try {
+    return new URL(authURL).origin;
+  } catch {
+    return authURL;
+  }
+})();
+
+// Extra origins (comma-separated) can be supplied without code changes, e.g.
+// when the app is reached through a LAN address or tunnel.
+const configuredOrigins = (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const trustedOrigins = [
+  authOrigin,
+  ...configuredOrigins,
+  // Local dev is commonly reached via localhost, 127.0.0.1, or a LAN IP on
+  // varying ports. Keep these patterns out of production.
+  ...(isProduction
+    ? []
+    : [
+        "http://localhost:*",
+        "http://127.0.0.1:*",
+        "http://192.168.*:*",
+        "http://10.*:*",
+        "http://172.*:*",
+      ]),
+];
+
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET ?? "dev-insecure-secret-change-me",
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-  trustedOrigins: [
-    "http://server:3001",
-    "http://minyanmate.tiyrah.duckdns.org:3100",
-  ],
+  trustedOrigins,
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema: {

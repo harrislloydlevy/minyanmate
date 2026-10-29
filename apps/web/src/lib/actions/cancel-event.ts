@@ -5,6 +5,7 @@ import { events, jobs } from "@minyanmate/db/schema";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canManageEvent } from "@/lib/group-permissions";
 
 export type CancelEventResult =
   | { success: true; eventId: string }
@@ -21,7 +22,7 @@ export async function cancelEvent(eventId: string): Promise<CancelEventResult> {
     .limit(1);
 
   if (!event) return { success: false, error: "Event not found." };
-  if (event.ownerId !== session.user.id) {
+  if (!(await canManageEvent(event, session.user.id))) {
     return { success: false, error: "Only the event organiser can cancel this event." };
   }
 

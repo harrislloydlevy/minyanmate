@@ -1,5 +1,5 @@
 import { and, eq } from "drizzle-orm";
-import { groupMembers } from "@minyanmate/db/schema";
+import { groupMembers, groups } from "@minyanmate/db/schema";
 import { db } from "@/lib/db";
 
 /**
@@ -23,4 +23,24 @@ export async function canManageGroup(
     )
     .limit(1);
   return !!row;
+}
+
+/**
+ * The event creator can manage a one-off event; for group events, the group
+ * owner and any group organiser can manage it too.
+ */
+export async function canManageEvent(
+  event: { ownerId: string; groupId: string | null },
+  userId: string,
+): Promise<boolean> {
+  if (event.ownerId === userId) return true;
+  if (!event.groupId) return false;
+
+  const [group] = await db
+    .select({ id: groups.id, ownerId: groups.ownerId })
+    .from(groups)
+    .where(eq(groups.id, event.groupId))
+    .limit(1);
+  if (!group) return false;
+  return canManageGroup(group, userId);
 }

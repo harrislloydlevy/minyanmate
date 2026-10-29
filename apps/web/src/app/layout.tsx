@@ -7,13 +7,10 @@ export const metadata: Metadata = {
     default: "MinyanMate",
     template: "%s · MinyanMate",
   },
-  description:
-    "Coordinate minyans, RSVP from WhatsApp, and never miss quorum again.",
+  description: "Coordinate minyans, RSVP from WhatsApp, and never miss quorum again.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-svh antialiased">
@@ -23,7 +20,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">{children}</div>
         </ThemeProvider>
       </body>
     </html>

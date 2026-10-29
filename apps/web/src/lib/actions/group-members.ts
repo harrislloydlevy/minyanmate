@@ -1,11 +1,12 @@
 "use server";
 
 import { and, eq, sql } from "drizzle-orm";
-import { events, groupMembers, groups, rsvps } from "@minyanmate/db/schema";
-import { headers } from "next/headers";
+import { events, groupMembers, groups, guests, rsvps } from "@minyanmate/db/schema";
+import { cookies, headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canManageGroup } from "@/lib/group-permissions";
+import { leaveGroupInDb } from "@/lib/leave-group";
 
 export type GroupMemberActionResult =
   { success: true } | { success: false; error: string };
@@ -80,6 +81,24 @@ export async function joinGroup(
     hasGroupEventRsvp = !!rsvp;
   }
 
+  // Sign-in only converts *upcoming* guest RSVPs into `rsvps`. A returning
+  // guest whose only attendance is in the past still has guest rows, so fall
+  // back to the guest cookie before rejecting the join.
+  if (!inviteAccepted && !hasGroupEventRsvp) {
+    const guestToken = (await cookies()).get("guest_token")?.value;
+    if (guestToken) {
+      const [guestRsvp] = await db
+        .select({ id: guests.id })
+        .from(guests)
+        .innerJoin(events, eq(guests.eventId, events.id))
+        .where(
+          and(eq(guests.token, guestToken), eq(events.groupId, group.id)),
+        )
+        .limit(1);
+      hasGroupEventRsvp = !!guestRsvp;
+    }
+  }
+
   if (!inviteAccepted && !hasGroupEventRsvp) {
     return {
       success: false,
@@ -100,33 +119,23 @@ export async function joinGroup(
 
 export async function leaveGroup(
   slug: string,
+  newOrganiserUserId?: string,
 ): Promise<GroupMemberActionResult> {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return { success: false, error: "You must be signed in." };
 
   const group = await findGroupBySlug(slug);
   if (!group) return { success: false, error: "Group not found." };
-  if (group.ownerId === session.user.id) {
-    return {
-      success: false,
-      error: "The group owner cannot leave the group.",
-    };
-  }
 
   try {
-    const removed = await db
-      .delete(groupMembers)
-      .where(
-        and(
-          eq(groupMembers.groupId, group.id),
-          eq(groupMembers.userId, session.user.id),
-        ),
-      )
-      .returning({ id: groupMembers.id });
-    if (removed.length === 0) {
-      return { success: false, error: "You are not a member of this group." };
-    }
-    return { success: true };
+    const result = leaveGroupInDb(db, {
+      groupId: group.id,
+      userId: session.user.id,
+      newOrganiserUserId,
+    });
+    return result.ok
+      ? { success: true }
+      : { success: false, error: result.error };
   } catch {
     return { success: false, error: "An unexpected error occurred." };
   }

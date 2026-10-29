@@ -1,7 +1,7 @@
 # Sprint 12: Groups membership — invite members (#29), manage roles (#30), guest→account conversion (#20)
 
 > Sprint 12 — Groups Dashboard
-> Stories: https://taiga.tiyrah.duckdns.org/project/minyanmate/us/29, /us/30, /us/20
+> Stories: Taiga #29, #30, #20
 
 ## Goal
 
@@ -27,7 +27,7 @@ Groups need members and role management, and regular guests should be able to co
 ### #20 — Guest→account conversion
 - [ ] Guest banner on event page after 3+ RSVPs by that guest: "Coming regularly? Create an account to keep your history."
 - [ ] Banner links to /login (the existing phone OTP signup)
-- [ ] mergeGuestRsvps server action: on login, if a guest cookie exists, transfer guest RSVP rows to the user
+- [ ] mergeGuestRsvps server action: on login, if a guest cookie exists, transfer the guest's upcoming (date >= today) RSVP rows to the user; past guest rows stay as history
 - [ ] Prompt is dismissible (cookie flag)
 
 ## Constraints & Conventions
@@ -51,7 +51,7 @@ Groups need members and role management, and regular guests should be able to co
 - Creating a group event is organiser-only: the "New event for this group" button is hidden for regular members, `/events/new?group=<slug>` redirects them back to the group, and `createEvent` rejects a `groupId` the user cannot manage. Shared `canManageGroup` helper lives in `apps/web/src/lib/group-permissions.ts`.
 - `join-link.tsx` (generate + copy link + one regenerate-and-revoke action), `join-group.tsx` (shows a confirmation prompt for a valid `?join=<token>` or when the viewer has RSVP'd to any event in the group; joins only after the user clicks "Join group", and "Not now" dismisses the prompt via `?join=dismiss`)
 - Signed-out invite visitors see the same explanation with a **Join group** button; it goes to `/login?joinGroup=<slug>&joinToken=<token>`, and after OTP verification the login form calls `joinGroup` and lands on the group page already joined.
-- A guest with a `guest_token` cookie who has RSVP'd to any event in the group sees the same join prompt without an invite link. **Join group** goes to `/login?joinGroup=<slug>`; after OTP, `mergeGuestRsvps` transfers the RSVP and the tokenless `joinGroup` call accepts the membership. A signed-in non-member with an RSVP can join directly from the prompt.
+- A guest with a `guest_token` cookie who has RSVP'd to any event in the group sees the same join prompt without an invite link. **Join group** goes to `/login?joinGroup=<slug>`; after OTP, `mergeGuestRsvps` transfers upcoming RSVPs and the tokenless `joinGroup` call accepts the membership. If the guest's only attendance is in the past (so no RSVP was converted), `joinGroup` falls back to the guest cookie and the retained guest rows. A signed-in non-member with an RSVP can join directly from the prompt.
 - Copy uses shared `copy-to-clipboard.ts`: Clipboard API with a temporary-textarea fallback, so invite links can be copied over plain-HTTP LAN access where `navigator.clipboard` is unavailable. The event page's copy-link button uses the same helper.
 
 **#30 Manage roles**
@@ -60,7 +60,9 @@ Groups need members and role management, and regular guests should be able to co
 - Member list on group page with role badges; owner always "Organiser"
 
 **#20 Guest→account**
-- `mergeGuestRsvps()` in rsvp.ts: moves guest rows (by cookie token) into rsvps via upsert, deletes guest rows
+- `mergeGuestRsvps()` in rsvp.ts: delegates to `mergeGuestRsvpsInDb` (`apps/web/src/lib/merge-guest-rsvps.ts`)
+- Converts only guest rows for events dated today or later via upsert; converted guest rows are deleted, past guest rows stay as history
+- Name restoration and conversion run in one transaction
 - Called after OTP verify in login-form.tsx; idempotent guest-merge.tsx safety net on /my
 - guest-banner.tsx on event page when guest has ≥3 RSVPs; "Not now" sets guest_banner_dismissed cookie
 
