@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, inArray } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, or } from "drizzle-orm";
 import { events, groupMembers, groups, guests, rsvps } from "@minyanmate/db/schema";
 import { db } from "@/lib/db";
 
@@ -12,7 +12,7 @@ export type EventSummary = {
 
 type EventScope =
   | { kind: "group"; groupId: string }
-  | { kind: "rsvp"; userId: string }
+  | { kind: "my"; userId: string }
   | { kind: "guest"; guestToken: string };
 
 /**
@@ -28,10 +28,31 @@ export async function getUpcomingEventSummaries(
   const scopeFilter =
     scope.kind === "group"
       ? eq(events.groupId, scope.groupId)
-      : scope.kind === "rsvp"
-        ? inArray(
-            events.id,
-            db.select({ eventId: rsvps.eventId }).from(rsvps).where(eq(rsvps.userId, scope.userId)),
+      : scope.kind === "my"
+        ? or(
+            // Anything the user answered, created, or can see through a group
+            // they belong to (owner, organiser, or member).
+            inArray(
+              events.id,
+              db
+                .select({ eventId: rsvps.eventId })
+                .from(rsvps)
+                .where(eq(rsvps.userId, scope.userId)),
+            ),
+            eq(events.ownerId, scope.userId),
+            inArray(
+              events.groupId,
+              db
+                .select({ groupId: groups.id })
+                .from(groups)
+                .where(eq(groups.ownerId, scope.userId))
+                .union(
+                  db
+                    .select({ groupId: groupMembers.groupId })
+                    .from(groupMembers)
+                    .where(eq(groupMembers.userId, scope.userId)),
+                ),
+            ),
           )
         : inArray(
             events.id,

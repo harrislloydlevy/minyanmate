@@ -30,9 +30,9 @@ export default async function MyPage() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const rsvpEvents = session
+  const myEvents = session
     ? await getUpcomingEventSummaries(session.user.id, today, {
-        kind: "rsvp",
+        kind: "my",
         userId: session.user.id,
       })
     : guestToken
@@ -43,7 +43,7 @@ export default async function MyPage() {
       : [];
 
   // Cancelled events stay off My Minyans; they remain visible on the group page.
-  const visibleEvents = rsvpEvents.filter((summary) => summary.event.status !== "cancelled");
+  const visibleEvents = myEvents.filter((summary) => summary.event.status !== "cancelled");
 
   const oneOffEvents = visibleEvents.filter((summary) => !summary.event.groupId);
 
@@ -162,8 +162,10 @@ export default async function MyPage() {
         {oneOffEvents.length === 0 && groupSections.length === 0 && (
           <Card className="max-w-md">
             <CardHeader>
-              <CardTitle>No RSVP&apos;d minyans yet</CardTitle>
-              <CardDescription>RSVP to a minyan and it will show up here.</CardDescription>
+              <CardTitle>No upcoming minyans yet</CardTitle>
+              <CardDescription>
+                Join a group or RSVP to a minyan and it will show up here.
+              </CardDescription>
             </CardHeader>
             {session && (
               <CardContent className="flex gap-2">

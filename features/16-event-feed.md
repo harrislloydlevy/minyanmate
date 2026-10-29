@@ -91,3 +91,10 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - `N` is the group's owner plus `group_members`, minus users with any RSVP row for that event. It is computed per event, so two events in the same group can show different counts.
 - The event detail page shows the same figure in its summary line and lists the members' names in a **Not RSVP'd** section.
 - `/my` remains RSVP-only; the new count describes the other group members, not additional events.
+
+### Follow-up (2026-10-29): membership events always appear
+
+- `/my` now shows every upcoming event for groups the signed-in user owns or belongs to, regardless of whether they have RSVP'd.
+- The feed also still includes events the user RSVP'd to and one-off events they created.
+- `getUpcomingEventSummaries` gained the `{ kind: "my", userId }` scope, which unions RSVPs, event ownership, group ownership, and `group_members` rows.
+- A member/organiser who has not responded sees the event with no personal RSVP badge and still counts toward "N not RSVP'd" on the event page.
