@@ -121,3 +121,9 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - Each row is a single compact line: date (recurring) or title + date/time/location (one-off), RSVP counts on larger screens, and the quick RSVP buttons.
 - The whole row is still a link to the event; the RSVP buttons sit above it.
 - `/my` header and main content now use the shared `container` + `px-4` gutter instead of edge-to-edge layout.
+
+### Follow-up (2026-10-29): inline name editing
+
+- The stand-alone "Your details" card is gone. The welcome heading now reads `Welcome, <name or phone>` with a small **Change name** button beside it.
+- Clicking it swaps the heading for a compact name input with **Save** / **Cancel**; saving returns to the heading view and refreshes the session.
+- Phone number and its explanatory text are no longer shown on `/my`; it remains the fallback display when no name is set.

@@ -106,19 +106,25 @@ export default async function MyPage() {
       </header>
 
       <main className="container flex-1 space-y-8 px-4 py-10">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              Welcome
-              {session?.user.name ? `, ${session.user.name}` : guestName ? `, ${guestName}` : ""}
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              {session
-                ? `Signed in as ${session.user.phoneNumber ?? session.user.email}`
-                : guestToken
-                  ? "Showing RSVPs saved on this device."
-                  : "No RSVPs saved on this device yet."}
-            </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            {session ? (
+              <ProfileForm
+                initialName={session.user.name ?? ""}
+                phoneNumber={session.user.phoneNumber ?? null}
+              />
+            ) : (
+              <>
+                <h1 className="text-2xl font-bold tracking-tight">
+                  Welcome{guestName ? `, ${guestName}` : ""}
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  {guestToken
+                    ? "Showing RSVPs saved on this device."
+                    : "No RSVPs saved on this device yet."}
+                </p>
+              </>
+            )}
           </div>
           {session && (
             <div className="flex items-center gap-2">
@@ -137,13 +143,6 @@ export default async function MyPage() {
             </div>
           )}
         </div>
-
-        {session && (
-          <ProfileForm
-            initialName={session.user.name ?? ""}
-            phoneNumber={session.user.phoneNumber ?? null}
-          />
-        )}
 
         {oneOffEvents.length > 0 && (
           <section>
