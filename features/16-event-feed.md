@@ -106,3 +106,11 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - Clicking updates the RSVP through `setRsvp` and refreshes the feed without opening the event page.
 - The card remains fully clickable through an overlay link; the RSVP buttons stop above it.
 - Buttons are hidden for guests and cancelled events.
+
+### Follow-up (2026-10-29): compact three-event feed
+
+- `/my` shows only the next **3** upcoming minyans (cancelled events excluded before the limit).
+- Recurring instances inside a group section render a compact card: the date is the title, with no repeated time/location.
+- The group heading shows the recurring time and location once (e.g. `7:00 PM · Shul on Main`).
+- One-off events and one-off group events keep the full title/date/time/location card.
+- Group sections stay in chronological order of their first visible event.

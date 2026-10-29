@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getUpcomingEventSummaries } from "@/lib/event-summaries";
+import { formatEventTime } from "@/lib/format-event";
 
 export const metadata: Metadata = {
   title: "My minyans",
@@ -43,10 +44,14 @@ export default async function MyPage() {
       : [];
 
   // Cancelled events stay off My Minyans; they remain visible on the group page.
-  const visibleEvents = myEvents.filter((summary) => summary.event.status !== "cancelled");
+  // The feed is intentionally short: the next three minyans only.
+  const visibleEvents = myEvents
+    .filter((summary) => summary.event.status !== "cancelled")
+    .slice(0, 3);
 
   const oneOffEvents = visibleEvents.filter((summary) => !summary.event.groupId);
 
+  // Preserve the chronological order of the feed when grouping by group.
   const groupIds = [
     ...new Set(
       visibleEvents.flatMap((summary) => (summary.event.groupId ? [summary.event.groupId] : [])),
@@ -66,10 +71,21 @@ export default async function MyPage() {
           .orderBy(asc(groups.name))
       : [];
 
-  const groupSections = rsvpGroups.map((group) => ({
-    ...group,
-    events: visibleEvents.filter((summary) => summary.event.groupId === group.id),
-  }));
+  const groupsById = new Map(rsvpGroups.map((group) => [group.id, group]));
+
+  const groupSections = groupIds.flatMap((groupId) => {
+    const group = groupsById.get(groupId);
+    if (!group) return [];
+    const events = visibleEvents.filter((summary) => summary.event.groupId === groupId);
+    // Recurring instances share a time and place; show them once in the heading.
+    const recurring = events.find((summary) => summary.event.minyanId !== null);
+    const scheduleLine = recurring
+      ? `${formatEventTime(recurring.event.startsAt)} · ${
+          recurring.event.locationText ?? "No location set"
+        }`
+      : null;
+    return [{ ...group, events, scheduleLine }];
+  });
 
   return (
     <div className="flex min-h-svh flex-col">
@@ -143,15 +159,25 @@ export default async function MyPage() {
           <div className="space-y-8">
             {groupSections.map((group) => (
               <section key={group.id}>
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <h2 className="text-lg font-semibold">{group.name}</h2>
+                <div className="mb-3 flex items-end justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="text-lg font-semibold">{group.name}</h2>
+                    {group.scheduleLine && (
+                      <p className="text-muted-foreground text-xs">{group.scheduleLine}</p>
+                    )}
+                  </div>
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/groups/${group.slug}`}>Details</Link>
                   </Button>
                 </div>
                 <div className="flex flex-col gap-3">
                   {group.events.map((summary) => (
-                    <EventCard key={summary.event.id} summary={summary} showQuickRsvp={!!session} />
+                    <EventCard
+                      key={summary.event.id}
+                      summary={summary}
+                      showQuickRsvp={!!session}
+                      compact={summary.event.minyanId !== null}
+                    />
                   ))}
                 </div>
               </section>
