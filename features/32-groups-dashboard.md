@@ -5,9 +5,11 @@
 - **Source:** Taiga story #32
 
 ## Goal
+
 Provide a 'My Groups' dashboard showing all groups with upcoming event previews and RSVP status.
 
 ## Acceptance Criteria
+
 - Grid or list of all groups the user belongs to
 - Each group card shows: name, avatar/color, next upcoming event with RSVP status
 - If no upcoming events, show 'No upcoming events' with a prompt to create one
@@ -16,11 +18,13 @@ Provide a 'My Groups' dashboard showing all groups with upcoming event previews 
 - Long-press or swipe for quick actions (RSVP to next event, leave group)
 
 ## Constraints & Conventions
+
 - Show all groups user belongs to
 - Order by soonest upcoming event
 - Quick actions for efficiency
 
 ## Definition of Done
+
 - Dashboard displays all user groups
 - Each card shows group info and next event preview
 - RSVP status visible
@@ -32,9 +36,9 @@ Provide a 'My Groups' dashboard showing all groups with upcoming event previews 
 - PR open against `main`, CI green
 
 ## Implementation Notes
+
 - May integrate with #31's leave group functionality
 - Consider responsive grid/list layout
-
 
 ### Follow-up (2026-10-27): My Groups dashboard
 
@@ -43,4 +47,5 @@ Provide a 'My Groups' dashboard showing all groups with upcoming event previews 
 3. **Ordering** by soonest upcoming event (groups without one sort last, then by name).
 4. **Quick actions**: `RsvpButtons` for the next event and the existing `LeaveGroup` component (which calls `leaveGroup` from `group-members`); owners have no leave button.
 5. **Navigation**: header links between `/my` and `/groups`; `/my` gained a "My groups" button.
-6. Verified: `pnpm typecheck`, `pnpm test`, `pnpm build` all pass.
+6. **Button styling**: **New group** / **New event** create actions use the primary blue button; **Leave group** uses the destructive red style.
+7. Verified: `pnpm typecheck`, `pnpm test`, `pnpm build` all pass.

@@ -47,11 +47,18 @@ docker compose run --rm ci pnpm lint       # eslint
 docker compose run --rm ci pnpm build      # production build
 ```
 
+## UI conventions
+
+- **Create actions are primary/blue**: anything that creates a new item (`New…`, `Create…`, `Add…`) uses the default `Button` variant.
+- **Destructive actions are red**: delete, remove, cancel event, and leave group use the destructive styling, including their confirmation buttons.
+- **RSVP controls keep their action-specific styling**: going/yes, maybe, and not going/no follow the existing `QuickRsvp` / `RsvpButtons` patterns rather than the create/destructive rule.
+- Secondary navigation actions stay outline or ghost.
+
 ## Branch workflow
 
 **All work happens on a feature branch — never directly on `main`.**
 
-Each feature branch is the feature *view*: before it is tested or merged back, bring `main` into it so it already contains every previously merged feature. Resolve conflicts and fix wiring on the branch, not on `main`.
+Each feature branch is the feature _view_: before it is tested or merged back, bring `main` into it so it already contains every previously merged feature. Resolve conflicts and fix wiring on the branch, not on `main`.
 
 1. Branch from `main` when starting a feature.
 2. Merge `main` **into** the branch before testing/merging: `git merge main` — this is where integration conflicts get resolved.

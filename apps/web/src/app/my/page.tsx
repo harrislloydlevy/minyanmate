@@ -140,7 +140,7 @@ export default async function MyPage() {
                   My groups
                 </Link>
               </Button>
-              <Button asChild variant="outline">
+              <Button asChild>
                 <Link href="/groups/new">
                   <UsersRound className="size-4" />
                   New group
@@ -232,7 +232,7 @@ export default async function MyPage() {
                     New event
                   </Link>
                 </Button>
-                <Button asChild variant="outline">
+                <Button asChild>
                   <Link href="/groups/new">
                     <UsersRound className="size-4" />
                     New group

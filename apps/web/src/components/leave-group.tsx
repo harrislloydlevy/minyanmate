@@ -29,9 +29,7 @@ export function LeaveGroup({
   const [error, setError] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSole, setShowSole] = useState(false);
-  const [selectedOrganiser, setSelectedOrganiser] = useState<string>(
-    candidates[0]?.userId ?? "",
-  );
+  const [selectedOrganiser, setSelectedOrganiser] = useState<string>(candidates[0]?.userId ?? "");
 
   async function doLeave(newOrganiserUserId?: string) {
     setSubmitting(true);
@@ -59,8 +57,8 @@ export function LeaveGroup({
     <div className="flex flex-col gap-1">
       <Button
         type="button"
-        variant="outline"
-        className="text-destructive hover:text-destructive w-full"
+        variant="destructive"
+        className="w-full"
         onClick={handleLeaveClick}
         disabled={submitting}
       >
@@ -78,8 +76,8 @@ export function LeaveGroup({
           <div className="bg-background w-full max-w-sm rounded-lg border p-4 shadow-lg">
             <h2 className="text-sm font-semibold">Leave {name}?</h2>
             <p className="text-muted-foreground mt-2 text-xs">
-              All of your RSVPs for future events in this group will be
-              cancelled. Your attendance at past events is preserved.
+              All of your RSVPs for future events in this group will be cancelled. Your attendance
+              at past events is preserved.
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <Button
@@ -110,8 +108,8 @@ export function LeaveGroup({
           <div className="bg-background w-full max-w-sm rounded-lg border p-4 shadow-lg">
             <h2 className="text-sm font-semibold">Assign a new organiser</h2>
             <p className="text-muted-foreground mt-2 text-xs">
-              You are the sole organiser of {name}. Choose a member to promote
-              before you can leave. All of your future RSVPs will be cancelled.
+              You are the sole organiser of {name}. Choose a member to promote before you can leave.
+              All of your future RSVPs will be cancelled.
             </p>
             {candidates.length === 0 ? (
               <p className="text-destructive mt-3 text-xs">
