@@ -133,7 +133,7 @@ export default async function MyPage() {
             <h2 className="mb-3 text-lg font-semibold">Once-Off</h2>
             <div className="flex flex-col gap-3">
               {oneOffEvents.map((summary) => (
-                <EventCard key={summary.event.id} summary={summary} />
+                <EventCard key={summary.event.id} summary={summary} showQuickRsvp={!!session} />
               ))}
             </div>
           </section>
@@ -151,7 +151,7 @@ export default async function MyPage() {
                 </div>
                 <div className="flex flex-col gap-3">
                   {group.events.map((summary) => (
-                    <EventCard key={summary.event.id} summary={summary} />
+                    <EventCard key={summary.event.id} summary={summary} showQuickRsvp={!!session} />
                   ))}
                 </div>
               </section>

@@ -98,3 +98,11 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - The feed also still includes events the user RSVP'd to and one-off events they created.
 - `getUpcomingEventSummaries` gained the `{ kind: "my", userId }` scope, which unions RSVPs, event ownership, group ownership, and `group_members` rows.
 - A member/organiser who has not responded sees the event with no personal RSVP badge and still counts toward "N not RSVP'd" on the event page.
+
+### Follow-up (2026-10-29): inline RSVP controls on feed cards
+
+- Signed-in `/my` cards show three compact buttons in the bottom-right: Going / Maybe / Not going.
+- The current response is highlighted (green / amber / muted); the other options are dimmed until hover/focus.
+- Clicking updates the RSVP through `setRsvp` and refreshes the feed without opening the event page.
+- The card remains fully clickable through an overlay link; the RSVP buttons stop above it.
+- Buttons are hidden for guests and cancelled events.
