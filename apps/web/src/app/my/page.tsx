@@ -169,24 +169,30 @@ export default async function MyPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <CardTitle className="text-base">{group.name}</CardTitle>
-                        {group.isMember ? (
+                        <CardTitle className="text-base">
+                          <Link
+                            href={`/groups/${group.slug}`}
+                            className="underline underline-offset-4"
+                          >
+                            {group.name}
+                          </Link>
+                        </CardTitle>
+                        {group.isMember && (
                           <span className="text-muted-foreground text-xs">(Member)</span>
-                        ) : session ? (
-                          <BecomeRegular slug={group.slug} />
-                        ) : (
-                          <Button asChild size="sm" variant="outline">
-                            <Link href={`/login?joinGroup=${group.slug}`}>Become Regular</Link>
-                          </Button>
                         )}
                       </div>
                       {group.scheduleLine && (
                         <CardDescription className="text-xs">{group.scheduleLine}</CardDescription>
                       )}
                     </div>
-                    <Button asChild variant="outline" size="sm">
-                      <Link href={`/groups/${group.slug}`}>Details</Link>
-                    </Button>
+                    {!group.isMember &&
+                      (session ? (
+                        <BecomeRegular slug={group.slug} />
+                      ) : (
+                        <Button asChild size="sm" variant="outline">
+                          <Link href={`/login?joinGroup=${group.slug}`}>Become Regular</Link>
+                        </Button>
+                      ))}
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">

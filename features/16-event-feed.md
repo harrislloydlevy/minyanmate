@@ -137,6 +137,7 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 ### Follow-up (2026-10-29): group membership marker
 
 - Group cards on `/my` show `(Member)` beside the group name for the owner, organisers, and members.
-- Non-members see a **Become Regular** button instead. Signed-in users join in place and the card refreshes to `(Member)`; guests are sent through login first.
+- The group name is a link to the group details page, and the separate **Details** button is gone.
+- Non-members see a **Become Regular** button on the right side of the card instead. Signed-in users join in place and the card refreshes to `(Member)`; guests are sent through login first.
 - The group details page shows the same `(Member)` marker beside the group name.
 - `getMemberGroupIds` computes membership once per page and counts the owner even when there is no `group_members` row; unit tests cover owner/member/outsider cases.
