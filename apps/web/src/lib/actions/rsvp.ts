@@ -1,6 +1,6 @@
 "use server";
 
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, isNotNull, sql } from "drizzle-orm";
 import { events, guests, rsvps, users } from "@minyanmate/db/schema";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
@@ -83,29 +83,53 @@ export async function setGuestRsvp(
       return { success: false, error: "This event has been cancelled." };
     }
 
-    // D1: a guest may only "claim" an existing *guest* RSVP by name. If the
-    // name matches a registered user, re-identification is rejected and the
-    // visitor is treated as a brand-new guest (no claim of any existing row).
-    const registeredMatch = await db
+    // Guests must never impersonate a registered user. Block the submission
+    // when the name matches any registered user's name (case/whitespace
+    // insensitive) or phone number, across the whole app — not just this event.
+    const normalizedName = trimmedName.replace(/\s+/g, " ").toLowerCase();
+    const [registeredNameMatch] = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.name, trimmedName))
+      .where(sql`lower(trim(${users.name})) = ${normalizedName}`)
       .limit(1);
 
-    const isRegisteredName = registeredMatch.length > 0;
-
-    // Claim an existing guest RSVP by name only when the name does not belong
-    // to a registered user.
-    let existing = null;
-    if (!isRegisteredName) {
-      const [row] = await db
-        .select()
-        .from(guests)
-        .where(and(eq(guests.eventId, eventId), eq(guests.name, trimmedName)))
-        .orderBy(asc(guests.createdAt))
-        .limit(1);
-      existing = row ?? null;
+    let registeredPhoneMatch = false;
+    const digits = trimmedName.replace(/\D/g, "");
+    const looksLikePhoneNumber = digits.length >= 6 && !/[a-z]/i.test(trimmedName);
+    if (looksLikePhoneNumber) {
+      const phoneRows = await db
+        .select({ phoneNumber: users.phoneNumber })
+        .from(users)
+        .where(isNotNull(users.phoneNumber));
+      const targetLast9 = digits.slice(-9);
+      registeredPhoneMatch = phoneRows.some(({ phoneNumber }) => {
+        if (!phoneNumber) return false;
+        const registeredDigits = phoneNumber.replace(/\D/g, "");
+        if (!registeredDigits) return false;
+        return (
+          registeredDigits === digits ||
+          (registeredDigits.length >= 9 && registeredDigits.slice(-9) === targetLast9)
+        );
+      });
     }
+
+    if (registeredNameMatch || registeredPhoneMatch) {
+      return {
+        success: false,
+        error:
+          "That name or phone number belongs to a registered user. Please sign in or choose a different name.",
+      };
+    }
+
+    // Claim an existing guest RSVP by name (the conflict check above ensures
+    // this can only ever match another guest, never a registered user).
+    const [existingRow] = await db
+      .select()
+      .from(guests)
+      .where(and(eq(guests.eventId, eventId), eq(guests.name, trimmedName)))
+      .orderBy(asc(guests.createdAt))
+      .limit(1);
+    const existing = existingRow ?? null;
 
     let token: string;
     if (existing) {

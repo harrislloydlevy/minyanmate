@@ -21,14 +21,14 @@ A guest who has already RSVP'd must be able to return to the event page and chan
 - Spec lives in the repo at `features/19-guest-change-rsvp.md` and is committed with the code.
 
 ## Decisions (resolved 2026-10-27, Mordi)
-- **D1 — Re-identification scope:** a guest may only "claim" an existing **guest** RSVP by name. If the name matches a registered user, the re-identification is rejected; the visitor is treated as a brand-new guest and cannot see or modify the registered user's response.
+- **D1 — Re-identification scope:** a guest may only "claim" an existing **guest** RSVP by name. If the submitted name matches a registered user's name or phone number (anywhere in the app, not just this event), the submission is rejected outright — no guest row is created and the registered user's response is never revealed or modified.
 - **D2 — Update confirmation:** changing a response shows a brief confirmation toast, consistent with the existing event detail UX.
 
 ## Definition of Done
 - Returning guest sees their last response highlighted on the event page
 - Tapping a different response updates it immediately, with a confirmation toast
 - A guest whose cookie was cleared can re-identify by name and change their earlier guest response
-- Re-identifying against a registered user's name is rejected and does not reveal that response
+- Re-identifying against a registered user's name or phone number is rejected and does not reveal that response
 - Attendee count updates in real-time for all viewers
 - [x] `pnpm typecheck` passes
 - [x] `pnpm test` passes, including coverage of the guest response-change and re-identification rules
@@ -39,8 +39,9 @@ A guest who has already RSVP'd must be able to return to the event page and chan
 - Reuse the guest identity pattern from `features/18-guest-rsvp.md`; do not duplicate it.
 
 ### Follow-up (2026-10-27): guest response change + re-identification
-- `setGuestRsvp()` now refuses to claim an existing guest RSVP when the submitted name matches a registered user (D1); instead it creates a brand-new guest row, so the registered user's response is never revealed or modified.
+- `setGuestRsvp()` rejects any submitted name that conflicts with a registered user's name (case/whitespace insensitive, across all users) or phone number (matching on full digits or the last 9 digits). No guest row is created in that case, so a registered user's identity and response can never be claimed, and guests cannot register a "name" that is another user's phone number.
 - The event page computes the returning guest's current status from the `guest_token` cookie and passes it to `GuestRsvpButtons`, which highlights the active response.
+- Signed-out visitors can use the "This is me" button next to a guest in the RSVP list to copy that guest's name into the form and `guest_name` cookie, so their next response updates the same guest row.
 - `GuestRsvpButtons` shows a brief "Response updated" confirmation toast on a successful change (D2) and refreshes the page so counts update.
 - Added `revalidatePath` for the event route so attendee counts update for all viewers.
 - How to verify: typecheck/test/build pass; manual guest flow as in story #18.
