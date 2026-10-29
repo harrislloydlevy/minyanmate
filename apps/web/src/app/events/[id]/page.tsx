@@ -34,6 +34,7 @@ import { ThisIsMeButton } from "@/components/this-is-me-button";
 import type { RsvpStatus } from "@/lib/actions/rsvp";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { displayName } from "@/lib/display-name";
 
 export const metadata: Metadata = {
   title: "Event details",
@@ -160,9 +161,9 @@ export default async function EventDetailPage({
 
     const memberNames = new Map<string, string>();
     for (const member of memberRows) {
-      memberNames.set(member.userId, member.name);
+      memberNames.set(member.userId, displayName(member.name));
     }
-    if (group) memberNames.set(group.ownerId, group.ownerName ?? "Unknown");
+    if (group) memberNames.set(group.ownerId, displayName(group.ownerName));
 
     const respondedUserIds = new Set(rsvpRows.map((row) => row.userId));
     notRsvpdMembers = Array.from(memberNames.entries())
@@ -207,12 +208,12 @@ export default async function EventDetailPage({
 
   const allRsvps: RsvpDisplay[] = [
     ...rsvpRows.map((r) => ({
-      name: r.userName ?? "Unknown",
+      name: displayName(r.userName),
       status: r.status,
       isGuest: false,
     })),
     ...guestRows.map((r) => ({
-      name: r.name,
+      name: displayName(r.name, "Guest"),
       status: r.status,
       isGuest: true,
     })),
@@ -311,7 +312,7 @@ export default async function EventDetailPage({
                 <UserRound className="text-muted-foreground mt-0.5 size-4 shrink-0" />
                 <div>
                   <dt className="text-muted-foreground text-xs">Owner</dt>
-                  <dd>{owner?.name || "Unknown"}</dd>
+                  <dd>{displayName(owner?.name)}</dd>
                 </div>
               </div>
 
@@ -398,7 +399,7 @@ export default async function EventDetailPage({
                 </h3>
                 <ul className="list-inside list-disc text-sm text-muted-foreground">
                   {notRsvpdMembers.map((member) => (
-                    <li key={member.userId}>{member.name || "Unknown"}</li>
+                    <li key={member.userId}>{displayName(member.name)}</li>
                   ))}
                 </ul>
               </div>

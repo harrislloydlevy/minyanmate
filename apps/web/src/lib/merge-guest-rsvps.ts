@@ -2,6 +2,7 @@ import { and, eq, gte, inArray, sql } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import { events, guests, rsvps, users } from "@minyanmate/db/schema";
 import type * as schema from "@minyanmate/db/schema";
+import { isPhoneLikeName, needsName } from "./display-name";
 
 type Db = BetterSQLite3Database<typeof schema>;
 
@@ -49,18 +50,18 @@ export function mergeGuestRsvpsInDb(
           .all()
       : [];
 
-    // Phone sign-up sets the account name to the phone number. If this visitor
-    // previously RSVP'd as a guest, restore the name they used then.
-    const currentName = input.currentName?.trim() ?? "";
-    const isPlaceholderName =
-      !currentName ||
-      (input.phoneNumber !== undefined && currentName === input.phoneNumber);
+    // New phone sign-ups start without a display name. If this visitor
+    // previously RSVP'd as a guest, restore the name they used then instead of
+    // sending them through the name prompt.
+    const isPlaceholderName = needsName(input.currentName, input.phoneNumber);
     const guestNameFromRows = guestRows
       .map((row) => row.name.trim())
-      .find((name) => name.length > 0);
-    const preferredName = input.guestNameCookie?.trim() || guestNameFromRows;
+      .find((name) => name.length > 0 && !isPhoneLikeName(name));
+    const preferredName = [input.guestNameCookie?.trim(), guestNameFromRows].find(
+      (name) => name && !isPhoneLikeName(name),
+    );
 
-    if (isPlaceholderName && preferredName && preferredName !== currentName) {
+    if (isPlaceholderName && preferredName) {
       tx.update(users)
         .set({ name: preferredName, updatedAt: sql`(unixepoch())` })
         .where(eq(users.id, input.userId))

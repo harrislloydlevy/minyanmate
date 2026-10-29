@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isPhoneLikeName } from "@/lib/display-name";
 import { mergeGuestRsvpsInDb } from "@/lib/merge-guest-rsvps";
 import { cookies } from "next/headers";
 
@@ -70,6 +71,9 @@ export async function setGuestRsvp(
   const trimmedName = name.trim();
   if (!trimmedName) {
     return { success: false, error: "Please enter your name." };
+  }
+  if (isPhoneLikeName(trimmedName)) {
+    return { success: false, error: "Please enter a name, not a phone number." };
   }
 
   try {

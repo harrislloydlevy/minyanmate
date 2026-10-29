@@ -4,29 +4,29 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoaderCircle } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { displayName, isPhoneLikeName, needsName } from "@/lib/display-name";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface ProfileFormProps {
   initialName: string;
-  phoneNumber: string | null;
 }
 
 /**
  * Inline welcome line: "Welcome, <name>" with a Change name action that swaps
  * the heading for a compact input and Save/Cancel buttons.
  */
-export function ProfileForm({ initialName, phoneNumber }: ProfileFormProps) {
+export function ProfileForm({ initialName }: ProfileFormProps) {
   const router = useRouter();
-  const [savedName, setSavedName] = useState(initialName);
-  const [name, setName] = useState(initialName);
+  const [savedName, setSavedName] = useState(needsName(initialName) ? "" : initialName.trim());
+  const [name, setName] = useState(needsName(initialName) ? "" : initialName.trim());
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const trimmedName = name.trim();
-  const displayName = savedName.trim() || phoneNumber || "";
+  const shownName = displayName(savedName);
   const canSave = trimmedName.length > 0 && trimmedName !== savedName && !saving;
 
   function startEditing() {
@@ -44,6 +44,10 @@ export function ProfileForm({ initialName, phoneNumber }: ProfileFormProps) {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!canSave) return;
+    if (isPhoneLikeName(trimmedName)) {
+      setError("Please enter a name, not a phone number.");
+      return;
+    }
 
     setSaving(true);
     setError(null);
@@ -65,7 +69,7 @@ export function ProfileForm({ initialName, phoneNumber }: ProfileFormProps) {
   if (!editing) {
     return (
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="text-2xl font-bold tracking-tight">Welcome, {displayName}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Welcome, {shownName}</h1>
         <Button
           type="button"
           variant="ghost"

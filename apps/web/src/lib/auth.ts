@@ -56,7 +56,8 @@ export const auth = betterAuth({
     phoneNumber({
       signUpOnVerification: {
         getTempEmail: (phone) => `${phone.replace(/[^+\d]/g, "")}@minyanmate.app`,
-        getTempName: (phone) => phone,
+        // New accounts start nameless and are sent to the name prompt.
+        getTempName: () => "",
       },
       // In development any code is accepted so testing does not depend on
       // reading the WhatsApp log. The real code is still generated and logged.

@@ -3,6 +3,7 @@
 import { MessageCircle, Smartphone } from "lucide-react";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { needsName } from "@/lib/display-name";
 import { mergeGuestRsvps } from "@/lib/actions/rsvp";
 import { joinGroup } from "@/lib/actions/group-members";
 import { Button } from "@/components/ui/button";
@@ -64,6 +65,13 @@ export function LoginForm({ joinGroupSlug, joinToken }: LoginFormProps) {
         joined.success || !joinToken
           ? groupPath
           : `${groupPath}?join=${encodeURIComponent(joinToken)}`;
+    }
+
+    // New accounts have no display name yet. Ask for one before letting them
+    // into the app, then continue to wherever they were heading.
+    const { data: session } = await authClient.getSession();
+    if (session && needsName(session.user.name, session.user.phoneNumber)) {
+      destination = `/welcome?next=${encodeURIComponent(destination)}`;
     }
 
     setLoading(false);

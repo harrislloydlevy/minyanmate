@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { displayName } from "@/lib/display-name";
 import { getUpcomingEventSummaries } from "@/lib/event-summaries";
 
 export const metadata: Metadata = {
@@ -123,7 +124,7 @@ export default async function GroupDetailPage({
       {
         userId: m.userId,
         role: m.role,
-        name: m.name,
+        name: displayName(m.name),
         isOwner: m.userId === group.ownerId,
       },
     ]),
@@ -133,7 +134,7 @@ export default async function GroupDetailPage({
     memberById.set(group.ownerId, {
       userId: group.ownerId,
       role: "organiser",
-      name: owner?.name || "Unknown",
+      name: displayName(owner?.name),
       isOwner: true,
     });
   }
@@ -221,7 +222,7 @@ export default async function GroupDetailPage({
                 <UsersRound className="text-muted-foreground mt-0.5 size-4 shrink-0" />
                 <div>
                   <dt className="text-muted-foreground text-xs">Organiser</dt>
-                  <dd>{owner?.name || "Unknown"}</dd>
+                  <dd>{displayName(owner?.name)}</dd>
                 </div>
               </div>
 
@@ -318,7 +319,7 @@ export default async function GroupDetailPage({
               <ul className="flex flex-col gap-2 text-sm">
                 {members.map((m) => (
                   <li key={m.userId} className="flex items-center justify-between gap-2">
-                    <span>{m.name || "Unknown"}</span>
+                    <span>{displayName(m.name)}</span>
                     <div className="flex items-center gap-2">
                       <span
                         className={

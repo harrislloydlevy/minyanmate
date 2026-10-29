@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { asc, inArray } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CalendarPlus, UsersRound } from "lucide-react";
 import { groups } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
@@ -16,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { needsName } from "@/lib/display-name";
 import { getUpcomingEventSummaries } from "@/lib/event-summaries";
 import { formatEventTime } from "@/lib/format-event";
 import { getMemberGroupIds } from "@/lib/group-membership";
@@ -28,6 +30,9 @@ export const dynamic = "force-dynamic";
 
 export default async function MyPage() {
   const session = await auth.api.getSession({ headers: await headers() });
+  if (session && needsName(session.user.name, session.user.phoneNumber)) {
+    redirect(`/welcome?next=${encodeURIComponent("/my")}`);
+  }
   const cookieStore = await cookies();
   const guestToken = session ? null : (cookieStore.get("guest_token")?.value ?? null);
   const guestName = session ? null : (cookieStore.get("guest_name")?.value ?? null);
@@ -115,14 +120,12 @@ export default async function MyPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             {session ? (
-              <ProfileForm
-                initialName={session.user.name ?? ""}
-                phoneNumber={session.user.phoneNumber ?? null}
-              />
+              <ProfileForm initialName={session.user.name ?? ""} />
             ) : (
               <>
                 <h1 className="text-2xl font-bold tracking-tight">
-                  Welcome{guestName ? `, ${guestName}` : ""}
+                  Welcome
+                  {guestName && !needsName(guestName) ? `, ${guestName.trim()}` : ""}
                 </h1>
                 <p className="text-muted-foreground text-sm">
                   {guestToken
