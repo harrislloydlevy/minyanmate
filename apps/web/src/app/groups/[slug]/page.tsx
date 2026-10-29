@@ -80,11 +80,11 @@ export default async function GroupDetailPage({
   if (!group) {
     return (
       <div className="flex min-h-svh flex-col">
-        <header className="container flex h-16 items-center justify-between">
+        <header className="flex h-16 items-center justify-between">
           <SiteLogo />
           <ThemeToggle />
         </header>
-        <main className="container flex flex-1 items-start justify-center py-10">
+        <main className="flex flex-1 items-start justify-center py-10">
           <Card className="w-full max-w-lg">
             <CardHeader>
               <CardTitle>Group not found</CardTitle>
@@ -196,12 +196,12 @@ export default async function GroupDetailPage({
 
   return (
     <div className="flex min-h-svh flex-col">
-      <header className="container flex h-16 items-center justify-between">
+      <header className="flex h-16 items-center justify-between">
         <SiteLogo />
         <ThemeToggle />
       </header>
 
-      <main className="container flex flex-1 items-start justify-center py-10">
+      <main className="flex flex-1 items-start justify-center py-10">
         <Card className="w-full max-w-lg">
           <CardHeader>
             <div className="flex items-start justify-between gap-4">
@@ -350,9 +350,7 @@ export default async function GroupDetailPage({
                     members.filter((m) => m.role === "organiser").length === 1
                   }
                   candidates={members
-                    .filter(
-                      (m) => m.userId !== session?.user.id && m.role === "member",
-                    )
+                    .filter((m) => m.userId !== session?.user.id && m.role === "member")
                     .map((m) => ({ userId: m.userId, name: m.name }))}
                 />
               </div>

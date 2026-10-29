@@ -91,7 +91,7 @@ export default async function MyPage() {
   return (
     <div className="flex min-h-svh flex-col">
       {session && <GuestMerge />}
-      <header className="container flex h-16 items-center justify-between px-4">
+      <header className="flex h-16 items-center justify-between">
         <SiteLogo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -105,7 +105,7 @@ export default async function MyPage() {
         </div>
       </header>
 
-      <main className="container flex-1 space-y-8 px-4 py-10">
+      <main className="flex-1 space-y-8 py-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             {session ? (
