@@ -133,3 +133,10 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - The group page's **Upcoming minyans** list now uses the same one-line `EventRow` layout as `/my`.
 - Recurring instances show only the date, with time/location already in the group details; one-off events keep the full title/date/time/location line.
 - Signed-in viewers get the same inline quick RSVP controls; guests and cancelled events do not.
+
+### Follow-up (2026-10-29): group membership marker
+
+- Group cards on `/my` show `(Member)` beside the group name for the owner, organisers, and members.
+- Non-members see a **Become Regular** button instead. Signed-in users join in place and the card refreshes to `(Member)`; guests are sent through login first.
+- The group details page shows the same `(Member)` marker beside the group name.
+- `getMemberGroupIds` computes membership once per page and counts the owner even when there is no `group_members` row; unit tests cover owner/member/outsider cases.

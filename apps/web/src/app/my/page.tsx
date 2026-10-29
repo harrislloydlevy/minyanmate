@@ -6,6 +6,7 @@ import { CalendarPlus, UsersRound } from "lucide-react";
 import { groups } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { ProfileForm } from "./profile-form";
+import { BecomeRegular } from "@/components/become-regular";
 import { EventCard } from "@/components/event-card";
 import { EventRow } from "@/components/event-row";
 import { GuestMerge } from "@/components/guest-merge";
@@ -17,6 +18,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getUpcomingEventSummaries } from "@/lib/event-summaries";
 import { formatEventTime } from "@/lib/format-event";
+import { getMemberGroupIds } from "@/lib/group-membership";
 
 export const metadata: Metadata = {
   title: "My minyans",
@@ -74,6 +76,10 @@ export default async function MyPage() {
 
   const groupsById = new Map(rsvpGroups.map((group) => [group.id, group]));
 
+  const memberGroupIds = session
+    ? await getMemberGroupIds(db, session.user.id, groupIds)
+    : new Set<string>();
+
   const groupSections = groupIds.flatMap((groupId) => {
     const group = groupsById.get(groupId);
     if (!group) return [];
@@ -85,7 +91,7 @@ export default async function MyPage() {
           recurring.event.locationText ?? "No location set"
         }`
       : null;
-    return [{ ...group, events, scheduleLine }];
+    return [{ ...group, events, scheduleLine, isMember: memberGroupIds.has(group.id) }];
   });
 
   return (
@@ -162,7 +168,18 @@ export default async function MyPage() {
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <CardTitle className="text-base">{group.name}</CardTitle>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <CardTitle className="text-base">{group.name}</CardTitle>
+                        {group.isMember ? (
+                          <span className="text-muted-foreground text-xs">(Member)</span>
+                        ) : session ? (
+                          <BecomeRegular slug={group.slug} />
+                        ) : (
+                          <Button asChild size="sm" variant="outline">
+                            <Link href={`/login?joinGroup=${group.slug}`}>Become Regular</Link>
+                          </Button>
+                        )}
+                      </div>
                       {group.scheduleLine && (
                         <CardDescription className="text-xs">{group.scheduleLine}</CardDescription>
                       )}
