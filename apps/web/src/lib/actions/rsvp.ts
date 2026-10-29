@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { mergeGuestRsvpsInDb } from "@/lib/merge-guest-rsvps";
 import { cookies } from "next/headers";
 
 export type RsvpStatus = "in" | "out" | "maybe";
@@ -200,48 +201,14 @@ export async function mergeGuestRsvps(): Promise<MergeGuestRsvpsResult> {
   const guestNameCookie = cookieStore.get("guest_name")?.value?.trim();
 
   try {
-    const guestRows = token ? await db.select().from(guests).where(eq(guests.token, token)) : [];
-
-    // Phone sign-up sets the account name to the phone number. If this visitor
-    // previously RSVP'd as a guest, restore the name they used then.
-    const currentName = session.user.name?.trim() ?? "";
-    const phoneNumber = session.user.phoneNumber?.trim();
-    const isPlaceholderName =
-      !currentName || (phoneNumber !== undefined && currentName === phoneNumber);
-    const guestNameFromRows = guestRows
-      .map((row) => row.name.trim())
-      .find((name) => name.length > 0);
-
-    const preferredName = guestNameCookie || guestNameFromRows;
-    if (isPlaceholderName && preferredName && preferredName !== currentName) {
-      await db
-        .update(users)
-        .set({ name: preferredName, updatedAt: sql`(unixepoch())` })
-        .where(eq(users.id, session.user.id));
-    }
-
-    if (!token) return { success: true, merged: 0 };
-
-    for (const row of guestRows) {
-      await db
-        .insert(rsvps)
-        .values({
-          eventId: row.eventId,
-          userId: session.user.id,
-          status: row.status,
-          source: "web",
-        })
-        .onConflictDoUpdate({
-          target: [rsvps.eventId, rsvps.userId],
-          set: { status: row.status, updatedAt: sql`(unixepoch())` },
-        });
-    }
-
-    if (guestRows.length > 0) {
-      await db.delete(guests).where(eq(guests.token, token));
-    }
-
-    return { success: true, merged: guestRows.length };
+    const result = mergeGuestRsvpsInDb(db, {
+      userId: session.user.id,
+      token,
+      guestNameCookie,
+      currentName: session.user.name,
+      phoneNumber: session.user.phoneNumber ?? undefined,
+    });
+    return { success: true, merged: result.merged };
   } catch {
     return { success: false, error: "An unexpected error occurred." };
   }

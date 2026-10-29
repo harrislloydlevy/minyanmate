@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { canManageEvent } from "@/lib/group-permissions";
 import { EditEventForm } from "./edit-event-form";
 
 export const metadata: Metadata = {
@@ -66,8 +67,8 @@ export default async function EditEventPage({
     );
   }
 
-  // Only the owner may edit
-  if (event.ownerId !== session.user.id) {
+  // The event creator, or a group owner/organiser, may edit.
+  if (!(await canManageEvent(event, session.user.id))) {
     redirect(`/events/${event.id}`);
   }
 

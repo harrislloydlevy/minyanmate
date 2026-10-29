@@ -347,7 +347,7 @@ export default async function GroupDetailPage({
                   isSoleOrganiser={
                     !!viewerMember &&
                     viewerMember.role === "organiser" &&
-                    memberRows.filter((m) => m.role === "organiser").length === 1
+                    members.filter((m) => m.role === "organiser").length === 1
                   }
                   candidates={members
                     .filter(

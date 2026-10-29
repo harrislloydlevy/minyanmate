@@ -27,7 +27,7 @@ Groups need members and role management, and regular guests should be able to co
 ### #20 — Guest→account conversion
 - [ ] Guest banner on event page after 3+ RSVPs by that guest: "Coming regularly? Create an account to keep your history."
 - [ ] Banner links to /login (the existing phone OTP signup)
-- [ ] mergeGuestRsvps server action: on login, if a guest cookie exists, transfer guest RSVP rows to the user
+- [ ] mergeGuestRsvps server action: on login, if a guest cookie exists, transfer the guest's upcoming (date >= today) RSVP rows to the user; past guest rows stay as history
 - [ ] Prompt is dismissible (cookie flag)
 
 ## Constraints & Conventions
@@ -60,7 +60,9 @@ Groups need members and role management, and regular guests should be able to co
 - Member list on group page with role badges; owner always "Organiser"
 
 **#20 Guest→account**
-- `mergeGuestRsvps()` in rsvp.ts: moves guest rows (by cookie token) into rsvps via upsert, deletes guest rows
+- `mergeGuestRsvps()` in rsvp.ts: delegates to `mergeGuestRsvpsInDb` (`apps/web/src/lib/merge-guest-rsvps.ts`)
+- Converts only guest rows for events dated today or later via upsert; converted guest rows are deleted, past guest rows stay as history
+- Name restoration and conversion run in one transaction
 - Called after OTP verify in login-form.tsx; idempotent guest-merge.tsx safety net on /my
 - guest-banner.tsx on event page when guest has ≥3 RSVPs; "Not now" sets guest_banner_dismissed cookie
 

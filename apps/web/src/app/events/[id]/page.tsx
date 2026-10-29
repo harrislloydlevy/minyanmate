@@ -15,6 +15,7 @@ import { events, groupMembers, groups, rsvps, guests, users } from "@minyanmate/
 import { relativeAge } from "@minyanmate/core";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CopyLinkButton } from "@/components/copy-link-button";
+import { canManageEvent } from "@/lib/group-permissions";
 import { CancelEventButton } from "@/components/cancel-event-button";
 import { SiteLogo } from "@/components/site-logo";
 import { Button } from "@/components/ui/button";
@@ -116,7 +117,9 @@ export default async function EventDetailPage({
     );
   }
 
-  const isOwner = session ? event.ownerId === session.user.id : false;
+  const canManage = session
+    ? await canManageEvent(event, session.user.id)
+    : false;
 
   // RSVP counts from authenticated users
   const rsvpRows = await db
@@ -251,7 +254,7 @@ export default async function EventDetailPage({
               </div>
               <div className="flex items-center gap-2">
                 <CopyLinkButton />
-                {isOwner && (
+                {canManage && (
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/events/${event.id}/edit`}>
                       <Pencil className="size-4" />
@@ -386,7 +389,7 @@ export default async function EventDetailPage({
               </div>
             )}
 
-            {isOwner && event.status !== "cancelled" && (
+            {canManage && event.status !== "cancelled" && (
               <div className="border-t pt-4">
                 <CancelEventButton eventId={event.id} />
               </div>

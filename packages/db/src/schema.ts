@@ -2,7 +2,6 @@ import { sql } from "drizzle-orm";
 import {
   index,
   integer,
-  primaryKey,
   sqliteTable,
   text,
   uniqueIndex,
@@ -139,7 +138,9 @@ export const minyans = sqliteTable(
   (t) => [uniqueIndex("minyans_group_uq").on(t.groupId)],
 );
 
-/** Membership of a user in a group, with a role. */
+/** Membership of a user in a group, with a role. This is also the only
+ * "following" mechanism: members receive the group's notifications. The owner
+ * is always an organiser even without a row here. */
 export const groupMembers = sqliteTable(
   "group_members",
   {
@@ -156,25 +157,6 @@ export const groupMembers = sqliteTable(
     ...timestamps,
   },
   (t) => [uniqueIndex("group_members_group_user_uq").on(t.groupId, t.userId)],
-);
-
-/** Follow ("regulars") — subscribe a user to a group's notifications. */
-export const minyanFollowers = sqliteTable(
-  "minyan_followers",
-  {
-    minyanId: text("minyan_id")
-      .notNull()
-      .references(() => minyans.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    notifyQuorum: integer("notify_quorum", { mode: "boolean" }).notNull().default(true),
-    notifyReminders: integer("notify_reminders", { mode: "boolean" }).notNull().default(true),
-    createdAt: integer("created_at", { mode: "timestamp" })
-      .notNull()
-      .default(sql`(unixepoch())`),
-  },
-  (t) => [primaryKey({ columns: [t.minyanId, t.userId] })],
 );
 
 /** One dated occurrence of a minyan, materialized by the worker or created ad-hoc. */

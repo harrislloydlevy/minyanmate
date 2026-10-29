@@ -1,11 +1,12 @@
 "use server";
 
-import { and, eq, gte, inArray, or, sql } from "drizzle-orm";
-import { events, groupMembers, groups, minyans, rsvps } from "@minyanmate/db/schema";
+import { and, eq, sql } from "drizzle-orm";
+import { events, groupMembers, groups, rsvps } from "@minyanmate/db/schema";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canManageGroup } from "@/lib/group-permissions";
+import { leaveGroupInDb } from "@/lib/leave-group";
 
 export type GroupMemberActionResult =
   { success: true } | { success: false; error: string };
@@ -108,130 +109,15 @@ export async function leaveGroup(
   const group = await findGroupBySlug(slug);
   if (!group) return { success: false, error: "Group not found." };
 
-  // The group owner cannot leave without transferring ownership.
-  if (group.ownerId === session.user.id) {
-    return {
-      success: false,
-      error: "The group owner cannot leave the group.",
-    };
-  }
-
-  const [membership] = await db
-    .select({ id: groupMembers.id, role: groupMembers.role })
-    .from(groupMembers)
-    .where(
-      and(
-        eq(groupMembers.groupId, group.id),
-        eq(groupMembers.userId, session.user.id),
-      ),
-    )
-    .limit(1);
-  if (!membership) {
-    return { success: false, error: "You are not a member of this group." };
-  }
-
-  // Sole-organiser safeguard: if this member is the only member with the
-  // organiser role, they must promote a replacement before leaving.
-  const memberOrganisers = await db
-    .select({ userId: groupMembers.userId })
-    .from(groupMembers)
-    .where(
-      and(
-        eq(groupMembers.groupId, group.id),
-        eq(groupMembers.role, "organiser"),
-      ),
-    );
-  const isSoleOrganiser =
-    membership.role === "organiser" && memberOrganisers.length === 1 &&
-    memberOrganisers[0]?.userId === session.user.id;
-
-  if (isSoleOrganiser) {
-    if (!newOrganiserUserId || newOrganiserUserId === session.user.id) {
-      return {
-        success: false,
-        error:
-          "You are the sole organiser. Assign a new organiser before leaving.",
-      };
-    }
-    const [replacement] = await db
-      .select({ id: groupMembers.id })
-      .from(groupMembers)
-      .where(
-        and(
-          eq(groupMembers.groupId, group.id),
-          eq(groupMembers.userId, newOrganiserUserId),
-        ),
-      )
-      .limit(1);
-    if (!replacement) {
-      return {
-        success: false,
-        error: "That member is not in this group.",
-      };
-    }
-    try {
-      await db
-        .update(groupMembers)
-        .set({ role: "organiser", updatedAt: sql`(unixepoch())` })
-        .where(
-          and(
-            eq(groupMembers.groupId, group.id),
-            eq(groupMembers.userId, newOrganiserUserId),
-          ),
-        );
-    } catch {
-      return { success: false, error: "An unexpected error occurred." };
-    }
-  }
-
   try {
-    const removed = await db
-      .delete(groupMembers)
-      .where(
-        and(
-          eq(groupMembers.groupId, group.id),
-          eq(groupMembers.userId, session.user.id),
-        ),
-      )
-      .returning({ id: groupMembers.id });
-    if (removed.length === 0) {
-      return { success: false, error: "You are not a member of this group." };
-    }
-
-    // Withdraw RSVPs for all future events in this group. Past attendance is
-    // preserved by filtering on event date >= today.
-    const today = new Date().toISOString().slice(0, 10);
-    const minyanRows = await db
-      .select({ id: minyans.id })
-      .from(minyans)
-      .where(eq(minyans.groupId, group.id));
-    const minyanIds = minyanRows.map((r) => r.id);
-
-    const associationFilter =
-      minyanIds.length > 0
-        ? or(eq(events.groupId, group.id), inArray(events.minyanId, minyanIds))
-        : eq(events.groupId, group.id);
-
-    const futureEvents = await db
-      .select({ id: events.id })
-      .from(events)
-      .where(and(gte(events.date, today), associationFilter));
-
-    if (futureEvents.length > 0) {
-      await db
-        .delete(rsvps)
-        .where(
-          and(
-            eq(rsvps.userId, session.user.id),
-            inArray(
-              rsvps.eventId,
-              futureEvents.map((e) => e.id),
-            ),
-          ),
-        );
-    }
-
-    return { success: true };
+    const result = leaveGroupInDb(db, {
+      groupId: group.id,
+      userId: session.user.id,
+      newOrganiserUserId,
+    });
+    return result.ok
+      ? { success: true }
+      : { success: false, error: result.error };
   } catch {
     return { success: false, error: "An unexpected error occurred." };
   }
