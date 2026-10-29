@@ -36,7 +36,7 @@ docker compose exec dev pnpm db:generate   # generate Drizzle migrations after s
 docker compose exec dev pnpm db:migrate    # apply migrations to data/dev.db
 ```
 
-Sign-in code for local dev is printed to the web logs as `[dev-otp]`.
+Sign-in code for local dev is printed to the web logs as `[dev-otp]`. In development any code is accepted, so testing does not require copying the logged value; the logged code remains the real one.
 
 ## Quality gates
 

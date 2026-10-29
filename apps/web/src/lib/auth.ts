@@ -4,7 +4,8 @@ import { phoneNumber } from "better-auth/plugins";
 import * as schema from "@minyanmate/db/schema";
 import { db } from "./db";
 
-const isProduction = process.env.APP_ENV === "production";
+const isProduction =
+  process.env.APP_ENV === "production" || process.env.NODE_ENV === "production";
 
 const authURL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
 const authOrigin = (() => {
@@ -57,6 +58,9 @@ export const auth = betterAuth({
         getTempEmail: (phone) => `${phone.replace(/[^+\d]/g, "")}@minyanmate.app`,
         getTempName: (phone) => phone,
       },
+      // In development any code is accepted so testing does not depend on
+      // reading the WhatsApp log. The real code is still generated and logged.
+      verifyOTP: isProduction ? undefined : async () => true,
       sendOTP: async ({ phoneNumber: to, code }) => {
         if (!isProduction) {
           console.log(`[dev-otp] WhatsApp OTP for ${to}: ${code}`);
