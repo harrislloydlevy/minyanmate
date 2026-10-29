@@ -140,3 +140,9 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - Non-members get a **Become Regular** button on the right, next to the **Details** button. Signed-in users join in place and the card refreshes to `(Member)`; guests are sent through login first.
 - The group details page shows the same `(Member)` marker beside the group name.
 - `getMemberGroupIds` computes membership once per page and counts the owner even when there is no `group_members` row; unit tests cover owner/member/outsider cases.
+
+### Follow-up (2026-10-29): create and destructive button styling
+
+- The `/my` header **New group** and **New event** actions both use the primary blue button style.
+- The empty-state **New group** action matches; create actions are blue project-wide.
+- Destructive actions such as **Leave group** use red destructive styling; RSVP controls keep their existing action-specific styling.

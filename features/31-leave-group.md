@@ -5,6 +5,7 @@
 - **Source:** Taiga story #31
 
 ## Goal
+
 Allow group members to leave a group, withdraw their upcoming RSVPs, and keep the owner in place. Organisers (including the owner) manage the group; ownership is permanent.
 
 ## Roles
@@ -14,6 +15,7 @@ Allow group members to leave a group, withdraw their upcoming RSVPs, and keep th
 - **Member** — regular participant.
 
 ## Acceptance Criteria
+
 - [x] 'Leave group' action from group settings
 - [x] Confirmation dialog explaining that all future RSVPs will be cancelled
 - [x] Member is removed from the group and all future RSVPs are withdrawn (`status = "out"`)
@@ -23,12 +25,14 @@ Allow group members to leave a group, withdraw their upcoming RSVPs, and keep th
 - [x] Group member count and event RSVP counts update immediately
 
 ## Constraints & Conventions
+
 - Past events must remain unchanged; "future" means `events.date >= today` (local calendar date). Same-day events count as future — exact start time is not considered.
 - Only future events' RSVPs are withdrawn, by setting `status = "out"`. Rows are never deleted, so downstream consumers see an explicit "not coming" answer.
 - The whole mutation (membership removal + RSVP withdrawal) runs in one Drizzle transaction.
 - Following a group and being a member of a group are the same concept. The unused `minyan_followers` table was removed in migration `0009`; notification/follower queries must use `group_members` (owner included).
 
 ## Definition of Done
+
 - Leave group action accessible from group settings
 - Confirmation dialog with clear explanation
 - Member removed from group membership
@@ -39,6 +43,7 @@ Allow group members to leave a group, withdraw their upcoming RSVPs, and keep th
 - PR open against `main`, CI green
 
 ## Implementation Notes
+
 - **Logic + tests:** `apps/web/src/lib/leave-group.ts` (`leaveGroupInDb`) holds the mutation so it can be tested against an in-memory SQLite DB. `apps/web/src/lib/leave-group.test.ts` covers owner blocking, future-only `out` withdrawal, organiser-with-owner, and non-member cases.
 - **Server action:** `leaveGroup(slug, newOrganiserUserId?)` in `apps/web/src/lib/actions/group-members.ts` authenticates, resolves the group, and delegates to `leaveGroupInDb`. `newOrganiserUserId` is retained for the legacy sole-organiser flow but is effectively unreachable while the owner is always an organiser.
 - **UI:** `leave-group.tsx` keeps the existing confirmation dialogs. `isSoleOrganiser` is computed from the full member list (owner included), so a non-owner organiser is never treated as the last organiser. The button stays hidden for the owner.
@@ -48,11 +53,14 @@ Allow group members to leave a group, withdraw their upcoming RSVPs, and keep th
 - **Verification:** `pnpm test` (includes 6 web action tests), `pnpm typecheck`, `pnpm lint`.
 
 ### Follow-up (2026-10-27): leave group implemented
+
 - `leaveGroup` removes membership and withholds future RSVPs; past attendance preserved.
 - Sole-organiser flow, as originally specified, is superseded by the owner-always-organiser rule above.
 
 ### Follow-up (2026-10-29): owner/organiser rules, OUT status, transaction, followers
+
 - Owner is permanently blocked from leaving; owner always counts as an organiser.
 - Future RSVPs are set to `out` instead of being deleted.
 - Membership removal and RSVP withdrawal are wrapped in one Drizzle transaction.
 - `minyan_followers` was unused; following is now identical to group membership and the table was dropped (migration `0009_nostalgic_dracula.sql`).
+- The **Leave group** trigger and its confirmation use the red destructive button style, per the project UI conventions.

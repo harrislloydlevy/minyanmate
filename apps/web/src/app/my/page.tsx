@@ -138,6 +138,12 @@ export default async function MyPage() {
           {session && (
             <div className="flex items-center gap-2">
               <Button asChild variant="outline">
+                <Link href="/groups">
+                  <UsersRound className="size-4" />
+                  My groups
+                </Link>
+              </Button>
+              <Button asChild>
                 <Link href="/groups/new">
                   <UsersRound className="size-4" />
                   New group
@@ -229,7 +235,7 @@ export default async function MyPage() {
                     New event
                   </Link>
                 </Button>
-                <Button asChild variant="outline">
+                <Button asChild>
                   <Link href="/groups/new">
                     <UsersRound className="size-4" />
                     New group

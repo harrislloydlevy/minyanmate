@@ -26,11 +26,13 @@ const configuredOrigins = (process.env.BETTER_AUTH_TRUSTED_ORIGINS ?? "")
 const trustedOrigins = [
   authOrigin,
   ...configuredOrigins,
-  // Local dev is commonly reached via localhost, 127.0.0.1, or a LAN IP on
-  // varying ports. Keep these patterns out of production.
+  // Local dev is commonly reached via localhost, 127.0.0.1, a LAN IP, or a
+  // tunnel on varying ports. In development, accept any origin instead of
+  // maintaining a host list. Production still uses the explicit origins above.
   ...(isProduction
     ? []
     : [
+        "*",
         "http://localhost:*",
         "http://127.0.0.1:*",
         "http://192.168.*:*",
@@ -68,7 +70,10 @@ export const auth = betterAuth({
           return;
         }
         const { WhatsAppClient } = await import("@minyanmate/whatsapp");
-        await WhatsAppClient.fromEnv().sendText(to, `Your MinyanMate verification code is: ${code}`);
+        await WhatsAppClient.fromEnv().sendText(
+          to,
+          `Your MinyanMate verification code is: ${code}`,
+        );
       },
     }),
   ],
