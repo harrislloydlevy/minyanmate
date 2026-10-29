@@ -1,7 +1,7 @@
 # Feature 21: As an organiser, the shareable event link auto-generates a meaningful preview when shared on messaging and social platforms
 
 > Sprint 5 — Pickup Depth & Polish
-> Source story: https://taiga.tiyrah.duckdns.org/project/minyanmate/us/21
+> Source story: Taiga #21
 
 ## Goal
 

@@ -1,7 +1,7 @@
 # Sprint 12: Groups membership — invite members (#29), manage roles (#30), guest→account conversion (#20)
 
 > Sprint 12 — Groups Dashboard
-> Stories: https://taiga.tiyrah.duckdns.org/project/minyanmate/us/29, /us/30, /us/20
+> Stories: Taiga #29, #30, #20
 
 ## Goal
 
