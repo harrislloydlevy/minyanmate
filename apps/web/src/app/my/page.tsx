@@ -173,7 +173,12 @@ export default async function MyPage() {
             <h2 className="mb-3 text-lg font-semibold">Once-Off</h2>
             <div className="flex flex-col gap-3">
               {oneOffEvents.map((summary) => (
-                <EventCard key={summary.event.id} summary={summary} showQuickRsvp={!!session} />
+                <EventCard
+                  key={summary.event.id}
+                  summary={summary}
+                  showQuickRsvp={!!session}
+                  isOwner={session?.user.id === summary.event.ownerId}
+                />
               ))}
             </div>
           </section>

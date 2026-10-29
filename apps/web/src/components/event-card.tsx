@@ -8,9 +8,11 @@ interface EventCardProps {
   summary: EventSummary;
   /** Show in-card RSVP controls (signed-in users on /my). */
   showQuickRsvp?: boolean;
+  /** The signed-in viewer created this one-off event. */
+  isOwner?: boolean;
 }
 
-export function EventCard({ summary, showQuickRsvp = false }: EventCardProps) {
+export function EventCard({ summary, showQuickRsvp = false, isOwner = false }: EventCardProps) {
   const { event, counts, notRsvpdCount, userRsvp } = summary;
   const title = event.title ?? "Minyan";
 
@@ -23,7 +25,12 @@ export function EventCard({ summary, showQuickRsvp = false }: EventCardProps) {
       />
       <CardHeader className="pointer-events-none relative z-10 pb-2">
         <div className="flex items-start justify-between gap-3">
-          <CardTitle className="text-base">{title}</CardTitle>
+          <CardTitle className="text-base">
+            {title}
+            {isOwner && (
+              <span className="text-muted-foreground ml-2 text-xs font-normal">(Owner)</span>
+            )}
+          </CardTitle>
           <div className="flex shrink-0 items-center gap-2">
             <span className="text-muted-foreground text-xs">{formatEventTime(event.startsAt)}</span>
             {event.status === "cancelled" && (

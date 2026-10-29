@@ -146,3 +146,7 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - The `/my` header **New group** and **New event** actions both use the primary blue button style.
 - The empty-state **New group** action matches; create actions are blue project-wide.
 - Destructive actions such as **Leave group** use red destructive styling; RSVP controls keep their existing action-specific styling.
+
+### Follow-up (2026-10-29): owner marker on one-off event cards
+
+- Once-off event cards on `/my` show **(Owner)** beside the title when the signed-in viewer created the event.
