@@ -219,6 +219,7 @@ describe("mergeGuestRsvpsInDb", () => {
     });
 
     expect(result.merged).toBe(1);
+    expect(result.eventIds).toEqual([future.id]);
 
     const rsvpRows = await db
       .select()

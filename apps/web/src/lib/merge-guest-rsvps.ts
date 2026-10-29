@@ -20,6 +20,8 @@ export interface MergeGuestRsvpsInput {
 
 export interface MergeGuestRsvpsResult {
   merged: number;
+  /** Events whose guest RSVP was converted; used to re-check quorum. */
+  eventIds: string[];
 }
 
 /**
@@ -106,6 +108,9 @@ export function mergeGuestRsvpsInDb(
         .run();
     }
 
-    return { merged: futureRows.length };
+    return {
+      merged: futureRows.length,
+      eventIds: futureRows.map((row) => row.eventId),
+    };
   });
 }
