@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { groups } from "@minyanmate/db/schema";
+import { SiteLogo } from "@/components/site-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { EventForm } from "./event-form";
 import { auth } from "@/lib/auth";
@@ -52,9 +52,7 @@ export default async function NewEventPage({
   return (
     <div className="flex min-h-svh flex-col">
       <header className="flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          Minyan<span className="text-primary">Mate</span>
-        </Link>
+        <SiteLogo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
         </div>
