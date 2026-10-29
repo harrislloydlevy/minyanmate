@@ -114,3 +114,10 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - The group heading shows the recurring time and location once (e.g. `7:00 PM · Shul on Main`).
 - One-off events and one-off group events keep the full title/date/time/location card.
 - Group sections stay in chronological order of their first visible event.
+
+### Follow-up (2026-10-29): grouped one-line rows
+
+- Recurring events for a group now share **one card**: group name, schedule line, and a Details button in the header, then one row per upcoming date.
+- Each row is a single compact line: date (recurring) or title + date/time/location (one-off), RSVP counts on larger screens, and the quick RSVP buttons.
+- The whole row is still a link to the event; the RSVP buttons sit above it.
+- `/my` header and main content now use the shared `container` + `px-4` gutter instead of edge-to-edge layout.

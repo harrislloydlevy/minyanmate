@@ -8,14 +8,9 @@ interface EventCardProps {
   summary: EventSummary;
   /** Show in-card RSVP controls (signed-in users on /my). */
   showQuickRsvp?: boolean;
-  /**
-   * Recurring series cards only show the date; time and location live once in
-   * the group section heading.
-   */
-  compact?: boolean;
 }
 
-export function EventCard({ summary, showQuickRsvp = false, compact = false }: EventCardProps) {
+export function EventCard({ summary, showQuickRsvp = false }: EventCardProps) {
   const { event, counts, notRsvpdCount, userRsvp } = summary;
   const title = event.title ?? "Minyan";
 
@@ -24,19 +19,13 @@ export function EventCard({ summary, showQuickRsvp = false, compact = false }: E
       <Link
         href={`/events/${event.id}`}
         className="absolute inset-0 rounded-xl focus-visible:ring-[3px] focus-visible:ring-ring/40 focus-visible:outline-none"
-        aria-label={`Open ${compact ? formatEventDate(event.date) : title}`}
+        aria-label={`Open ${title}`}
       />
       <CardHeader className="pointer-events-none relative z-10 pb-2">
         <div className="flex items-start justify-between gap-3">
-          <CardTitle className="text-base">
-            {compact ? formatEventDate(event.date) : title}
-          </CardTitle>
+          <CardTitle className="text-base">{title}</CardTitle>
           <div className="flex shrink-0 items-center gap-2">
-            {!compact && (
-              <span className="text-muted-foreground text-xs">
-                {formatEventTime(event.startsAt)}
-              </span>
-            )}
+            <span className="text-muted-foreground text-xs">{formatEventTime(event.startsAt)}</span>
             {event.status === "cancelled" && (
               <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[10px] font-medium">
                 Cancelled
@@ -44,11 +33,9 @@ export function EventCard({ summary, showQuickRsvp = false, compact = false }: E
             )}
           </div>
         </div>
-        {!compact && (
-          <CardDescription className="text-xs">
-            {formatEventDate(event.date)} · {event.locationText ?? "No location set"}
-          </CardDescription>
-        )}
+        <CardDescription className="text-xs">
+          {formatEventDate(event.date)} · {event.locationText ?? "No location set"}
+        </CardDescription>
       </CardHeader>
       <CardContent className="pointer-events-none relative z-10 flex flex-wrap items-center gap-x-3 gap-y-2 pt-0 text-xs">
         <span className="text-green-600 dark:text-green-400">{counts.in} in</span>

@@ -7,6 +7,7 @@ import { groups } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { ProfileForm } from "./profile-form";
 import { EventCard } from "@/components/event-card";
+import { EventRow } from "@/components/event-row";
 import { GuestMerge } from "@/components/guest-merge";
 import { SiteLogo } from "@/components/site-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -90,7 +91,7 @@ export default async function MyPage() {
   return (
     <div className="flex min-h-svh flex-col">
       {session && <GuestMerge />}
-      <header className="flex h-16 items-center justify-between">
+      <header className="container flex h-16 items-center justify-between px-4">
         <SiteLogo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -104,7 +105,7 @@ export default async function MyPage() {
         </div>
       </header>
 
-      <main className="flex-1 space-y-8 py-10">
+      <main className="container flex-1 space-y-8 px-4 py-10">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">
@@ -156,31 +157,35 @@ export default async function MyPage() {
         )}
 
         {groupSections.length > 0 && (
-          <div className="space-y-8">
+          <div className="space-y-4">
             {groupSections.map((group) => (
-              <section key={group.id}>
-                <div className="mb-3 flex items-end justify-between gap-3">
-                  <div className="min-w-0">
-                    <h2 className="text-lg font-semibold">{group.name}</h2>
-                    {group.scheduleLine && (
-                      <p className="text-muted-foreground text-xs">{group.scheduleLine}</p>
-                    )}
+              <Card key={group.id}>
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <CardTitle className="text-base">{group.name}</CardTitle>
+                      {group.scheduleLine && (
+                        <CardDescription className="text-xs">{group.scheduleLine}</CardDescription>
+                      )}
+                    </div>
+                    <Button asChild variant="outline" size="sm">
+                      <Link href={`/groups/${group.slug}`}>Details</Link>
+                    </Button>
                   </div>
-                  <Button asChild variant="outline" size="sm">
-                    <Link href={`/groups/${group.slug}`}>Details</Link>
-                  </Button>
-                </div>
-                <div className="flex flex-col gap-3">
-                  {group.events.map((summary) => (
-                    <EventCard
-                      key={summary.event.id}
-                      summary={summary}
-                      showQuickRsvp={!!session}
-                      compact={summary.event.minyanId !== null}
-                    />
-                  ))}
-                </div>
-              </section>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <ul className="divide-y">
+                    {group.events.map((summary) => (
+                      <EventRow
+                        key={summary.event.id}
+                        summary={summary}
+                        showQuickRsvp={!!session}
+                        compact={summary.event.minyanId !== null}
+                      />
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
