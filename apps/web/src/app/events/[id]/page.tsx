@@ -28,6 +28,7 @@ import {
 import { RsvpButtons } from "@/components/rsvp-buttons";
 import { GuestBanner } from "@/components/guest-banner";
 import { GuestRsvpButtons } from "@/components/guest-rsvp-buttons";
+import { ThisIsMeButton } from "@/components/this-is-me-button";
 import type { RsvpStatus } from "@/lib/actions/rsvp";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -190,7 +191,7 @@ export default async function EventDetailPage({
 
   type RsvpDisplay = {
     name: string;
-    status: string;
+    status: RsvpStatus;
     isGuest: boolean;
   };
 
@@ -359,6 +360,9 @@ export default async function EventDetailPage({
                         <span className="text-muted-foreground text-xs">
                           (guest)
                         </span>
+                      )}
+                      {!isAuthenticated && r.isGuest && event.status !== "cancelled" && (
+                        <ThisIsMeButton name={r.name} status={r.status} />
                       )}
                       <span className="text-xs">
                         ({r.status === "in" ? "coming" : r.status === "maybe" ? "maybe" : "not coming"})

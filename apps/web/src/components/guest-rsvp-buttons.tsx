@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { setGuestRsvp, type RsvpStatus } from "@/lib/actions/rsvp";
 import { getCookie } from "@/lib/cookies";
+import {
+  GUEST_NAME_SELECTED_EVENT,
+  type GuestNameSelectedDetail,
+} from "@/lib/guest-identity";
 
 interface GuestRsvpButtonsProps {
   eventId: string;
@@ -39,6 +43,24 @@ export function GuestRsvpButtons({ eventId, currentStatus: initialStatus }: Gues
     setGuestToken(getCookie("guest_token"));
     const savedName = getCookie("guest_name");
     if (savedName) setName((current) => current || savedName);
+  }, []);
+
+  useEffect(() => {
+    // A guest picked their name from the RSVP list ("This is me").
+    function handleGuestNameSelected(event: Event) {
+      const { detail } = event as CustomEvent<GuestNameSelectedDetail>;
+      if (!detail?.name) return;
+      setName(detail.name);
+      setCurrentStatus(detail.status ?? null);
+      setError(null);
+    }
+
+    window.addEventListener(GUEST_NAME_SELECTED_EVENT, handleGuestNameSelected);
+    return () =>
+      window.removeEventListener(
+        GUEST_NAME_SELECTED_EVENT,
+        handleGuestNameSelected,
+      );
   }, []);
 
   async function handleClick(status: RsvpStatus) {
