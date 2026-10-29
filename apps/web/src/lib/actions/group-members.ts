@@ -1,8 +1,8 @@
 "use server";
 
 import { and, eq, sql } from "drizzle-orm";
-import { events, groupMembers, groups, rsvps } from "@minyanmate/db/schema";
-import { headers } from "next/headers";
+import { events, groupMembers, groups, guests, rsvps } from "@minyanmate/db/schema";
+import { cookies, headers } from "next/headers";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { canManageGroup } from "@/lib/group-permissions";
@@ -79,6 +79,24 @@ export async function joinGroup(
       )
       .limit(1);
     hasGroupEventRsvp = !!rsvp;
+  }
+
+  // Sign-in only converts *upcoming* guest RSVPs into `rsvps`. A returning
+  // guest whose only attendance is in the past still has guest rows, so fall
+  // back to the guest cookie before rejecting the join.
+  if (!inviteAccepted && !hasGroupEventRsvp) {
+    const guestToken = (await cookies()).get("guest_token")?.value;
+    if (guestToken) {
+      const [guestRsvp] = await db
+        .select({ id: guests.id })
+        .from(guests)
+        .innerJoin(events, eq(guests.eventId, events.id))
+        .where(
+          and(eq(guests.token, guestToken), eq(events.groupId, group.id)),
+        )
+        .limit(1);
+      hasGroupEventRsvp = !!guestRsvp;
+    }
   }
 
   if (!inviteAccepted && !hasGroupEventRsvp) {
