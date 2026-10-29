@@ -73,6 +73,7 @@ export default async function MyPage() {
             id: groups.id,
             name: groups.name,
             slug: groups.slug,
+            ownerId: groups.ownerId,
           })
           .from(groups)
           .where(inArray(groups.id, groupIds))
@@ -96,7 +97,15 @@ export default async function MyPage() {
           recurring.event.locationText ?? "No location set"
         }`
       : null;
-    return [{ ...group, events, scheduleLine, isMember: memberGroupIds.has(group.id) }];
+    return [
+      {
+        ...group,
+        events,
+        scheduleLine,
+        isMember: memberGroupIds.has(group.id),
+        isOwner: session?.user.id === group.ownerId,
+      },
+    ];
   });
 
   return (
@@ -179,9 +188,11 @@ export default async function MyPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <CardTitle className="text-base">{group.name}</CardTitle>
-                        {group.isMember && (
+                        {group.isOwner ? (
+                          <span className="text-muted-foreground text-xs">(Owner)</span>
+                        ) : group.isMember ? (
                           <span className="text-muted-foreground text-xs">(Member)</span>
-                        )}
+                        ) : null}
                       </div>
                       {group.scheduleLine && (
                         <CardDescription className="text-xs">{group.scheduleLine}</CardDescription>

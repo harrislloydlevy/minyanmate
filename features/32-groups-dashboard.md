@@ -59,3 +59,7 @@ Provide a 'My Groups' dashboard showing all groups with upcoming event previews 
 - Cards are ordered alphabetically by group name; groups with no upcoming events are included.
 - Individual minyans and RSVP controls stay on `/my` and the event detail pages — the directory no longer queries events.
 - `getGroupDirectory` in `apps/web/src/lib/group-directory.ts` computes roles and counts (owner included without a `group_members` row); tests cover owner, organiser, member, and unrelated-group cases.
+
+### Follow-up (2026-10-29): owner label on /my
+
+- The group heading in the `/my` event feed shows **(Owner)** for the group owner and **(Member)** for other members.
