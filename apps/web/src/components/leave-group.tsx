@@ -16,6 +16,8 @@ interface LeaveGroupProps {
   name: string;
   isSoleOrganiser?: boolean;
   candidates?: LeaveGroupCandidate[];
+  /** Page to open after leaving. Defaults to `/my`. */
+  redirectTo?: string;
 }
 
 export function LeaveGroup({
@@ -23,6 +25,7 @@ export function LeaveGroup({
   name,
   isSoleOrganiser = false,
   candidates = [],
+  redirectTo = "/my",
 }: LeaveGroupProps) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
@@ -37,7 +40,7 @@ export function LeaveGroup({
     const result = await leaveGroup(slug, newOrganiserUserId);
     if (result.success) {
       router.refresh();
-      router.push("/my");
+      router.push(redirectTo);
       return;
     }
     setError(result.error);

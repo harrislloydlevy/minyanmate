@@ -49,3 +49,13 @@ Provide a 'My Groups' dashboard showing all groups with upcoming event previews 
 5. **Navigation**: header links between `/my` and `/groups`; `/my` gained a "My groups" button.
 6. **Button styling**: **New group** / **New event** create actions use the primary blue button; **Leave group** uses the destructive red style.
 7. Verified: `pnpm typecheck`, `pnpm test`, `pnpm build` all pass.
+
+### Follow-up (2026-10-29): group directory
+
+- `/groups` is now a group directory, not an event preview feed. The original "next upcoming event" card requirement is superseded.
+- Each card shows the group avatar/name, the viewer's role (Owner / Organiser / Member), total member count, and default location.
+- Actions are **Manage group** for owners/organisers, **View group** for regular members, and **Leave group** for non-owners.
+- Leaving from the directory refreshes the directory instead of sending the user to `/my`.
+- Cards are ordered alphabetically by group name; groups with no upcoming events are included.
+- Individual minyans and RSVP controls stay on `/my` and the event detail pages — the directory no longer queries events.
+- `getGroupDirectory` in `apps/web/src/lib/group-directory.ts` computes roles and counts (owner included without a `group_members` row); tests cover owner, organiser, member, and unrelated-group cases.
