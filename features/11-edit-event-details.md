@@ -9,7 +9,7 @@ Organisers need the ability to edit event fields after creation — change the t
 
 ## Acceptance Criteria
 
-- [x] All original creation fields are editable by the event organiser
+- [x] All original creation fields are editable by the event creator, or by the group owner/any group organiser for group events
 - [x] A change history / 'last edited' timestamp is shown on the event detail page
 - [x] Attendees see a subtle indicator that event details have changed since they RSVP'd
 - [x] Edits in the last hour trigger a notification to confirmed attendees
@@ -89,7 +89,7 @@ The notification job (`event_edited`) is enqueued with a durable `jobs` row but 
 2. Run `pnpm typecheck` — all 5 packages pass.
 3. Run `pnpm build` — web build succeeds.
 4. Start the dev server, create an event via `/events/new`, then navigate to `/events/<id>` to see the detail page.
-5. Click "Edit" (owner only), change a field, save — the detail page should show "Details updated just now".
+5. Click "Edit" (event creator, or group owner/organiser for group events), change a field, save — the detail page should show "Details updated just now".
 6. Verify the `last_edited_at` column is set in the DB via `pnpm db:studio`.
 7. Verify a `jobs` row with type `event_edited` is created when editing within the first hour.
 

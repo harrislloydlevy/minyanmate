@@ -9,7 +9,7 @@ Events sometimes need to be cancelled — weather, venue issues, not enough peop
 
 ## Acceptance Criteria
 
-- [x] Cancel action (confirmation + owner-only) — optional cancellation reason deferred, see notes
+- [x] Cancel action (confirmation; event creator or group owner/organiser) — optional cancellation reason deferred, see notes
 - [x] Confirmation dialog before executing (to prevent accidental cancellation)
 - [ ] All confirmed attendees receive a notification that the event is cancelled — job is enqueued, but fan-out is log-only (no WhatsApp credentials in this environment)
 - [x] Cancelled events remain visible but are clearly marked as cancelled
@@ -32,10 +32,10 @@ Events sometimes need to be cancelled — weather, venue issues, not enough peop
 ## Implementation Notes
 
 **What was built (final state on `main`):**
-- `cancelEvent()` server action (`apps/web/src/lib/actions/cancel-event.ts`) — owner-only; sets `status = "cancelled"`, stamps `lastEditedAt`, and enqueues an `event_cancelled` job.
+- `cancelEvent()` server action (`apps/web/src/lib/actions/cancel-event.ts`) — allowed for the event creator, and for group events the group owner or any organiser (`canManageEvent`); sets `status = "cancelled"`, stamps `lastEditedAt`, and enqueues an `event_cancelled` job.
 - `CancelEventButton` (`apps/web/src/components/cancel-event-button.tsx`) — destructive button with a `window.confirm` dialog and a submitting state.
 - Event detail page (`apps/web/src/app/events/[id]/page.tsx`):
-  - renders the button for the owner at the bottom of the event card; it disappears once the event is cancelled
+  - renders the button for the event creator or a group owner/organiser at the bottom of the event card; it disappears once the event is cancelled
   - shows a "Cancelled" pill next to "Event details"
   - replaces the RSVP controls with "This event has been cancelled — RSVPs are closed", while keeping the RSVP list visible
 - My Minyans (`apps/web/src/app/my/page.tsx`) — cancelled events are excluded from the RSVP-only feed; they remain visible on the event page and group schedule with a "Cancelled" pill. The user's stale Going / Maybe / Not going pill is hidden for cancelled events.
