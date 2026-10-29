@@ -20,6 +20,8 @@ The dev server is **run externally by the human developer** (currently `pnpm dev
 
 **Agents / automation: never start the dev server yourself.** Assume it is already running and hot-reloading your edits. Verify changes with `pnpm test`, `pnpm typecheck`, and `pnpm lint` instead. Do not run `pnpm build` against the same working copy while the dev server is up — a production build reuses `apps/web/.next` and leaves the running dev server returning 500s.
 
+Development accepts **any request origin** — `localhost`, `127.0.0.1`, LAN IPs, mDNS names, and tunnels on any port. There is no host allow-list to update when the dev URL changes. Production still uses the explicit `BETTER_AUTH_TRUSTED_ORIGINS` / `NEXT_ALLOWED_DEV_ORIGINS` values.
+
 ## Development (Docker)
 
 Everything runs inside the container defined by the `Dockerfile` / `docker-compose.yml`:
