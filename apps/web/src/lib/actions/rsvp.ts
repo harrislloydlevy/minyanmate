@@ -186,7 +186,9 @@ export type MergeGuestRsvpsResult =
   | { success: false; error: string };
 
 /**
- * Transfers a guest's RSVP rows to their account after they sign in.
+ * Transfers a guest's RSVP rows to their account after they sign in, and
+ * replaces the phone-number placeholder name created by phone sign-up with
+ * the name they used as a guest.
  * Called from the login flow once a session exists.
  */
 export async function mergeGuestRsvps(): Promise<MergeGuestRsvpsResult> {
@@ -195,13 +197,30 @@ export async function mergeGuestRsvps(): Promise<MergeGuestRsvpsResult> {
 
   const cookieStore = await cookies();
   const token = cookieStore.get("guest_token")?.value;
-  if (!token) return { success: true, merged: 0 };
+  const guestNameCookie = cookieStore.get("guest_name")?.value?.trim();
 
   try {
-    const guestRows = await db
-      .select()
-      .from(guests)
-      .where(eq(guests.token, token));
+    const guestRows = token ? await db.select().from(guests).where(eq(guests.token, token)) : [];
+
+    // Phone sign-up sets the account name to the phone number. If this visitor
+    // previously RSVP'd as a guest, restore the name they used then.
+    const currentName = session.user.name?.trim() ?? "";
+    const phoneNumber = session.user.phoneNumber?.trim();
+    const isPlaceholderName =
+      !currentName || (phoneNumber !== undefined && currentName === phoneNumber);
+    const guestNameFromRows = guestRows
+      .map((row) => row.name.trim())
+      .find((name) => name.length > 0);
+
+    const preferredName = guestNameCookie || guestNameFromRows;
+    if (isPlaceholderName && preferredName && preferredName !== currentName) {
+      await db
+        .update(users)
+        .set({ name: preferredName, updatedAt: sql`(unixepoch())` })
+        .where(eq(users.id, session.user.id));
+    }
+
+    if (!token) return { success: true, merged: 0 };
 
     for (const row of guestRows) {
       await db
