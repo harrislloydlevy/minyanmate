@@ -5,7 +5,7 @@ import Link from "next/link";
 import { CalendarPlus, Clock, MapPin, StickyNote, UsersRound } from "lucide-react";
 import { events, groupMembers, groups, guests, minyans, rsvps, users } from "@minyanmate/db/schema";
 import { parseWeeklySchedule } from "@minyanmate/core";
-import { EventCard } from "@/components/event-card";
+import { EventRow } from "@/components/event-row";
 import { GroupRecurrenceForm } from "@/components/group-recurrence-form";
 import { JoinGroup } from "@/components/join-group";
 import { JoinLink } from "@/components/join-link";
@@ -285,11 +285,16 @@ export default async function GroupDetailPage({
             <div className="border-t pt-4 flex flex-col gap-3">
               <h3 className="text-sm font-semibold">Upcoming minyans</h3>
               {upcomingEvents.length > 0 ? (
-                <div className="flex flex-col gap-3">
+                <ul className="divide-y">
                   {upcomingEvents.map((summary) => (
-                    <EventCard key={summary.event.id} summary={summary} />
+                    <EventRow
+                      key={summary.event.id}
+                      summary={summary}
+                      showQuickRsvp={isAuthenticated}
+                      compact={summary.event.minyanId !== null}
+                    />
                   ))}
-                </div>
+                </ul>
               ) : (
                 <p className="text-muted-foreground text-sm">No upcoming minyans.</p>
               )}

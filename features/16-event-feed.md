@@ -127,3 +127,9 @@ _No description provided in Taiga._ When a user logs in and goes to `/my`, they 
 - The stand-alone "Your details" card is gone. The welcome heading now reads `Welcome, <name or phone>` with a small **Change name** button beside it.
 - Clicking it swaps the heading for a compact name input with **Save** / **Cancel**; saving returns to the heading view and refreshes the session.
 - Phone number and its explanatory text are no longer shown on `/my`; it remains the fallback display when no name is set.
+
+### Follow-up (2026-10-29): condensed group page event list
+
+- The group page's **Upcoming minyans** list now uses the same one-line `EventRow` layout as `/my`.
+- Recurring instances show only the date, with time/location already in the group details; one-off events keep the full title/date/time/location line.
+- Signed-in viewers get the same inline quick RSVP controls; guests and cancelled events do not.
