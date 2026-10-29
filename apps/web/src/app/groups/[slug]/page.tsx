@@ -11,6 +11,7 @@ import { JoinGroup } from "@/components/join-group";
 import { JoinLink } from "@/components/join-link";
 import { LeaveGroup } from "@/components/leave-group";
 import { MemberActions } from "@/components/member-actions";
+import { SiteLogo } from "@/components/site-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,9 +81,7 @@ export default async function GroupDetailPage({
     return (
       <div className="flex min-h-svh flex-col">
         <header className="container flex h-16 items-center justify-between">
-          <Link href="/" className="text-lg font-bold tracking-tight">
-            Minyan<span className="text-primary">Mate</span>
-          </Link>
+          <SiteLogo />
           <ThemeToggle />
         </header>
         <main className="container flex flex-1 items-start justify-center py-10">
@@ -198,9 +197,7 @@ export default async function GroupDetailPage({
   return (
     <div className="flex min-h-svh flex-col">
       <header className="container flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          Minyan<span className="text-primary">Mate</span>
-        </Link>
+        <SiteLogo />
         <ThemeToggle />
       </header>
 

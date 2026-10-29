@@ -8,6 +8,7 @@ import { groups } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { EventCard } from "@/components/event-card";
 import { GuestMerge } from "@/components/guest-merge";
+import { SiteLogo } from "@/components/site-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,9 +81,7 @@ export default async function MyPage() {
     <div className="flex min-h-svh flex-col">
       <GuestMerge />
       <header className="flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          Minyan<span className="text-primary">Mate</span>
-        </Link>
+        <SiteLogo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <SignOutButton />
