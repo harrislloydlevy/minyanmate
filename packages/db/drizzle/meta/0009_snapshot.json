@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "391b7f7a-6635-474d-b7a8-70619183169d",
+  "id": "02e1f285-bcde-4408-96de-7988c568047d",
   "prevId": "bda67ef1-fcae-4899-840d-c979f0f8c83e",
   "tables": {
     "accounts": {
@@ -239,13 +239,6 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
-        },
-        "quorum_notified_at": {
-          "name": "quorum_notified_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
         }
       },
       "indexes": {
@@ -348,22 +341,6 @@
           "notNull": true,
           "autoincrement": false,
           "default": "'member'"
-        },
-        "notify_quorum": {
-          "name": "notify_quorum",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
-        },
-        "notify_reminders": {
-          "name": "notify_reminders",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
         },
         "created_at": {
           "name": "created_at",
@@ -837,89 +814,6 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "minyan_followers": {
-      "name": "minyan_followers",
-      "columns": {
-        "minyan_id": {
-          "name": "minyan_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "notify_quorum": {
-          "name": "notify_quorum",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
-        },
-        "notify_reminders": {
-          "name": "notify_reminders",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(unixepoch())"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "minyan_followers_minyan_id_minyans_id_fk": {
-          "name": "minyan_followers_minyan_id_minyans_id_fk",
-          "tableFrom": "minyan_followers",
-          "tableTo": "minyans",
-          "columnsFrom": [
-            "minyan_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "minyan_followers_user_id_users_id_fk": {
-          "name": "minyan_followers_user_id_users_id_fk",
-          "tableFrom": "minyan_followers",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "minyan_followers_minyan_id_user_id_pk": {
-          "columns": [
-            "minyan_id",
-            "user_id"
-          ],
-          "name": "minyan_followers_minyan_id_user_id_pk"
-        }
-      },
       "uniqueConstraints": {},
       "checkConstraints": {}
     },

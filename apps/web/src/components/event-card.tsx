@@ -1,85 +1,64 @@
 import Link from "next/link";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { QuickRsvp } from "@/components/quick-rsvp";
+import { formatEventDate, formatEventTime } from "@/lib/format-event";
 import type { EventSummary } from "@/lib/event-summaries";
 
-function formatDate(date: string): string {
-  const parsed = new Date(`${date}T00:00:00`);
-  if (Number.isNaN(parsed.getTime())) return date;
-  return parsed.toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
+interface EventCardProps {
+  summary: EventSummary;
+  /** Show in-card RSVP controls (signed-in users on /my). */
+  showQuickRsvp?: boolean;
+  /** The signed-in viewer created this one-off event. */
+  isOwner?: boolean;
 }
 
-function formatTime(startsAt: string): string {
-  const time = startsAt.split("T")[1];
-  if (!time) return startsAt;
-  const [hours, minutes] = time.split(":").map(Number);
-  if (hours === undefined || minutes === undefined) return startsAt;
-  const suffix = hours >= 12 ? "PM" : "AM";
-  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
-  return `${hour12}:${String(minutes).padStart(2, "0")} ${suffix}`;
-}
-
-export function EventCard({ summary }: { summary: EventSummary }) {
+export function EventCard({ summary, showQuickRsvp = false, isOwner = false }: EventCardProps) {
   const { event, counts, notRsvpdCount, userRsvp } = summary;
+  const title = event.title ?? "Minyan";
 
   return (
-    <Link href={`/events/${event.id}`}>
-      <Card className="transition-colors hover:bg-accent/50">
-        <CardHeader className="pb-2">
-          <div className="flex items-start justify-between gap-3">
-            <CardTitle className="text-base">
-              {event.title ?? "Minyan"}
-            </CardTitle>
-            <div className="flex shrink-0 items-center gap-2">
-              <span className="text-muted-foreground text-xs">
-                {formatTime(event.startsAt)}
+    <Card className="relative transition-colors hover:bg-accent/50">
+      <Link
+        href={`/events/${event.id}`}
+        className="absolute inset-0 rounded-xl focus-visible:ring-[3px] focus-visible:ring-ring/40 focus-visible:outline-none"
+        aria-label={`Open ${title}`}
+      />
+      <CardHeader className="pointer-events-none relative z-10 pb-2">
+        <div className="flex items-start justify-between gap-3">
+          <CardTitle className="text-base">
+            {title}
+            {isOwner && (
+              <span className="text-muted-foreground ml-2 text-xs font-normal">(Owner)</span>
+            )}
+          </CardTitle>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="text-muted-foreground text-xs">{formatEventTime(event.startsAt)}</span>
+            {event.status === "cancelled" && (
+              <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[10px] font-medium">
+                Cancelled
               </span>
-              {event.status === "cancelled" && (
-                <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-[10px] font-medium">
-                  Cancelled
-                </span>
-              )}
-            </div>
+            )}
           </div>
-          <CardDescription className="text-xs">
-            {formatDate(event.date)} · {event.locationText ?? "No location set"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-0 text-xs">
-          <span className="text-green-600 dark:text-green-400">
-            {counts.in} in
-          </span>
-          {counts.maybe > 0 && (
-            <span className="text-amber-600 dark:text-amber-400">
-              {counts.maybe} maybe
-            </span>
-          )}
-          <span className="text-muted-foreground">{counts.out} out</span>
-          {notRsvpdCount !== null && (
-            <span className="text-muted-foreground">
-              {notRsvpdCount} not RSVP&apos;d
-            </span>
-          )}
-          {userRsvp && event.status !== "cancelled" && (
-            <span className="ml-auto rounded-full border px-2 py-0.5 text-[10px] font-medium capitalize">
-              {userRsvp === "in"
-                ? "Going"
-                : userRsvp === "out"
-                  ? "Not going"
-                  : "Maybe"}
-            </span>
-          )}
-        </CardContent>
-      </Card>
-    </Link>
+        </div>
+        <CardDescription className="text-xs">
+          {formatEventDate(event.date)} · {event.locationText ?? "No location set"}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="pointer-events-none relative z-10 flex flex-wrap items-center gap-x-3 gap-y-2 pt-0 text-xs">
+        <span className="text-green-600 dark:text-green-400">{counts.in} in</span>
+        {counts.maybe > 0 && (
+          <span className="text-amber-600 dark:text-amber-400">{counts.maybe} maybe</span>
+        )}
+        <span className="text-muted-foreground">{counts.out} out</span>
+        {notRsvpdCount !== null && (
+          <span className="text-muted-foreground">{notRsvpdCount} not RSVP&apos;d</span>
+        )}
+        {showQuickRsvp && event.status !== "cancelled" && (
+          <div className="pointer-events-auto ml-auto">
+            <QuickRsvp eventId={event.id} currentStatus={userRsvp} />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

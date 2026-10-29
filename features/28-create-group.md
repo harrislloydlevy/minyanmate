@@ -1,7 +1,7 @@
 # Feature 28: As a user, I can create a new group with a name and default location so events inherit those settings
 
 > Sprint 11 — Cancel & Groups
-> Source story: https://taiga.tiyrah.duckdns.org/project/minyanmate/us/28
+> Source story: Taiga #28
 
 ## Goal
 

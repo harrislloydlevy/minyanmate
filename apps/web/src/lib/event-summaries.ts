@@ -1,5 +1,5 @@
-import { and, asc, eq, gte, inArray } from "drizzle-orm";
-import { events, groupMembers, groups, rsvps } from "@minyanmate/db/schema";
+import { and, asc, eq, gte, inArray, or } from "drizzle-orm";
+import { events, groupMembers, groups, guests, rsvps } from "@minyanmate/db/schema";
 import { db } from "@/lib/db";
 
 export type EventSummary = {
@@ -10,11 +10,15 @@ export type EventSummary = {
   userRsvp: "in" | "out" | "maybe" | null;
 };
 
-type EventScope = { kind: "group"; groupId: string } | { kind: "rsvp"; userId: string };
+type EventScope =
+  | { kind: "group"; groupId: string }
+  | { kind: "my"; userId: string }
+  | { kind: "guest"; guestToken: string };
 
 /**
  * Loads upcoming events (date >= fromDate) in one query and collapses the
- * RSVP join rows into per-event counts. `userRsvp` is null when signed out.
+ * registered + guest RSVP rows into per-event counts. `userRsvp` is the
+ * signed-in user's response, or the guest's response for a guest scope.
  */
 export async function getUpcomingEventSummaries(
   userId: string | null,
@@ -24,10 +28,39 @@ export async function getUpcomingEventSummaries(
   const scopeFilter =
     scope.kind === "group"
       ? eq(events.groupId, scope.groupId)
-      : inArray(
-          events.id,
-          db.select({ eventId: rsvps.eventId }).from(rsvps).where(eq(rsvps.userId, scope.userId)),
-        );
+      : scope.kind === "my"
+        ? or(
+            // Anything the user answered, created, or can see through a group
+            // they belong to (owner, organiser, or member).
+            inArray(
+              events.id,
+              db
+                .select({ eventId: rsvps.eventId })
+                .from(rsvps)
+                .where(eq(rsvps.userId, scope.userId)),
+            ),
+            eq(events.ownerId, scope.userId),
+            inArray(
+              events.groupId,
+              db
+                .select({ groupId: groups.id })
+                .from(groups)
+                .where(eq(groups.ownerId, scope.userId))
+                .union(
+                  db
+                    .select({ groupId: groupMembers.groupId })
+                    .from(groupMembers)
+                    .where(eq(groupMembers.userId, scope.userId)),
+                ),
+            ),
+          )
+        : inArray(
+            events.id,
+            db
+              .select({ eventId: guests.eventId })
+              .from(guests)
+              .where(eq(guests.token, scope.guestToken)),
+          );
 
   const rows = await db
     .select({
@@ -72,6 +105,31 @@ export async function getUpcomingEventSummaries(
   }
 
   const summaries = Array.from(byId.values());
+
+  // Guest RSVPs live in their own table, so they are counted separately to
+  // avoid multiplying the event/rsvp join rows.
+  if (summaries.length > 0) {
+    const guestRows = await db
+      .select({ eventId: guests.eventId, status: guests.status, token: guests.token })
+      .from(guests)
+      .where(
+        inArray(
+          guests.eventId,
+          summaries.map((summary) => summary.event.id),
+        ),
+      );
+
+    for (const row of guestRows) {
+      const summary = byId.get(row.eventId);
+      if (summary) {
+        summary.counts[row.status as keyof EventSummary["counts"]]++;
+        if (scope.kind === "guest" && row.token === scope.guestToken) {
+          summary.userRsvp = row.status;
+        }
+      }
+    }
+  }
+
   const groupIds = [
     ...new Set(
       summaries.flatMap((summary) => (summary.event.groupId ? [summary.event.groupId] : [])),

@@ -20,6 +20,8 @@ The dev server is **run externally by the human developer** (currently `pnpm dev
 
 **Agents / automation: never start the dev server yourself.** Assume it is already running and hot-reloading your edits. Verify changes with `pnpm test`, `pnpm typecheck`, and `pnpm lint` instead. Do not run `pnpm build` against the same working copy while the dev server is up — a production build reuses `apps/web/.next` and leaves the running dev server returning 500s.
 
+Development accepts **any request origin** — `localhost`, `127.0.0.1`, LAN IPs, mDNS names, and tunnels on any port. There is no host allow-list to update when the dev URL changes. Production still uses the explicit `BETTER_AUTH_TRUSTED_ORIGINS` / `NEXT_ALLOWED_DEV_ORIGINS` values.
+
 ## Development (Docker)
 
 Everything runs inside the container defined by the `Dockerfile` / `docker-compose.yml`:
@@ -36,7 +38,7 @@ docker compose exec dev pnpm db:generate   # generate Drizzle migrations after s
 docker compose exec dev pnpm db:migrate    # apply migrations to data/dev.db
 ```
 
-Sign-in code for local dev is printed to the web logs as `[dev-otp]`.
+Sign-in code for local dev is printed to the web logs as `[dev-otp]`. In development any code is accepted, so testing does not require copying the logged value; the logged code remains the real one. New accounts are asked for a display name before entering the app — phone numbers are identity data and are never used as display names.
 
 ## Quality gates
 
@@ -47,11 +49,18 @@ docker compose run --rm ci pnpm lint       # eslint
 docker compose run --rm ci pnpm build      # production build
 ```
 
+## UI conventions
+
+- **Create actions are primary/blue**: anything that creates a new item (`New…`, `Create…`, `Add…`) uses the default `Button` variant.
+- **Destructive actions are red**: delete, remove, cancel event, and leave group use the destructive styling, including their confirmation buttons.
+- **RSVP controls keep their action-specific styling**: going/yes, maybe, and not going/no follow the existing `QuickRsvp` / `RsvpButtons` patterns rather than the create/destructive rule.
+- Secondary navigation actions stay outline or ghost.
+
 ## Branch workflow
 
 **All work happens on a feature branch — never directly on `main`.**
 
-Each feature branch is the feature *view*: before it is tested or merged back, bring `main` into it so it already contains every previously merged feature. Resolve conflicts and fix wiring on the branch, not on `main`.
+Each feature branch is the feature _view_: before it is tested or merged back, bring `main` into it so it already contains every previously merged feature. Resolve conflicts and fix wiring on the branch, not on `main`.
 
 1. Branch from `main` when starting a feature.
 2. Merge `main` **into** the branch before testing/merging: `git merge main` — this is where integration conflicts get resolved.

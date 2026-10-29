@@ -9,13 +9,16 @@ import {
   Pencil,
   StickyNote,
   Tag,
+  UserRound,
   Users,
 } from "lucide-react";
 import { events, groupMembers, groups, rsvps, guests, users } from "@minyanmate/db/schema";
 import { relativeAge } from "@minyanmate/core";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { CopyLinkButton } from "@/components/copy-link-button";
+import { canManageEvent } from "@/lib/group-permissions";
 import { CancelEventButton } from "@/components/cancel-event-button";
+import { SiteLogo } from "@/components/site-logo";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,9 +30,11 @@ import {
 import { RsvpButtons } from "@/components/rsvp-buttons";
 import { GuestBanner } from "@/components/guest-banner";
 import { GuestRsvpButtons } from "@/components/guest-rsvp-buttons";
+import { ThisIsMeButton } from "@/components/this-is-me-button";
 import type { RsvpStatus } from "@/lib/actions/rsvp";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { displayName } from "@/lib/display-name";
 
 export const metadata: Metadata = {
   title: "Event details",
@@ -92,9 +97,7 @@ export default async function EventDetailPage({
     return (
       <div className="flex min-h-svh flex-col">
         <header className="flex h-16 items-center justify-between">
-          <Link href="/" className="text-lg font-bold tracking-tight">
-            Minyan<span className="text-primary">Mate</span>
-          </Link>
+          <SiteLogo />
           <ThemeToggle />
         </header>
         <main className="flex flex-1 items-start justify-center py-10">
@@ -116,7 +119,16 @@ export default async function EventDetailPage({
     );
   }
 
-  const isOwner = session ? event.ownerId === session.user.id : false;
+  const canManage = session
+    ? await canManageEvent(event, session.user.id)
+    : false;
+  const isOwner = session?.user.id === event.ownerId;
+
+  const [owner] = await db
+    .select({ name: users.name })
+    .from(users)
+    .where(eq(users.id, event.ownerId))
+    .limit(1);
 
   // RSVP counts from authenticated users
   const rsvpRows = await db
@@ -150,9 +162,9 @@ export default async function EventDetailPage({
 
     const memberNames = new Map<string, string>();
     for (const member of memberRows) {
-      memberNames.set(member.userId, member.name);
+      memberNames.set(member.userId, displayName(member.name));
     }
-    if (group) memberNames.set(group.ownerId, group.ownerName ?? "Unknown");
+    if (group) memberNames.set(group.ownerId, displayName(group.ownerName));
 
     const respondedUserIds = new Set(rsvpRows.map((row) => row.userId));
     notRsvpdMembers = Array.from(memberNames.entries())
@@ -167,6 +179,14 @@ export default async function EventDetailPage({
     .select()
     .from(guests)
     .where(eq(guests.eventId, event.id));
+
+  // Returning guest's current response (cookie-based), if any.
+  const cookieStoreForGuest = await cookies();
+  const guestTokenCookie = cookieStoreForGuest.get("guest_token")?.value;
+  const guestCurrentRow = guestTokenCookie
+    ? guestRows.find((r) => r.token === guestTokenCookie)
+    : null;
+  const guestCurrentStatus = (guestCurrentRow?.status ?? null) as RsvpStatus | null;
 
   const confirmedCount =
     rsvpRows.filter((r) => r.status === "in").length +
@@ -183,18 +203,18 @@ export default async function EventDetailPage({
 
   type RsvpDisplay = {
     name: string;
-    status: string;
+    status: RsvpStatus;
     isGuest: boolean;
   };
 
   const allRsvps: RsvpDisplay[] = [
     ...rsvpRows.map((r) => ({
-      name: r.userName ?? "Unknown",
+      name: displayName(r.userName),
       status: r.status,
       isGuest: false,
     })),
     ...guestRows.map((r) => ({
-      name: r.name,
+      name: displayName(r.name, "Guest"),
       status: r.status,
       isGuest: true,
     })),
@@ -218,9 +238,7 @@ export default async function EventDetailPage({
   return (
     <div className="flex min-h-svh flex-col">
       <header className="flex h-16 items-center justify-between">
-        <Link href="/" className="text-lg font-bold tracking-tight">
-          Minyan<span className="text-primary">Mate</span>
-        </Link>
+        <SiteLogo />
         <div className="flex items-center gap-2">
           <ThemeToggle />
         </div>
@@ -235,7 +253,9 @@ export default async function EventDetailPage({
                   {event.title ?? "Minyan"}
                 </CardTitle>
                 <div className="flex items-center gap-2">
-                  <CardDescription>Event details</CardDescription>
+                  <CardDescription>
+                    {isOwner ? "My Event Details" : "Event details"}
+                  </CardDescription>
                   {event.status === "cancelled" && (
                     <span className="bg-destructive/10 text-destructive rounded-full px-2 py-0.5 text-xs font-medium">
                       Cancelled
@@ -245,7 +265,7 @@ export default async function EventDetailPage({
               </div>
               <div className="flex items-center gap-2">
                 <CopyLinkButton />
-                {isOwner && (
+                {canManage && (
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/events/${event.id}/edit`}>
                       <Pencil className="size-4" />
@@ -291,6 +311,17 @@ export default async function EventDetailPage({
                 </div>
               </div>
 
+              <div className="flex items-start gap-3">
+                <UserRound className="text-muted-foreground mt-0.5 size-4 shrink-0" />
+                <div>
+                  <dt className="text-muted-foreground text-xs">Owner</dt>
+                  <dd>
+                    {displayName(owner?.name)}
+                    {isOwner && " (Me)"}
+                  </dd>
+                </div>
+              </div>
+
               {event.notes && (
                 <div className="flex items-start gap-3">
                   <StickyNote className="text-muted-foreground mt-0.5 size-4 shrink-0" />
@@ -329,7 +360,7 @@ export default async function EventDetailPage({
               ) : isAuthenticated ? (
                 <RsvpButtons eventId={event.id} currentStatus={userRsvp as RsvpStatus | null} />
               ) : (
-                <GuestRsvpButtons eventId={event.id} />
+                <GuestRsvpButtons eventId={event.id} currentStatus={guestCurrentStatus} />
               )}
             </div>
 
@@ -355,6 +386,9 @@ export default async function EventDetailPage({
                           (guest)
                         </span>
                       )}
+                      {!isAuthenticated && r.isGuest && event.status !== "cancelled" && (
+                        <ThisIsMeButton name={r.name} status={r.status} />
+                      )}
                       <span className="text-xs">
                         ({r.status === "in" ? "coming" : r.status === "maybe" ? "maybe" : "not coming"})
                       </span>
@@ -371,13 +405,13 @@ export default async function EventDetailPage({
                 </h3>
                 <ul className="list-inside list-disc text-sm text-muted-foreground">
                   {notRsvpdMembers.map((member) => (
-                    <li key={member.userId}>{member.name || "Unknown"}</li>
+                    <li key={member.userId}>{displayName(member.name)}</li>
                   ))}
                 </ul>
               </div>
             )}
 
-            {isOwner && event.status !== "cancelled" && (
+            {canManage && event.status !== "cancelled" && (
               <div className="border-t pt-4">
                 <CancelEventButton eventId={event.id} />
               </div>

@@ -37,7 +37,7 @@ Send push notifications when events reach quorum (minyan) or capacity (pickup ga
 
 ### Follow-up (2026-10-27): quorum/capacity notifications
 - Core: `packages/core/src/notifications.ts` provides milestone detection, dedupe keys, notification content (event name/time/location/count + deep link), and per-recipient preference filtering.
-- DB: `events.quorum_notified_at` tracks milestone notification; `group_members.notify_quorum`/`notify_reminders` store per-group preferences. Migration `0009_fixed_imperial_guard.sql`.
+- DB: `events.quorum_notified_at` tracks milestone notification; `group_members.notify_quorum`/`notify_reminders` store per-group preferences. Migration `0010_living_turbo.sql` (renumbered from the original `0009` after merging main's `0009_nostalgic_dracula`).
 - Web: RSVP (user + guest) and guest merge trigger `maybeNotifyQuorumReached`, which dedupes via `messages` and enqueues a `quorum_reached` job immediately.
 - Worker: handles `quorum_reached` jobs.
 - Spec acceptance criteria unchanged.
