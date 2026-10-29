@@ -68,3 +68,7 @@ The form should be fast and work well on mobile.
 - The event title was collected by the form but never written to the database — there was no `events.title` column. Added it in migration `0004_known_firebird`, and `createEvent` now inserts the submitted title.
 - The event detail page header and the `/my` feed cards now show the event title. Legacy rows created before this change fall back to "Minyan" because their `title` is `NULL`.
 - The "Type" field (minyan/pickup) was removed from the create form and its labels from the event page; all events are minyans. `events.type_tag` remains only for legacy rows and is no longer written by the app.
+
+### Follow-up (2026-10-29): owner shown on event details
+
+- `createEvent` already stored the signed-in creator in `events.owner_id`; the event detail page now displays that person as **Owner**.

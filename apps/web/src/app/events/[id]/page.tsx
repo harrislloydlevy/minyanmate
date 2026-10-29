@@ -9,6 +9,7 @@ import {
   Pencil,
   StickyNote,
   Tag,
+  UserRound,
   Users,
 } from "lucide-react";
 import { events, groupMembers, groups, rsvps, guests, users } from "@minyanmate/db/schema";
@@ -120,6 +121,12 @@ export default async function EventDetailPage({
   const canManage = session
     ? await canManageEvent(event, session.user.id)
     : false;
+
+  const [owner] = await db
+    .select({ name: users.name })
+    .from(users)
+    .where(eq(users.id, event.ownerId))
+    .limit(1);
 
   // RSVP counts from authenticated users
   const rsvpRows = await db
@@ -297,6 +304,14 @@ export default async function EventDetailPage({
                 <div>
                   <dt className="text-muted-foreground text-xs">Location</dt>
                   <dd>{event.locationText ?? "Not set"}</dd>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <UserRound className="text-muted-foreground mt-0.5 size-4 shrink-0" />
+                <div>
+                  <dt className="text-muted-foreground text-xs">Owner</dt>
+                  <dd>{owner?.name || "Unknown"}</dd>
                 </div>
               </div>
 
