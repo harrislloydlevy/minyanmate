@@ -3,7 +3,7 @@ import { asc, inArray } from "drizzle-orm";
 import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarPlus, UsersRound } from "lucide-react";
+import { CalendarPlus, ScrollText, UsersRound } from "lucide-react";
 import { groups } from "@minyanmate/db/schema";
 import { SignOutButton } from "./sign-out-button";
 import { ProfileForm } from "./profile-form";
@@ -21,6 +21,7 @@ import { needsName } from "@/lib/display-name";
 import { getUpcomingEventSummaries } from "@/lib/event-summaries";
 import { formatEventTime } from "@/lib/format-event";
 import { getMemberGroupIds } from "@/lib/group-membership";
+import { canViewMessageLog } from "@/lib/message-log-access";
 
 export const metadata: Metadata = {
   title: "My minyans",
@@ -36,6 +37,7 @@ export default async function MyPage() {
   const cookieStore = await cookies();
   const guestToken = session ? null : (cookieStore.get("guest_token")?.value ?? null);
   const guestName = session ? null : (cookieStore.get("guest_name")?.value ?? null);
+  const canViewLog = session ? await canViewMessageLog(session.user.id) : false;
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -146,6 +148,14 @@ export default async function MyPage() {
           </div>
           {session && (
             <div className="flex items-center gap-2">
+              {canViewLog && (
+                <Button asChild variant="outline">
+                  <Link href="/messages">
+                    <ScrollText className="size-4" />
+                    Message log
+                  </Link>
+                </Button>
+              )}
               <Button asChild variant="outline">
                 <Link href="/groups">
                   <UsersRound className="size-4" />

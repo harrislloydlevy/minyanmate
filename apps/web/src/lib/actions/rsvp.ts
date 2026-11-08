@@ -1,7 +1,7 @@
 "use server";
 
-import { and, asc, eq, isNotNull, sql } from "drizzle-orm";
-import { events, guests, rsvps, users } from "@minyanmate/db/schema";
+import { and, asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { events, guests, jobs, rsvps, users } from "@minyanmate/db/schema";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
@@ -51,6 +51,9 @@ export async function setRsvp(
         target: [rsvps.eventId, rsvps.userId],
         set: { status, updatedAt: sql`(unixepoch())` },
       });
+
+    // Trigger quorum/capacity notification if this RSVP pushed us over.
+    await maybeNotifyQuorumReached(eventId);
 
     return { success: true, status };
   } catch {
@@ -174,6 +177,9 @@ export async function setGuestRsvp(
       maxAge: 60 * 60 * 24 * 30,
     });
 
+    // Trigger quorum/capacity notification if this RSVP pushed us over.
+    await maybeNotifyQuorumReached(eventId);
+
     try {
       revalidatePath(`/events/${eventId}`);
     } catch {
@@ -212,8 +218,72 @@ export async function mergeGuestRsvps(): Promise<MergeGuestRsvpsResult> {
       currentName: session.user.name,
       phoneNumber: session.user.phoneNumber ?? undefined,
     });
+
+    // A sign-in can complete a minyan if the guest's RSVP was the last one
+    // needed. Notify after the merge so counts include the new rows.
+    for (const eventId of result.eventIds) {
+      await maybeNotifyQuorumReached(eventId);
+    }
+
     return { success: true, merged: result.merged };
   } catch {
     return { success: false, error: "An unexpected error occurred." };
+  }
+}
+
+/**
+ * Enqueues a durable quorum/capacity fan-out the first time an event's
+ * confirmed count reaches its target. The worker resolves recipients and
+ * writes one outbox row per attendee; the event flag makes the crossing
+ * one-shot even when two RSVPs happen close together.
+ */
+async function maybeNotifyQuorumReached(eventId: string): Promise<void> {
+  try {
+    const [event] = await db
+      .select()
+      .from(events)
+      .where(eq(events.id, eventId))
+      .limit(1);
+    if (!event) return;
+    if (event.quorumNotifiedAt) return;
+
+    const rsvpRows = await db
+      .select({ status: rsvps.status })
+      .from(rsvps)
+      .where(eq(rsvps.eventId, eventId));
+    const guestRows = await db
+      .select({ status: guests.status })
+      .from(guests)
+      .where(eq(guests.eventId, eventId));
+
+    const confirmedCount =
+      rsvpRows.filter((r) => r.status === "in").length +
+      guestRows.filter((r) => r.status === "in").length;
+
+    const target = event.quorumTarget ?? 0;
+    if (target > 0 && confirmedCount < target) return;
+
+    const now = new Date();
+    // Claim the milestone and enqueue the fan-out atomically. If another
+    // request won the race, the conditional update returns nothing.
+    await db.transaction((tx) => {
+      const claimed = tx
+        .update(events)
+        .set({ quorumNotifiedAt: now })
+        .where(and(eq(events.id, eventId), isNull(events.quorumNotifiedAt)))
+        .returning({ id: events.id })
+        .all();
+      if (claimed.length === 0) return;
+
+      tx.insert(jobs)
+        .values({
+          type: "quorum_reached",
+          payload: JSON.stringify({ eventId }),
+          runAt: now,
+        })
+        .run();
+    });
+  } catch {
+    // Never let notification triggering break an RSVP.
   }
 }

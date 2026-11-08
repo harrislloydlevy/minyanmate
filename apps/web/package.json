@@ -12,6 +12,7 @@
   "dependencies": {
     "@minyanmate/core": "workspace:*",
     "@minyanmate/db": "workspace:*",
+    "@minyanmate/messaging": "workspace:*",
     "@minyanmate/whatsapp": "workspace:*",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",

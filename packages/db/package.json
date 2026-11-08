@@ -12,7 +12,8 @@
     "migrate": "tsx src/migrate.ts",
     "studio": "drizzle-kit studio",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "tsx src/seed.ts"
   },
   "dependencies": {
     "@minyanmate/core": "workspace:*",

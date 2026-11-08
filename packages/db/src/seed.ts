@@ -12,6 +12,7 @@ import { fileURLToPath } from "node:url";
 import { createDb } from "./index";
 import { generateInstances } from "./generate-instances";
 import { minyans } from "./schema";
+import { seedQuorumTestData } from "./seed-quorum-data";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const migrationsFolder = path.join(here, "..", "drizzle");
@@ -229,6 +230,9 @@ async function main() {
   rsvpInsert.run(crypto.randomUUID(), eventYesterdayId, goldaId, "in");
 
   console.log("[seed] rsvps created: 13 entries across 4 events");
+
+  // Seed quorum-testing data (mixed guest/registered, 0-12 confirmed).
+  await seedQuorumTestData(sqlite, db);
 
   console.log("\n[seed] ✅ Done! You can now log in with any of these phone numbers:");
   console.log("       +61400000001 (Mordi)");

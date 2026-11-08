@@ -32,6 +32,9 @@ importers:
       '@minyanmate/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@minyanmate/messaging':
+        specifier: workspace:*
+        version: link:../../packages/messaging
       '@minyanmate/whatsapp':
         specifier: workspace:*
         version: link:../../packages/whatsapp
@@ -105,6 +108,9 @@ importers:
       '@minyanmate/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@minyanmate/messaging':
+        specifier: workspace:*
+        version: link:../../packages/messaging
       '@minyanmate/whatsapp':
         specifier: workspace:*
         version: link:../../packages/whatsapp
@@ -155,6 +161,31 @@ importers:
       tsx:
         specifier: ^4.20.0
         version: 4.23.13
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.7(@types/node@24.13.4)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.13)
+
+  packages/messaging:
+    dependencies:
+      '@minyanmate/core':
+        specifier: workspace:*
+        version: link:../core
+      '@minyanmate/db':
+        specifier: workspace:*
+        version: link:../db
+      '@minyanmate/whatsapp':
+        specifier: workspace:*
+        version: link:../whatsapp
+      drizzle-orm:
+        specifier: ^0.44.2
+        version: 0.44.7(@types/better-sqlite3@7.6.13)(better-sqlite3@12.11.1)(kysely@0.29.5)
+    devDependencies:
+      '@types/node':
+        specifier: ^24.0.0
+        version: 24.13.4
       typescript:
         specifier: ^5.8.3
         version: 5.9.3

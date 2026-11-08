@@ -143,6 +143,7 @@ See: https://developers.facebook.com/docs/whatsapp/pricing
 
 - Is `APP_ENV=production` set? Dev mode logs OTPs to the server console instead of sending.
 - Check the app logs for `[dev-otp]` — if you see this, the app is in dev mode.
+- Check `/messages`: every OTP attempt is recorded there with its channel, status, provider id and any transport error.
 - Is the `WHATSAPP_TOKEN` expired? Temporary tokens last 24 hours.
 - Is the recipient number registered in the WhatsApp API dashboard? Meta only sends to numbers you've added.
 

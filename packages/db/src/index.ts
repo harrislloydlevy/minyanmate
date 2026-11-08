@@ -6,6 +6,7 @@ import * as schema from "./schema";
 
 export * from "./schema";
 export * from "./generate-instances";
+export * from "./outbox";
 
 /** Walks up from `start` until it finds the pnpm workspace root. */
 export function findWorkspaceRoot(start: string = process.cwd()): string {

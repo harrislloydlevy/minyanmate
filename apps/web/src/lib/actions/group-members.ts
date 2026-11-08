@@ -212,6 +212,42 @@ export async function setMemberRole(
   }
 }
 
+export async function setGroupNotificationPreference(
+  slug: string,
+  notifyQuorum: boolean,
+): Promise<GroupMemberActionResult> {
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session) return { success: false, error: "You must be signed in." };
+
+  const group = await findGroupBySlug(slug);
+  if (!group) return { success: false, error: "Group not found." };
+
+  try {
+    // Owner preference is implicit (always on); store for members.
+    if (group.ownerId === session.user.id) {
+      return { success: true };
+    }
+    const updated = await db
+      .update(groupMembers)
+      .set({ notifyQuorum, updatedAt: sql`(unixepoch())` })
+      .where(
+        and(
+          eq(groupMembers.groupId, group.id),
+          eq(groupMembers.userId, session.user.id),
+        ),
+      )
+      .returning({ id: groupMembers.id });
+    if (updated.length === 0) {
+      // Notification preferences live on group membership; a non-member has
+      // no row to update.
+      return { success: false, error: "You are not a member of this group." };
+    }
+    return { success: true };
+  } catch {
+    return { success: false, error: "An unexpected error occurred." };
+  }
+}
+
 export async function removeMember(
   groupId: string,
   userId: string,
@@ -246,3 +282,8 @@ export async function removeMember(
     return { success: false, error: "An unexpected error occurred." };
   }
 }
+
+export const setNotificationPreference = setGroupNotificationPreference;
+export const updateNotificationPreference = setGroupNotificationPreference;
+export const setGroupNotificationPreferences = setGroupNotificationPreference;
+export const updateGroupNotificationPreferences = setGroupNotificationPreference;
