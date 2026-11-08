@@ -10,6 +10,7 @@ Coordinate minyans, RSVP from WhatsApp, never miss quorum. Greenfield rewrite of
 - **Web**: Next.js (App Router) + Tailwind v4 + shadcn-style UI, PWA-ready
 - **DB**: SQLite via Drizzle ORM (Postgres swap later) — `packages/db`
 - **Domain**: recurrence + quorum engine — `packages/core`
+- **Messaging**: outbox + pluggable transports (console/WhatsApp, SMS/email later) — `packages/messaging`
 - **WhatsApp**: Meta Cloud API client — `packages/whatsapp`
 - **Worker**: job queue poller (reminders, notifications) — `apps/worker`
 - **Auth**: Better Auth, phone-number OTP delivered via WhatsApp (dev: code in logs)
@@ -39,6 +40,8 @@ docker compose exec dev pnpm db:migrate    # apply migrations to data/dev.db
 ```
 
 Sign-in code for local dev is printed to the web logs as `[dev-otp]`. In development any code is accepted, so testing does not require copying the logged value; the logged code remains the real one. New accounts are asked for a display name before entering the app — phone numbers are identity data and are never used as display names.
+
+Every outbound message (quorum alerts and OTPs included) is written to the `messages` outbox as a request, then filled in with its delivery details. Each row keeps the requested channel/recipient/body separate from the sent channel/recipient/body, technique and provider ids, so you can see exactly what was asked for versus what actually happened. In development the default transport is `console`, so nothing leaves the machine and each send is logged as `[messaging:console]`. Inspect the whole log at `/messages` — it shows both sides, status, retry count and payloads. Production defaults to the WhatsApp transport; set `MESSAGING_CHANNEL` to override it when SMS/email adapters are added. Set `MESSAGING_DELIVERY_MODE=manual` for the worker to record requests without dispatching them; `/messages` then lets you fill in the sent side with a different channel, recipient, body or technique without sending anything.
 
 ## Quality gates
 
@@ -81,8 +84,9 @@ apps/
   web/        Next.js app (UI, Server Actions, WhatsApp webhook)
   worker/     background job runner
 packages/
-  core/       pure domain logic: schedules, quorum state machine
-  db/         Drizzle schema, migrations, SQLite client
+  core/       pure domain logic: schedules, quorum state machine, messaging types
+  db/         Drizzle schema, migrations, SQLite client, outbox queries
+  messaging/  outbox delivery, transport adapters and quorum fan-out
   whatsapp/   Meta WhatsApp Cloud API client + webhook helpers
 ```
 

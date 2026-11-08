@@ -1,7 +1,7 @@
 "use server";
 
-import { and, asc, eq, isNotNull, sql } from "drizzle-orm";
-import { events, guests, jobs, messages, rsvps, users } from "@minyanmate/db/schema";
+import { and, asc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { events, guests, jobs, rsvps, users } from "@minyanmate/db/schema";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
@@ -232,9 +232,10 @@ export async function mergeGuestRsvps(): Promise<MergeGuestRsvpsResult> {
 }
 
 /**
- * Sends (enqueues) a quorum/capacity-reached notification the first time an
- * event's confirmed count reaches its target. Deduplicated via the `messages`
- * table and `events.quorumNotifiedAt`.
+ * Enqueues a durable quorum/capacity fan-out the first time an event's
+ * confirmed count reaches its target. The worker resolves recipients and
+ * writes one outbox row per attendee; the event flag makes the crossing
+ * one-shot even when two RSVPs happen close together.
  */
 async function maybeNotifyQuorumReached(eventId: string): Promise<void> {
   try {
@@ -262,39 +263,25 @@ async function maybeNotifyQuorumReached(eventId: string): Promise<void> {
     const target = event.quorumTarget ?? 0;
     if (target > 0 && confirmedCount < target) return;
 
-    const dedupeKey = `quorum_reached:${eventId}`;
-    let inserted = false;
-    try {
-      await db.insert(messages).values({
-        userId: null,
-        eventId,
-        kind: "quorum_reached",
-        dedupeKey,
-        status: "queued",
-        payload: JSON.stringify({
-          eventId,
-          confirmedCount,
-          eventName: event.title,
-          eventTime: event.startsAt,
-          eventLocation: event.locationText,
-        }),
-      });
-      inserted = true;
-    } catch {
-      inserted = false;
-    }
+    const now = new Date();
+    // Claim the milestone and enqueue the fan-out atomically. If another
+    // request won the race, the conditional update returns nothing.
+    await db.transaction((tx) => {
+      const claimed = tx
+        .update(events)
+        .set({ quorumNotifiedAt: now })
+        .where(and(eq(events.id, eventId), isNull(events.quorumNotifiedAt)))
+        .returning({ id: events.id })
+        .all();
+      if (claimed.length === 0) return;
 
-    await db
-      .update(events)
-      .set({ quorumNotifiedAt: new Date() })
-      .where(eq(events.id, eventId));
-
-    if (!inserted) return;
-
-    await db.insert(jobs).values({
-      type: "quorum_reached",
-      payload: JSON.stringify({ eventId }),
-      runAt: new Date(),
+      tx.insert(jobs)
+        .values({
+          type: "quorum_reached",
+          payload: JSON.stringify({ eventId }),
+          runAt: now,
+        })
+        .run();
     });
   } catch {
     // Never let notification triggering break an RSVP.

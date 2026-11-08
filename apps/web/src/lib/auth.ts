@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { phoneNumber } from "better-auth/plugins";
+import { defaultMessageChannel } from "@minyanmate/core";
 import * as schema from "@minyanmate/db/schema";
 import { db } from "./db";
 
@@ -67,13 +68,35 @@ export const auth = betterAuth({
       sendOTP: async ({ phoneNumber: to, code }) => {
         if (!isProduction) {
           console.log(`[dev-otp] WhatsApp OTP for ${to}: ${code}`);
-          return;
         }
-        const { WhatsAppClient } = await import("@minyanmate/whatsapp");
-        await WhatsAppClient.fromEnv().sendText(
-          to,
-          `Your MinyanMate verification code is: ${code}`,
-        );
+
+        // OTPs go through the same outbox/audit layer as every other message.
+        // They are sent immediately (not left for the worker) because sign-in
+        // is waiting on delivery, but the attempt is still recorded.
+        const { enqueueOutboxMessage } = await import("@minyanmate/db");
+        const { deliverOutboxMessage } = await import("@minyanmate/messaging");
+        const { message } = await enqueueOutboxMessage(db, {
+          kind: "otp",
+          channel: defaultMessageChannel(),
+          deliveryMode: "auto",
+          recipient: to,
+          body: `Your MinyanMate verification code is: ${code}`,
+          payload: { purpose: "otp" },
+          maxAttempts: 1,
+          queueJob: false,
+        });
+        if (!message) {
+          throw new Error("Could not record the verification message.");
+        }
+
+        const result = await deliverOutboxMessage(db, message.id);
+        if (result.outcome !== "sent") {
+          throw new Error(
+            result.outcome === "failed"
+              ? `Could not send the verification code: ${result.error}`
+              : `Verification message was not sent (${result.outcome}).`,
+          );
+        }
       },
     }),
   ],

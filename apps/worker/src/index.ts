@@ -1,5 +1,6 @@
 import { and, asc, eq, lte, sql } from "drizzle-orm";
 import { createDb, jobs } from "@minyanmate/db";
+import { deliverOutboxMessage, fanOutQuorumNotifications } from "@minyanmate/messaging";
 
 /**
  * Minimal durable job worker.
@@ -56,13 +57,42 @@ function handleEventCancelled(payload: Record<string, unknown>): void {
  *
  * Enqueued by the web RSVP actions when an event's confirmed count first
  * reaches its quorum/capacity target. Payload: `{ eventId: string }`.
+ *
+ * Fan-out is idempotent: one outbox row per attendee, deduped by event+user.
  */
-function handleQuorumReached(payload: Record<string, unknown>): void {
+async function handleQuorumReached(payload: Record<string, unknown>): Promise<void> {
   const eventId = typeof payload.eventId === "string" ? payload.eventId : null;
+  if (!eventId) throw new Error("quorum_reached job is missing eventId");
+
+  const result = await fanOutQuorumNotifications(getHandle().db, eventId);
   console.log(
-    "[worker] quorum_reached: event=%s (fan-out to confirmed+maybe attendees)",
-    eventId ?? "<unknown>",
+    "[worker] quorum_reached: event=%s recorded=%d skipped=%d duplicates=%d",
+    eventId,
+    result.enqueued,
+    result.skipped,
+    result.duplicates,
   );
+}
+
+/**
+ * Job type: `deliver_message`
+ *
+ * One row per outbox message. The handler hands the message to the transport
+ * for its channel (console in development, WhatsApp in production, SMS/email
+ * when adapters are added) and records the outcome on the message row.
+ */
+async function handleDeliverMessage(payload: Record<string, unknown>): Promise<void> {
+  const messageId = typeof payload.messageId === "string" ? payload.messageId : null;
+  if (!messageId) throw new Error("deliver_message job is missing messageId");
+
+  const result = await deliverOutboxMessage(getHandle().db, messageId);
+  if (result.outcome === "failed") {
+    console.error(
+      "[worker] deliver_message: message=%s failed permanently: %s",
+      messageId,
+      result.error,
+    );
+  }
 }
 
 const handlers: Record<string, JobHandler> = {
@@ -70,6 +100,7 @@ const handlers: Record<string, JobHandler> = {
   event_edited: handleEventEdited,
   event_cancelled: handleEventCancelled,
   quorum_reached: handleQuorumReached,
+  deliver_message: handleDeliverMessage,
 };
 
 const POLL_INTERVAL_MS = 5_000;

@@ -1,5 +1,12 @@
 import { sql } from "drizzle-orm";
 import {
+  MESSAGE_CHANNELS,
+  MESSAGE_DELIVERY_MODES,
+  MESSAGE_KINDS,
+  MESSAGE_SENDERS,
+  MESSAGE_STATUSES,
+} from "@minyanmate/core";
+import {
   index,
   integer,
   sqliteTable,
@@ -255,7 +262,18 @@ export const guests = sqliteTable(
   (t) => [uniqueIndex("guests_event_token_uq").on(t.eventId, t.token)],
 );
 
-/** Outbound WhatsApp message log. Dedupe key prevents duplicate notifications. */
+/**
+ * Outbound message outbox and delivery log.
+ *
+ * Every message the system decides to send lands here first. The worker reads
+ * queued rows and hands them to the transport for their channel (WhatsApp now;
+ * SMS, email or anything else later). Keeping the log in the database means it
+ * can be inspected in development without sending anything, and audited in
+ * production.
+ *
+ * `dedupeKey` makes enqueueing idempotent (e.g. one quorum alert per attendee
+ * per event).
+ */
 export const messages = sqliteTable(
   "messages",
   {
@@ -266,28 +284,66 @@ export const messages = sqliteTable(
     eventId: text("event_id").references(() => events.id, {
       onDelete: "cascade",
     }),
-    kind: text("kind", {
-      enum: ["otp", "reminder", "quorum_reached", "quorum_lost", "rsvp_confirm", "custom"],
-    }).notNull(),
-    /** e.g. `quorum_reached:<eventId>` — at most one message per key. */
+    kind: text("kind", { enum: MESSAGE_KINDS }).notNull(),
+    /**
+     * `auto` dispatches the message through the worker; `manual` records the
+     * request only and leaves delivery for a human/testing step.
+     */
+    deliveryMode: text("delivery_mode", { enum: MESSAGE_DELIVERY_MODES })
+      .notNull()
+      .default("auto"),
+    /** When the app recorded its intent to send. */
+    requestedAt: integer("requested_at", { mode: "timestamp" }),
+    /** Requested delivery channel: WhatsApp today, with SMS/email/console later. */
+    channel: text("channel", { enum: MESSAGE_CHANNELS })
+      .notNull()
+      .default("whatsapp"),
+    /** Requested address: phone number, email, etc. */
+    recipient: text("recipient"),
+    /** Snapshot of the recipient's display name for the audit log. */
+    recipientName: text("recipient_name"),
+    subject: text("subject"),
+    /** Requested/rendered message body. Null for skipped rows. */
+    body: text("body"),
+    /** e.g. `quorum_reached:<eventId>:<userId>` — at most one message per key. */
     dedupeKey: text("dedupe_key"),
+    /** Groups messages produced by the same trigger (e.g. a quorum fan-out). */
+    batchId: text("batch_id"),
+    /** Actual channel/address/body used, filled when the message is sent. */
+    sentChannel: text("sent_channel", { enum: MESSAGE_CHANNELS }),
+    sentRecipient: text("sent_recipient"),
+    sentBody: text("sent_body"),
+    /** Concrete delivery method, e.g. `whatsapp:text` or `console`. */
+    technique: text("technique"),
+    /** Whether the worker or a human recorded the send. */
+    sentBy: text("sent_by", { enum: MESSAGE_SENDERS }),
+    /** Transport that handled the message (whatsapp, console, ...). */
+    provider: text("provider"),
+    /** Provider-side id returned after a successful send. */
+    providerMessageId: text("provider_message_id"),
+    /** Legacy WhatsApp-specific id; kept for existing rows. */
     waMessageId: text("wa_message_id"),
-    status: text("status", { enum: ["queued", "sent", "failed"] })
+    status: text("status", { enum: MESSAGE_STATUSES })
       .notNull()
       .default("queued"),
     error: text("error"),
-    /** JSON payload sent to the WhatsApp API (template params etc.). */
+    /** JSON payload passed to the transport / referenced by the log. */
     payload: text("payload"),
+    attempts: integer("attempts").notNull().default(0),
+    maxAttempts: integer("max_attempts").notNull().default(3),
     sentAt: integer("sent_at", { mode: "timestamp" }),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .default(sql`(unixepoch())`),
+    updatedAt: integer("updated_at", { mode: "timestamp" }),
   },
   (t) => [
     uniqueIndex("messages_dedupe_key_uq")
       .on(t.dedupeKey)
       .where(sql`dedupe_key is not null`),
     index("messages_user_idx").on(t.userId),
+    index("messages_status_created_idx").on(t.status, t.createdAt),
+    index("messages_batch_idx").on(t.batchId),
   ],
 );
 

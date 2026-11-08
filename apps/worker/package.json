@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@minyanmate/db": "workspace:*",
+    "@minyanmate/messaging": "workspace:*",
     "@minyanmate/whatsapp": "workspace:*",
     "drizzle-orm": "^0.44.2"
   },
