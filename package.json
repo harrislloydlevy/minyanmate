@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:generate": "pnpm --filter @minyanmate/db generate",
-    "db:migrate": "pnpm --filter @minyanmate/db migrate"
+    "db:migrate": "pnpm --filter @minyanmate/db migrate",
+    "db:seed": "pnpm --filter @minyanmate/db exec tsx src/seed.ts"
   },
   "devDependencies": {
     "eslint": "^9.30.0",

@@ -36,11 +36,11 @@ case "${1:-start}" in
     echo "▸ Ensuring DB directory exists..."
     mkdir -p "$(dirname "$DB_PATH")"
 
-    # Run migrations if the DB doesn't exist yet (first run)
+    # Seed (migrate + demo + quorum test data) if the DB doesn't exist yet (first run)
     if [ ! -f "$DB_PATH" ]; then
       echo "▸ Running DB migrations..."
       cd "$ROOT"
-      npx --yes pnpm@10.12.1 --filter @minyanmate/db exec tsx src/migrate.ts 2>&1 | tee -a "$LOG_FILE" || true
+      npx --yes pnpm@10.12.1 --filter @minyanmate/db exec tsx src/seed.ts 2>&1 | tee -a "$LOG_FILE" || true
     fi
 
     echo "▸ Starting MinyanMate on http://localhost:$PORT ..."
